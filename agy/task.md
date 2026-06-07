@@ -1,0 +1,32 @@
+# Task List - NormalCAD
+
+- `[x]` **Configuração Inicial do Projeto**
+  - `[x]` Criar o projeto Avalonia UI (`NormalCAD`) e adicionar o pacote NuGet `netDxf.netstandard`
+  - `[x]` Configurar a solução `.sln` e a estrutura de diretórios
+- `[x]` **Core Database (Estrutura AutoCAD .NET API)**
+  - `[x]` Criar `DBObject`, `ObjectId` e `Database`
+  - `[x]` Criar as tabelas de símbolos: `SymbolTable`, `BlockTable`, `BlockTableRecord`, `LayerTable` e `LayerTableRecord`
+  - `[x]` Criar o gerenciador de transações: `Transaction` e `TransactionManager`
+- `[x]` **Entidades CAD e Geometria**
+  - `[x]` Criar `Point3d`, `Vector3d` e classes auxiliares de matemática CAD
+  - `[x]` Criar `Entity` base com propriedades comuns (cor, camada)
+  - `[x]` Implementar entidades concretas: `Line`, `Circle`, `Arc`
+- `[x]` **Viewport e Navegação (View)**
+  - `[x]` Criar o custom control `CadViewport`
+  - `[x]` Implementar matrizes de transformação para Zoom e Pan infinitos
+  - `[x]` Desenhar a grade (Grid) e os eixos cartesianos
+  - `[x]` Desenhar as entidades usando primitivas de desenho (SkiaSharp via Avalonia `DrawingContext`)
+- `[x]` **Mecanismo de Snapping (Atração)**
+  - `[x]` Criar classe utilitária de snap geométrico (Endpoint, Midpoint, Center)
+  - `[x]` Implementar renderização de indicadores visuais de snap (caixa verde para Endpoint, triângulo para Midpoint, círculo para Center) no Viewport
+- `[x]` **Controller e Comandos (Controller)**
+  - `[x]` Criar `CadController` e a máquina de estados para ferramentas de desenho
+  - `[x]` Criar comandos de desenho: `DrawLineCommand`, `DrawCircleCommand`, e o comando de seleção `SelectCommand`
+- `[x]` **Interface Principal e Temas**
+  - `[x]` Criar painel lateral com lista de camadas (Layers) e propriedades dos objetos selecionados
+  - `[x]` Adicionar barra de ferramentas de desenho, botões de abrir/salvar e barra de status (coordenadas)
+  - `[x]` Configurar suporte a temas (com alternância Escuro/Claro dinâmica)
+- `[x]` **Serviço DXF**
+  - `[x]` Implementar `DxfService` para ler DXF (converter para nosso DB) e salvar DXF (converter de nosso DB)
+- `[x]` **Verificação e Testes**
+  - `[x]` Executar testes manuais de desenho, snapping, navegação e exportação DXF

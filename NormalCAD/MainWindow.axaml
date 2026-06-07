@@ -1,0 +1,126 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:NormalCAD.View.Controls"
+        xmlns:local="clr-namespace:NormalCAD"
+        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+        x:Class="NormalCAD.MainWindow"
+        Title="NormalCAD - Protótipo 2D CAD"
+        Background="#181818"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel>
+    <!-- BARRA DE MENU SUPERIOR -->
+    <Border Name="BorderTopBar" DockPanel.Dock="Top" Background="#2D2D2D" BorderBrush="#3D3D3D" BorderThickness="0,0,0,1" Height="45">
+      <DockPanel Margin="10,0">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+          <TextBlock Name="TxtLogo" Text="NormalCAD" Foreground="#007ACC" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,15,0"/>
+          <Button Name="BtnOpen" Content="Abrir DXF" Background="#3E3E3E" Foreground="White" BorderThickness="0" CornerRadius="4" Padding="10,5"/>
+          <Button Name="BtnSave" Content="Salvar DXF" Background="#3E3E3E" Foreground="White" BorderThickness="0" CornerRadius="4" Padding="10,5"/>
+        </StackPanel>
+        
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="10">
+          <Button Name="BtnTheme" Content="Alternar Tema" Background="#007ACC" Foreground="White" BorderThickness="0" CornerRadius="4" Padding="10,5"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- BARRA DE STATUS INFERIOR -->
+    <Border Name="BorderBottomBar" DockPanel.Dock="Bottom" Background="#2D2D2D" BorderBrush="#3D3D3D" BorderThickness="0,1,0,0" Height="30">
+      <Grid ColumnDefinitions="*,Auto,Auto" Margin="10,0">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="15">
+          <TextBlock Name="TxtActiveTool" Text="Ferramenta Ativa: Seleção" Foreground="#B0B0B0" FontSize="12"/>
+          <TextBlock Name="TxtSnapStatus" Text="Snap: Nenhum" Foreground="#B0B0B0" FontSize="12"/>
+        </StackPanel>
+        <TextBlock Grid.Column="2" Name="TxtCoordinates" Text="X: 0.0000, Y: 0.0000" Foreground="White" FontSize="12" VerticalAlignment="Center" FontWeight="SemiBold"/>
+      </Grid>
+    </Border>
+
+    <!-- BARRA DE FERRAMENTAS ESQUERDA -->
+    <Border Name="BorderLeftToolbar" DockPanel.Dock="Left" Width="70" Background="#252526" BorderBrush="#3D3D3D" BorderThickness="0,0,1,0">
+      <StackPanel Orientation="Vertical" Margin="5" Spacing="10">
+        <TextBlock Name="TxtToolsHeader" Text="FERRAM." Foreground="#808080" FontSize="9" HorizontalAlignment="Center" Margin="0,5,0,5" FontWeight="Bold"/>
+        <Button Name="BtnSelect" Content="Seleção" Width="60" Height="40" Background="#007ACC" Foreground="White" FontSize="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="4"/>
+        <Button Name="BtnDrawLine" Content="Linha" Width="60" Height="40" Background="#3E3E3E" Foreground="White" FontSize="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="4"/>
+        <Button Name="BtnDrawCircle" Content="Círculo" Width="60" Height="40" Background="#3E3E3E" Foreground="White" FontSize="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="4"/>
+        <Separator Background="#3D3D3D" Height="1"/>
+        <Button Name="BtnDelete" Content="Excluir" Width="60" Height="40" Background="#D13438" Foreground="White" FontSize="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="4"/>
+        <Button Name="BtnClearAll" Content="Limpar" Width="60" Height="40" Background="#3E3E3E" Foreground="White" FontSize="10" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="4"/>
+      </StackPanel>
+    </Border>
+
+    <!-- PAINEL DE PROPRIEDADES E CAMADAS DIREITA -->
+    <Border Name="BorderRightPanel" DockPanel.Dock="Right" Width="250" Background="#252526" BorderBrush="#3D3D3D" BorderThickness="1,0,0,0">
+      <TabControl Margin="5">
+        <!-- GUIA DE PROPRIEDADES -->
+        <TabItem Name="TabProps" Header="Propriedades" Foreground="White" FontSize="12">
+          <ScrollViewer Margin="0,10,0,0">
+            <StackPanel Spacing="10">
+              <TextBlock Name="TxtPropsTitle" Text="Nenhum objeto selecionado" Foreground="#808080" FontSize="13" FontStyle="Italic"/>
+              
+              <!-- Seção de propriedades visíveis dinamicamente -->
+              <StackPanel Name="PanelLineProps" IsVisible="False" Spacing="8">
+                <TextBlock Text="LINHA" Foreground="#007ACC" FontWeight="Bold" FontSize="11"/>
+                
+                <TextBlock Name="LblStartX" Text="Início X:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtLineStartX" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Name="LblStartY" Text="Início Y:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtLineStartY" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Name="LblEndX" Text="Fim X:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtLineEndX" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Name="LblEndY" Text="Fim Y:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtLineEndY" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+
+                <TextBlock Name="LblLineLayer" Text="Camada:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtLineLayer" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+              </StackPanel>
+
+              <StackPanel Name="PanelCircleProps" IsVisible="False" Spacing="8">
+                <TextBlock Text="CÍRCULO" Foreground="#007ACC" FontWeight="Bold" FontSize="11"/>
+                
+                <TextBlock Name="LblCenterX" Text="Centro X:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtCircleCenterX" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Name="LblCenterY" Text="Centro Y:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtCircleCenterY" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Name="LblRadius" Text="Raio:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtCircleRadius" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+
+                <TextBlock Name="LblCircleLayer" Text="Camada:" Foreground="Gray" FontSize="11"/>
+                <TextBox Name="TxtCircleLayer" IsReadOnly="True" Background="#333333" Foreground="White" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+        
+        <!-- GUIA DE CAMADAS -->
+        <TabItem Name="TabLayers" Header="Camadas" Foreground="White" FontSize="12">
+          <DockPanel Margin="0,10,0,0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="0,0,0,10">
+              <TextBox Name="TxtNewLayerName" PlaceholderText="Nova Camada..." Width="150" Height="28" Background="#333333" Foreground="White" BorderThickness="0" VerticalContentAlignment="Center"/>
+              <Button Name="BtnAddLayer" Content="+" Width="28" Height="28" Background="#007ACC" Foreground="White" CornerRadius="4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            </StackPanel>
+            <ListBox Name="LstLayers" Background="#1E1E1E" Foreground="White" BorderThickness="0" Height="400">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="local:LayerItem">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+                    <Rectangle Grid.Column="1" Width="12" Height="12" Fill="{Binding ColorBrush}" RadiusX="2" RadiusY="2" Margin="5,0"/>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </TabItem>
+      </TabControl>
+    </Border>
+
+    <!-- VIEWPORT CENTRAL -->
+    <controls:CadViewport Name="Viewport" />
+  </DockPanel>
+</Window>
