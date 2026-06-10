@@ -16,7 +16,7 @@ namespace NormalCAD
 {
     public partial class MainWindow : Window
     {
-        private CadController? _controller;
+        private readonly CadController? _controller;
         private bool _isLightTheme = false;
 
         public MainWindow()

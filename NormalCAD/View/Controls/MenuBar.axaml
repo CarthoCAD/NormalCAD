@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="NormalCAD.View.Controls.MenuBar">
+  <!-- BARRA DE MENU DROPDOWN-->
+    <Grid   Height="35" 
+            Background="#2D2D30" 
+            ColumnDefinitions="Auto, *, Auto">
+
+          <Menu Grid.Column="0" VerticalAlignment="Center" FontSize="12">
+              <MenuItem Foreground="White">
+                  <MenuItem.Header>
+                    <Image Source="avares://NormalCAD/Assets/normalcad.ico" Width="16" Height="16" Margin="0,0,5,0"/>
+                  </MenuItem.Header>
+                  <MenuItem Name="MenuItemConfig" Header="Configurações" />
+                  <Separator />
+                  <MenuItem Name="MenuItemChangeTheme" Header="Alterar Tema" />
+              </MenuItem>
+              <MenuItem Header="Arquivo" Foreground="White">
+                  <MenuItem Name="MenuItemOpenDXF" Header="Abrir DXF" />
+                  <MenuItem Name="MenuItemSaveDXF" Header="Salvar DXF" />
+                  <Separator />
+                  <MenuItem Name="MenuItemExit" Header="Sair" />
+              </MenuItem>
+              <MenuItem Header="Editar" Foreground="White">
+                  <MenuItem Name="MenuItemUndo" Header="Desfazer" />
+                  <MenuItem Name="MenuItemRedo" Header="Refazer" />
+              </MenuItem>
+              <MenuItem Header="Desenho" Foreground="White">
+                  <MenuItem Name="MenuItemAddLine" Header="Adicionar Linha" />
+                  <MenuItem Name="MenuItemAddCircle" Header="Adicionar Círculo" />
+              </MenuItem>
+              <MenuItem Header="Ajuda" Foreground="White">
+                  <MenuItem Name="MenuItemAbout" Header="Sobre" />
+              </MenuItem>
+          </Menu>
+
+          <TextBlock Grid.Column="1" 
+                      Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}" 
+                      Foreground="#CCCCCC" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center"
+                      FontSize="12"
+                      WindowDecorationProperties.ElementRole="TitleBar"
+                      IsHitTestVisible="False"/>
+
+          <Border Grid.Column="2" Width="140" IsHitTestVisible="False" />
+      </Grid>
+</UserControl>

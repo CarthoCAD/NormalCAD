@@ -6,11 +6,27 @@
         xmlns:local="clr-namespace:NormalCAD"
         mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
         x:Class="NormalCAD.MainWindow"
-        Title="NormalCAD - Protótipo 2D CAD"
+        Title="NormalCAD v0.1"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="35"
+        WindowDecorations="Full"
         Background="#181818"
         WindowStartupLocation="CenterScreen">
+  
+  <Window.Styles>
+		<Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+
+    <Style Selector="WindowDrawnDecorations /template/ Button#PART_FullScreenButton">
+      <Setter Property="IsVisible" Value="False" />
+      <Setter Property="Width" Value="0" />
+    </Style>
+	</Window.Styles>
 
   <DockPanel>
+    <!-- MENUBAR -->
+    <controls:MenuBar DockPanel.Dock="Top" />
     <!-- BARRA DE MENU SUPERIOR -->
     <Border Name="BorderTopBar" DockPanel.Dock="Top" Background="#2D2D2D" BorderBrush="#3D3D3D" BorderThickness="0,0,0,1" Height="45">
       <DockPanel Margin="10,0">
