@@ -28,7 +28,7 @@
     <!-- MENUBAR -->
     <controls:MenuBar DockPanel.Dock="Top" />
     <!-- BARRA DE MENU SUPERIOR -->
-    <Border Name="BorderTopBar" DockPanel.Dock="Top" Background="#2D2D2D" BorderBrush="#3D3D3D" BorderThickness="0,0,0,1" Height="45">
+    <Border Name="BorderTopBar" DockPanel.Dock="Top" Background="{DynamicResource Theme.TopBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="0,0,0,1" Height="45">
       <DockPanel Margin="10,0">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
           <TextBlock Name="TxtLogo" Text="NormalCAD" Foreground="#007ACC" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,15,0"/>
@@ -43,13 +43,13 @@
     </Border>
 
     <!-- BARRA DE STATUS INFERIOR -->
-    <Border Name="BorderBottomBar" DockPanel.Dock="Bottom" Background="#2D2D2D" BorderBrush="#3D3D3D" BorderThickness="0,1,0,0" Height="30">
+    <Border Name="BorderBottomBar" DockPanel.Dock="Bottom" Background="{DynamicResource Theme.BottomBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="0,1,0,0" Height="30">
       <Grid ColumnDefinitions="*,Auto,Auto" Margin="10,0">
         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="15">
-          <TextBlock Name="TxtActiveTool" Text="Ferramenta Ativa: Seleção" Foreground="#B0B0B0" FontSize="12"/>
-          <TextBlock Name="TxtSnapStatus" Text="Snap: Nenhum" Foreground="#B0B0B0" FontSize="12"/>
+          <TextBlock Name="TxtActiveTool" Text="Ferramenta Ativa: Seleção" Foreground="{DynamicResource Theme.Text}" FontSize="12"/>
+          <TextBlock Name="TxtSnapStatus" Text="Snap: Nenhum" Foreground="{DynamicResource Theme.TextSec}" FontSize="12"/>
         </StackPanel>
-        <TextBlock Grid.Column="2" Name="TxtCoordinates" Text="X: 0.0000, Y: 0.0000" Foreground="White" FontSize="12" VerticalAlignment="Center" FontWeight="SemiBold"/>
+        <TextBlock Grid.Column="2" Name="TxtCoordinates" Text="X: 0.0000, Y: 0.0000" Foreground="{DynamicResource Theme.Text}" FontSize="12" VerticalAlignment="Center" FontWeight="SemiBold"/>
       </Grid>
     </Border>
 

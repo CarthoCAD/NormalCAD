@@ -1,0 +1,45 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.ThemeDictionaries>
+
+        <ResourceDictionary x:Key="Light">
+
+            <Color x:Key="Color.PanelBg">#EAEAEA</Color>
+            <Color x:Key="Color.TopBarBg">#DCDCDC</Color>
+            <Color x:Key="Color.BottomBarBg">#DCDCDC</Color>
+            <Color x:Key="Color.Text">Black</Color>
+            <Color x:Key="Color.TextSec">DimGray</Color>
+            <Color x:Key="Color.TextBoxBg">White</Color>
+            <Color x:Key="Color.Border">#CCCCCC</Color>
+
+            <Color x:Key="Color.ViewportBg">#F5F5F5</Color>
+            <Color x:Key="Color.ViewportGrid">#E0E0E0</Color>
+            <Color x:Key="Color.ViewportAxisX">Red</Color>
+            <Color x:Key="Color.ViewportAxisY">Green</Color>
+            <Color x:Key="Color.ViewportSnap">Lime</Color>
+
+        </ResourceDictionary>
+        
+        <ResourceDictionary x:Key="Dark">
+
+            <Color x:Key="Color.PanelBg">#252526</Color>
+            <Color x:Key="Color.TopBarBg">#2D2D2D</Color>
+            <Color x:Key="Color.BottomBarBg">#2D2D2D</Color>
+            <Color x:Key="Color.Text">White</Color>
+            <Color x:Key="Color.TextSec">LightGray</Color>
+            <Color x:Key="Color.TextBoxBg">#333333</Color>
+            <Color x:Key="Color.Border">#3D3D3D</Color>
+
+            <Color x:Key="Color.ViewportBg">#181818</Color>
+            <Color x:Key="Color.ViewportGrid">#262626</Color>
+            <Color x:Key="Color.ViewportAxisX">Red</Color>
+            <Color x:Key="Color.ViewportAxisY">Green</Color>
+            <Color x:Key="Color.ViewportSnap">Lime</Color>
+
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

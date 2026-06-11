@@ -15,4 +15,5 @@ public partial class MenuBar : UserControl
     {
         AvaloniaXamlLoader.Load(this);
     }
+    
 }

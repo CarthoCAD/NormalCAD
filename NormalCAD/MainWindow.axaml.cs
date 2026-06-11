@@ -11,6 +11,8 @@ using NormalCAD.Core.Entities;
 using NormalCAD.Controller;
 using NormalCAD.Controller.Commands;
 using NormalCAD.Controller.Services;
+using Avalonia;
+using Avalonia.Styling;
 
 namespace NormalCAD
 {
@@ -316,6 +318,8 @@ namespace NormalCAD
 
         private void ApplyTheme(bool isLight)
         {
+            Application.Current!.RequestedThemeVariant = isLight ? ThemeVariant.Light : ThemeVariant.Dark;
+
             Viewport.IsLightTheme = isLight;
             
             var panelBg = isLight ? "#EAEAEA" : "#252526";

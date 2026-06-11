@@ -357,8 +357,8 @@ namespace NormalCAD.View.Controls
                 SweepDirection = SweepDirection.CounterClockwise // No CAD, o padrão do arco é anti-horário
             };
 
-            pathFigure.Segments.Add(arcSegment);
-            pathGeometry.Figures.Add(pathFigure);
+            pathFigure.Segments!.Add(arcSegment);
+            pathGeometry.Figures!.Add(pathFigure);
 
             return pathGeometry;
         }
@@ -380,9 +380,9 @@ namespace NormalCAD.View.Controls
             {
                 var geometry = new PathGeometry();
                 var figure = new PathFigure { StartPoint = new Point(screenSnap.X, screenSnap.Y - half), IsClosed = true };
-                figure.Segments.Add(new LineSegment { Point = new Point(screenSnap.X - half, screenSnap.Y + half) });
-                figure.Segments.Add(new LineSegment { Point = new Point(screenSnap.X + half, screenSnap.Y + half) });
-                geometry.Figures.Add(figure);
+                figure.Segments!.Add(new LineSegment { Point = new Point(screenSnap.X - half, screenSnap.Y + half) });
+                figure.Segments!.Add(new LineSegment { Point = new Point(screenSnap.X + half, screenSnap.Y + half) });
+                geometry.Figures!.Add(figure);
                 context.DrawGeometry(null, snapPen, geometry);
             }
             else if (ActiveSnapType == SnapType.Center)
