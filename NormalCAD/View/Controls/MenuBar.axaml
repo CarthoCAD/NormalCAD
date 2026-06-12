@@ -17,33 +17,7 @@
             ColumnDefinitions="Auto, *, Auto"
             WindowDecorationProperties.ElementRole="TitleBar">
 
-          <Menu Grid.Column="0" VerticalAlignment="Center" FontSize="12" WindowDecorationProperties.ElementRole="DecorationsElement">
-              <MenuItem>
-                  <MenuItem.Header>
-                    <Image Source="avares://NormalCAD/Assets/normalcad.ico" Width="20" Height="20"/>
-                  </MenuItem.Header>
-                  <MenuItem Name="MenuItemConfig" Header="Configurações" />
-                  <Separator />
-                  <MenuItem Name="MenuItemChangeTheme" Header="Alterar Tema" />
-              </MenuItem>
-              <MenuItem Header="Arquivo" Foreground="{DynamicResource Theme.Text}">
-                  <MenuItem Name="MenuItemOpenDXF" Header="Abrir DXF" />
-                  <MenuItem Name="MenuItemSaveDXF" Header="Salvar DXF" />
-                  <Separator />
-                  <MenuItem Name="MenuItemExit" Header="Sair" />
-              </MenuItem>
-              <MenuItem Header="Editar">
-                  <MenuItem Name="MenuItemUndo" Header="Desfazer" />
-                  <MenuItem Name="MenuItemRedo" Header="Refazer" />
-              </MenuItem>
-              <MenuItem Header="Desenho">
-                  <MenuItem Name="MenuItemAddLine" Header="Adicionar Linha" />
-                  <MenuItem Name="MenuItemAddCircle" Header="Adicionar Círculo" />
-              </MenuItem>
-              <MenuItem Header="Ajuda">
-                  <MenuItem Name="MenuItemAbout" Header="Sobre" />
-              </MenuItem>
-          </Menu>
+          <Menu x:Name="TopMenu" Grid.Column="0" VerticalAlignment="Center" FontSize="12" WindowDecorationProperties.ElementRole="DecorationsElement"/>
 
           <Panel Grid.Column="1">
                 <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}" 

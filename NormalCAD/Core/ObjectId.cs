@@ -13,7 +13,7 @@ namespace NormalCAD.Core
             Database = database;
         }
 
-        public static ObjectId Null => new ObjectId(0, null);
+        public static ObjectId Null => new ObjectId(0, null!);
 
         public bool IsNull => Value == 0;
 
