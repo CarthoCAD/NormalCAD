@@ -58,6 +58,7 @@ namespace NormalCAD.Controller
 
         public void CancelCurrentCommand()
         {
+            Viewport.SelectedEntityIds.Clear();
             SetCommand(new SelectCommand());
         }
 
@@ -73,7 +74,7 @@ namespace NormalCAD.Controller
 
         public void OnKeyDown(KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape || e.Key == Key.Return || e.Key == Key.Space)
             {
                 CancelCurrentCommand();
                 e.Handled = true;

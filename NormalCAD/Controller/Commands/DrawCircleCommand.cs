@@ -3,6 +3,7 @@ using NormalCAD.Core;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.Entities;
 using System;
+using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
 {
@@ -16,13 +17,17 @@ namespace NormalCAD.Controller.Commands
         public void Activate(CadController controller)
         {
             _controller = controller;
+            _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _center = null;
         }
 
         public void Deactivate()
         {
             if (_controller != null)
+            {
                 _controller.Viewport.ActiveCommandPreview = null;
+                _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
+            }
         }
 
         public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)

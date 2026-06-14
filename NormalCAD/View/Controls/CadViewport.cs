@@ -452,7 +452,7 @@ public class CadViewport : Control
         activeSnap = SnapType.None;
         snapPoint = Point3d.Origin;
 
-        if (Database == null)
+        if (Database == null || CurrentCursorState != CadCursorState.Crosshair)
             return ScreenToWorld(screenMousePos);
 
         double snapAperturePixels = 15;
