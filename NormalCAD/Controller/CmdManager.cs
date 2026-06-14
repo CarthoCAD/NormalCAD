@@ -1,18 +1,23 @@
+using System.Threading.Tasks;
+
 namespace NormalCAD.Controller
 {
     public class CmdManager(CadController cadController)
     {
-        private readonly CadController _cadController = cadController;
+        private readonly CadController _controller = cadController;
 
-        public void ExecuteCommand(string cmdName)
+        public async Task ExecuteCommand(string cmdName)
         {
             switch (cmdName)
             {
                 case "file.exit":
                     ExitCmd();
                     break;
+                case "change_theme":
+                    ToggleTheme();
+                    break;
                 default:
-                    ShowUnimplementedMessage(cmdName);
+                    await ShowUnimplementedMessage(cmdName);
                     break;
             }
         }
@@ -23,7 +28,19 @@ namespace NormalCAD.Controller
             window?.Close();
         }
 
-        private async void ShowUnimplementedMessage(string cmdName)
+        private void ToggleTheme()
+        {
+            var isLight = !_controller.IsLightTheme;
+            _controller!.IsLightTheme = isLight;
+
+            Avalonia.Application.Current!.RequestedThemeVariant = isLight ? Avalonia.Styling.ThemeVariant.Light : Avalonia.Styling.ThemeVariant.Dark;
+
+            _controller.Viewport.IsLightTheme = isLight;
+
+            _controller.Viewport.InvalidateVisual();
+        }
+
+        private async Task ShowUnimplementedMessage(string cmdName)
         {
             var window = (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             var dialog = new Avalonia.Controls.Window
@@ -34,7 +51,6 @@ namespace NormalCAD.Controller
                 Content = new Avalonia.Controls.TextBlock { Text = $"Command: {cmdName}" }
             };
             await dialog.ShowDialog(window!);
-            return;
         }
 
     }

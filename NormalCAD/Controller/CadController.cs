@@ -12,10 +12,12 @@ namespace NormalCAD.Controller
     {
         public Database Database { get; private set; }
         public CadViewport Viewport { get; }
+        public CmdManager CmdManager { get; }
 
         private ICadCommand? _activeCommand;
         public string ActiveLayer { get; set; } = "0";
         public EntityColor ActiveColor { get; set; } = EntityColor.ByLayer;
+        public bool IsLightTheme { get; set; } = false;
 
         public event Action? SelectionChanged;
         public event Action? DatabaseChanged;
@@ -27,6 +29,7 @@ namespace NormalCAD.Controller
             Viewport = viewport;
             Viewport.Database = database;
             Viewport.Controller = this;
+            CmdManager = new CmdManager(this);
 
             SetCommand(new SelectCommand());
         }

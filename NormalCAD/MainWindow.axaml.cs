@@ -19,20 +19,20 @@ namespace NormalCAD
     public partial class MainWindow : Window
     {
         private readonly CadController? _controller;
-        private bool _isLightTheme = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
             // Configura o banco de dados inicial e o controlador
-            var db = new Database();
-            _controller = new CadController(db, Viewport);
+            _controller = new CadController(new Database(), Viewport);
 
             // Assina os eventos do controlador
             _controller.SelectionChanged += OnSelectionChanged;
             _controller.DatabaseChanged += UpdateLayersList;
             _controller.ActiveCommandChanged += OnActiveCommandChanged;
+
+            MenuBar.Controller = _controller;
 
             // Fios de controle de eventos de mouse no viewport para atualizar coordenadas e snaps
             Viewport.PointerMoved += (s, e) =>
@@ -195,8 +195,8 @@ namespace NormalCAD
 
         private void BtnTheme_Click(object? sender, RoutedEventArgs e)
         {
-            _isLightTheme = !_isLightTheme;
-            ApplyTheme(_isLightTheme);
+            _controller!.IsLightTheme = !_controller.IsLightTheme;
+            ApplyTheme(_controller.IsLightTheme);
         }
 
         private void BtnAddLayer_Click(object? sender, RoutedEventArgs e)
@@ -333,9 +333,6 @@ namespace NormalCAD
             BorderTopBar.Background = new SolidColorBrush(Color.Parse(topBarBg));
             BorderTopBar.BorderBrush = new SolidColorBrush(Color.Parse(borderBrush));
             
-            BorderBottomBar.Background = new SolidColorBrush(Color.Parse(bottomBarBg));
-            BorderBottomBar.BorderBrush = new SolidColorBrush(Color.Parse(borderBrush));
-            
             BorderLeftToolbar.Background = new SolidColorBrush(Color.Parse(panelBg));
             BorderLeftToolbar.BorderBrush = new SolidColorBrush(Color.Parse(borderBrush));
             
@@ -343,9 +340,6 @@ namespace NormalCAD
             BorderRightPanel.BorderBrush = new SolidColorBrush(Color.Parse(borderBrush));
 
             TxtLogo.Foreground = isLight ? (IBrush)Brushes.DarkBlue : new SolidColorBrush(Color.Parse("#007ACC"));
-            TxtActiveTool.Foreground = secTextBrush;
-            TxtSnapStatus.Foreground = secTextBrush;
-            TxtCoordinates.Foreground = textBrush;
             TxtToolsHeader.Foreground = secTextBrush;
 
             TabProps.Foreground = textBrush;

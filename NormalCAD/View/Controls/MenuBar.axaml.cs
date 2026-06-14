@@ -9,7 +9,9 @@ namespace NormalCAD.View.Controls;
 
 public partial class MenuBar : UserControl
 {
-    private readonly Controller.CmdManager _cmdManager = new(null!); // Será injetado depois
+    public Controller.CadController? Controller { get; set; }
+
+
     public MenuBar()
     {
         InitializeComponent();
@@ -92,13 +94,13 @@ public partial class MenuBar : UserControl
         else if (entry.CommandName is not null)
         {
             item.Tag = entry.CommandName;
-            item.Click += (sender, e) =>
+            item.Click += async (sender, e) =>
             {
                 var item = sender as MenuItem;
                 var cmdName = item?.Tag as string;
                 if (cmdName is not null)
                 {
-                    _cmdManager.ExecuteCommand(cmdName);
+                    await Controller!.CmdManager.ExecuteCommand(cmdName);
                 }
             };
         }

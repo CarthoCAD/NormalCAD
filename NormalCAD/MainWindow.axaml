@@ -26,7 +26,7 @@
 
   <DockPanel>
     <!-- MENUBAR -->
-    <controls:MenuBar DockPanel.Dock="Top" />
+    <controls:MenuBar Name="MenuBar" DockPanel.Dock="Top" />
     <!-- BARRA DE MENU SUPERIOR -->
     <Border Name="BorderTopBar" DockPanel.Dock="Top" Background="{DynamicResource Theme.TopBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="0,0,0,1" Height="45">
       <DockPanel Margin="10,0">
