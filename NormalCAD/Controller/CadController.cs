@@ -13,8 +13,11 @@ namespace NormalCAD.Controller
         public Database Database { get; private set; }
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
+        public InputManager InputManager { get; }
 
         private ICadCommand? _activeCommand;
+        public ICadCommand? ActiveCommand => _activeCommand;
+
         public string ActiveLayer { get; set; } = "0";
         public EntityColor ActiveColor { get; set; } = EntityColor.ByLayer;
         public bool IsLightTheme { get; set; } = false;
@@ -30,8 +33,9 @@ namespace NormalCAD.Controller
             Viewport.Database = database;
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
+            InputManager = new InputManager(this);
 
-            SetCommand(new SelectCommand());
+            SetCommand(new BaseCommand());
         }
 
         public void SetDatabase(Database db)
@@ -40,7 +44,7 @@ namespace NormalCAD.Controller
             Viewport.Database = db;
             Viewport.SelectedEntityIds.Clear();
             Viewport.ActiveCommandPreview = null;
-            SetCommand(new SelectCommand());
+            SetCommand(new BaseCommand());
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
         }
@@ -59,30 +63,22 @@ namespace NormalCAD.Controller
         public void CancelCurrentCommand()
         {
             Viewport.SelectedEntityIds.Clear();
-            SetCommand(new SelectCommand());
+            SetCommand(new BaseCommand());
         }
 
         public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
         {
-            _activeCommand?.OnPointerPressed(worldPt, e);
+            InputManager.OnPointerPressed(worldPt, e);
         }
 
         public void OnPointerMoved(Point3d worldPt)
         {
-            _activeCommand?.OnPointerMoved(worldPt);
+            InputManager.OnPointerMoved(worldPt);
         }
 
         public void OnKeyDown(KeyEventArgs e)
         {
-            if (e.Key == Key.Escape || e.Key == Key.Return || e.Key == Key.Space)
-            {
-                CancelCurrentCommand();
-                e.Handled = true;
-            }
-            else
-            {
-                _activeCommand?.OnKeyDown(e);
-            }
+            InputManager.OnKeyDown(e);
         }
 
         public void NotifySelectionChanged()

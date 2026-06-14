@@ -32,6 +32,8 @@ public class CadViewport : Control
 
     public HashSet<ObjectId> SelectedEntityIds { get; } = new HashSet<ObjectId>();
     public Entity? ActiveCommandPreview { get; set; }
+    public Point? SelectionStartPoint { get; set; }
+    public Point? SelectionEndPoint { get; set; }
 
     public SnapType ActiveSnapType { get; private set; } = SnapType.None;
     public Point3d? ActiveSnapPoint { get; private set; }
@@ -193,6 +195,38 @@ public class CadViewport : Control
 
         // 7. Desenha o Cursor Customizado (CAD Style)
         DrawCadCursor(context);
+
+        // 8. Desenha o Retângulo de Seleção (Crossing / Window)
+        DrawSelectionBox(context);
+    }
+
+    private void DrawSelectionBox(DrawingContext context)
+    {
+        if (!SelectionStartPoint.HasValue || !SelectionEndPoint.HasValue) return;
+
+        var p1 = SelectionStartPoint.Value;
+        var p2 = SelectionEndPoint.Value;
+
+        var rect = new Rect(
+            Math.Min(p1.X, p2.X),
+            Math.Min(p1.Y, p2.Y),
+            Math.Abs(p1.X - p2.X),
+            Math.Abs(p1.Y - p2.Y)
+        );
+
+        bool isCrossing = p2.X < p1.X;
+
+        Color fillColor = isCrossing ? Color.FromArgb(40, 0, 204, 122) : Color.FromArgb(40, 0, 122, 204);
+        Color borderColor = isCrossing ? Color.FromRgb(0, 204, 122) : Color.FromRgb(0, 122, 204);
+
+        var brush = new SolidColorBrush(fillColor);
+        var pen = new Pen(new SolidColorBrush(borderColor), 1.0);
+        if (isCrossing)
+        {
+            pen.DashStyle = DashStyle.Dash;
+        }
+
+        context.DrawRectangle(brush, pen, rect);
     }
 
     private void DrawCadCursor(DrawingContext context)

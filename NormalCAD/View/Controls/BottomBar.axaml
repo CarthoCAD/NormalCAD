@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="NormalCAD.View.Controls.BottomBar">
+  <Border Background="{DynamicResource Theme.BottomBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="0,1,0,0" Height="30">
+    <Grid ColumnDefinitions="*,Auto,Auto" Margin="10,0">
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="15">
+        <TextBlock Name="TxtActiveTool" Text="Ferramenta Ativa: Seleção" Foreground="{DynamicResource Theme.Text}" FontSize="12"/>
+        <TextBlock Name="TxtSnapStatus" Text="Snap: Nenhum" Foreground="{DynamicResource Theme.TextSec}" FontSize="12"/>
+      </StackPanel>
+      <TextBlock Grid.Column="2" Name="TxtCoordinates" Text="X: 0.0000, Y: 0.0000" Foreground="{DynamicResource Theme.Text}" FontSize="12" VerticalAlignment="Center" FontWeight="SemiBold"/>
+    </Grid>
+  </Border>
+</UserControl>
