@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using NormalCAD.Core;
 using NormalCAD.Controller;
 using NormalCAD.View.Controls;
@@ -65,6 +64,28 @@ namespace NormalCAD
         {
             base.OnKeyDown(e);
             _controller?.OnKeyDown(e);
+        }
+
+        protected override void OnTextInput(TextInputEventArgs e)
+        {
+            base.OnTextInput(e);
+
+            if (string.IsNullOrEmpty(e.Text))
+                return;
+
+            var focused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+            if (focused is TextBox)
+                return;
+
+            var prompt = BottomBar.FindControl<TextBox>("TxtPrompt");
+            if (prompt != null)
+            {
+                prompt.Focus();
+                var caret = prompt.CaretIndex;
+                prompt.Text = prompt.Text?.Insert(caret, e.Text) ?? e.Text;
+                prompt.CaretIndex = caret + e.Text.Length;
+                e.Handled = true;
+            }
         }
     }
 }

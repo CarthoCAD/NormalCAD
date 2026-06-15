@@ -16,4 +16,7 @@
     <SolidColorBrush x:Key="Theme.ViewportAxisY" Color="{DynamicResource Color.ViewportAxisY}" />
     <SolidColorBrush x:Key="Theme.ViewportSnap" Color="{DynamicResource Color.ViewportSnap}" />
 
+    <SolidColorBrush x:Key="Theme.PopupBg" Color="{DynamicResource Color.PopupBg}" />
+    <SolidColorBrush x:Key="Theme.PopupText" Color="{DynamicResource Color.PopupText}" />
+
 </ResourceDictionary>

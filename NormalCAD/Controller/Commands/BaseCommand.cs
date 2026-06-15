@@ -14,7 +14,10 @@ namespace NormalCAD.Controller.Commands
         private CadController? _controller;
         private bool _isSelectingBox = false;
 
-        public string Name => "Seleção";
+        public string Name => "*BASECOMMAND";
+        public string LocalName => "CMD";
+        public string Alias => "";
+        public bool IsInternal => true;
 
         public void Activate(CadController controller)
         {
@@ -55,7 +58,6 @@ namespace NormalCAD.Controller.Commands
                 _isSelectingBox = false;
                 viewport.SelectionStartPoint = null;
                 viewport.SelectionEndPoint = null;
-                _controller.NotifySelectionChanged();
                 viewport.InvalidateVisual();
                 return;
             }
@@ -88,19 +90,18 @@ namespace NormalCAD.Controller.Commands
             {
                 if (!isCtrl)
                 {
-                    viewport.SelectedEntityIds.Clear();
+                    _controller.ClearSelection();
                 }
 
-                if (viewport.SelectedEntityIds.Contains(selectedId))
+                if (_controller.IsSelected(selectedId))
                 {
-                    viewport.SelectedEntityIds.Remove(selectedId);
+                    _controller.RemoveFromSelection(selectedId);
                 }
                 else
                 {
-                    viewport.SelectedEntityIds.Add(selectedId);
+                    _controller.AddToSelection(selectedId);
                 }
 
-                _controller.NotifySelectionChanged();
                 viewport.InvalidateVisual();
             }
             else
@@ -170,18 +171,18 @@ namespace NormalCAD.Controller.Commands
 
             if (!isCtrl)
             {
-                viewport.SelectedEntityIds.Clear();
+                _controller.ClearSelection();
             }
 
             foreach (var entId in toSelect)
             {
-                if (isCtrl && viewport.SelectedEntityIds.Contains(entId))
+                if (isCtrl && _controller.IsSelected(entId))
                 {
-                    viewport.SelectedEntityIds.Remove(entId);
+                    _controller.RemoveFromSelection(entId);
                 }
                 else
                 {
-                    viewport.SelectedEntityIds.Add(entId);
+                    _controller.AddToSelection(entId);
                 }
             }
         }

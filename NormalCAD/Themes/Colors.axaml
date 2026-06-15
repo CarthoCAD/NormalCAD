@@ -20,6 +20,9 @@
             <Color x:Key="Color.ViewportAxisY">Green</Color>
             <Color x:Key="Color.ViewportSnap">Lime</Color>
 
+            <Color x:Key="Color.PopupBg">#DCDCDC</Color>
+            <Color x:Key="Color.PopupText">DimGray</Color>
+
         </ResourceDictionary>
         
         <ResourceDictionary x:Key="Dark">
@@ -37,6 +40,9 @@
             <Color x:Key="Color.ViewportAxisX">Red</Color>
             <Color x:Key="Color.ViewportAxisY">Green</Color>
             <Color x:Key="Color.ViewportSnap">Lime</Color>
+
+            <Color x:Key="Color.PopupBg">#2D2D2D</Color>
+            <Color x:Key="Color.PopupText">LightGray</Color>
 
         </ResourceDictionary>
 

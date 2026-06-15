@@ -1,5 +1,6 @@
 using Avalonia.Input;
 using System;
+using System.Collections.Generic;
 using NormalCAD.Core;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.Entities;
@@ -22,6 +23,9 @@ namespace NormalCAD.Controller
         public EntityColor ActiveColor { get; set; } = EntityColor.ByLayer;
         public bool IsLightTheme { get; set; } = false;
 
+        private readonly HashSet<ObjectId> _selectedEntityIds = [];
+        public IReadOnlyCollection<ObjectId> SelectedEntityIds => _selectedEntityIds;
+
         public event Action? SelectionChanged;
         public event Action? DatabaseChanged;
         public event Action<string>? ActiveCommandChanged;
@@ -42,7 +46,7 @@ namespace NormalCAD.Controller
         {
             Database = db;
             Viewport.Database = db;
-            Viewport.SelectedEntityIds.Clear();
+            ClearSelection();
             Viewport.ActiveCommandPreview = null;
             SetCommand(new BaseCommand());
             DatabaseChanged?.Invoke();
@@ -56,14 +60,35 @@ namespace NormalCAD.Controller
             _activeCommand = command;
             _activeCommand.Activate(this);
             
-            ActiveCommandChanged?.Invoke(_activeCommand.Name);
+            InputManager.SetCurrentPrompt(_activeCommand.LocalName);
+            ActiveCommandChanged?.Invoke(_activeCommand.LocalName);
             Viewport.InvalidateVisual();
         }
 
         public void CancelCurrentCommand()
         {
-            Viewport.SelectedEntityIds.Clear();
+            ClearSelection();
             SetCommand(new BaseCommand());
+        }
+
+        public bool IsSelected(ObjectId id) => _selectedEntityIds.Contains(id);
+
+        public void AddToSelection(ObjectId id)
+        {
+            _selectedEntityIds.Add(id);
+            NotifySelectionChanged();
+        }
+
+        public void RemoveFromSelection(ObjectId id)
+        {
+            _selectedEntityIds.Remove(id);
+            NotifySelectionChanged();
+        }
+
+        public void ClearSelection()
+        {
+            _selectedEntityIds.Clear();
+            NotifySelectionChanged();
         }
 
         public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)

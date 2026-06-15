@@ -12,7 +12,10 @@ namespace NormalCAD.Controller.Commands
         private CadController? _controller;
         private Point3d? _center;
 
-        public string Name => "Desenhar Círculo";
+        public string Name => "_.CIRCLE";
+        public string LocalName => "CIRCLE";
+        public string Alias => "C,CI";
+        public bool IsInternal => false;
 
         public void Activate(CadController controller)
         {

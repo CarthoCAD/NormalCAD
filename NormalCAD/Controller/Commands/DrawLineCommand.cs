@@ -11,7 +11,10 @@ namespace NormalCAD.Controller.Commands
         private CadController? _controller;
         private Point3d? _startPoint;
 
-        public string Name => "Desenhar Linha";
+        public string Name => "_.LINE";
+        public string LocalName => "LINE";
+        public string Alias => "L";
+        public bool IsInternal => false;
 
         public void Activate(CadController controller)
         {

@@ -1,19 +1,19 @@
-using System.Collections.Generic;
 using Avalonia.Input;
 using NormalCAD.Core;
 using NormalCAD.Core.Geometry;
-using NormalCAD.Core.Entities;
 
 namespace NormalCAD.Controller.Commands
 {
     public class EraseCommand : ICadCommand
     {
-        public string Name => "Apagar";
+        public string Name => "_.ERASE";
+        public string LocalName => "ERASE";
+        public string Alias => "E";
+        public bool IsInternal => false;
 
         public void Activate(CadController controller)
         {
-            var viewport = controller.Viewport;
-            var selected = viewport.SelectedEntityIds;
+            var selected = controller.SelectedEntityIds;
 
             if (selected.Count > 0)
             {
@@ -33,12 +33,10 @@ namespace NormalCAD.Controller.Commands
                     trans.Commit();
                 }
 
-                selected.Clear();
-                controller.NotifySelectionChanged();
+                controller.ClearSelection();
                 controller.NotifyDatabaseChanged();
             }
 
-            // Retorna imediatamente para a ferramenta de seleção (BaseCommand)
             controller.SetCommand(new BaseCommand());
         }
 

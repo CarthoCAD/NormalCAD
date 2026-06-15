@@ -18,7 +18,7 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 
 - **Linha** — Desenho em cadeia (o final de uma linha é o início da próxima), com preview dinâmico tracejado durante o posicionamento.
 - **Círculo** — Definição por clique no centro e arrastar para ajustar o raio, com preview em tempo real.
-- **Seleção** — Clique para selecionar entidades individualmente; `Ctrl + Clique` para seleção múltipla acumulativa.
+- **Seleção** — Clique para selecionar entidades individualmente; `Ctrl + Clique` para seleção múltipla acumulativa. Arraste da esquerda→direita para Window Select ou direita→esquerda para Crossing Select. O conjunto de seleção é gerenciado pelo `CadController` com API dedicada (`AddToSelection`, `RemoveFromSelection`, `ClearSelection`, `IsSelected`).
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
 - **Limpar** — Botão para apagar todo o desenho atual.
 
@@ -44,18 +44,32 @@ Usando a biblioteca **netDxf** (versão 3.0.1, licença LGPL):
 - **Abrir DXF** — Importa linhas, círculos, arcos e polilinhas (`Polyline2D`). As polilinhas são decompostas automaticamente em segmentos de linhas simples. As camadas do arquivo DXF são recriadas no banco de dados interno.
 - **Salvar DXF** — Exporta o desenho atual para um arquivo `.dxf` compatível com AutoCAD, LibreCAD, QCAD e outros softwares CAD.
 
+### ⌨️ Linha de Comando Integrada (estilo AutoCAD)
+
+- **Prompt de Comandos** — `TextBox` na barra inferior: digite o nome ou alias de um comando e pressione `Enter` ou `Espaço` para executá-lo. `Escape` limpa a barra e cancela o comando ativo.
+- **Popup Flutuante** — Mensagens de feedback do sistema aparecem acima da barra de comando com animação de fade-in/fade-out, sobre o viewport.
+- **Prefixo Dinâmico** — O indicador à esquerda da caixa de texto (`CMD:`) atualiza automaticamente para o nome do comando ativo (ex: `LINE:`, `CIRCLE:`).
+- **Redirecionamento Automático** — Digitar qualquer caractere fora da caixa de comando move o foco automaticamente para ela.
+- **Aliases** — Cada comando registra automaticamente seus aliases (ex: `C` ou `CI` para `CIRCLE`). O `CmdManager` resolve aliases via descoberta por reflection.
+- **Histórico de Prompts** — O `InputManager` mantém os últimos 100 prompts/mensagens para consulta futura via `GetRecentPrompts()`.
+
 ### 🎨 Interface e Temas
 
 - **Painel de Propriedades** — Exibe as coordenadas e a camada da entidade selecionada em tempo real.
 - **Gerenciador de Camadas** — Cria e ativa camadas personalizadas com cores únicas.
-- **Barra de Status** — Coordenadas do cursor em espaço de mundo real e status do snap ativo.
-- **Alternância de Tema** — Suporte dinâmico a **Dark Mode** e **Light Mode** sem reinicialização.
+- **Barra de Status** — Coordenadas do cursor (mundo real), botão **Model**, prefixo de comando dinâmico e prompt de comandos com auto-foco/aliases.
+- **Popup de Feedback** — Mensagens do sistema com fade-in/fade-out animado sobre o viewport, estilizadas de acordo com o tema ativo.
+- **Alternância de Tema** — Suporte dinâmico a **Dark Mode** e **Light Mode** sem reinicialização, com recursos de cor (`Theme.PopupBg`, `Theme.PopupText`, etc.) definidos via dicionários `Colors.axaml` e `ThemeTokens.axaml`.
 
 ---
 
 ## Arquitetura (MVC)
 
 O projeto segue rigorosamente o padrão MVC e é organizado nos seguintes pacotes:
+
+**Registro automático de comandos:** O `CmdManager` utiliza **reflection** para descobrir automaticamente todas as classes que implementam `ICadCommand` no assembly. Para cada comando, registra entradas para seu `Name` (ex: `_.CIRCLE`), `LocalName` (ex: `CIRCLE`) e `Alias` (ex: `C,CI`), eliminando a necessidade de registro ou mapeamento manual de aliases.
+
+**Sistema de prompts:** O `InputManager` expõe `SetPromptMessage(string)` para feedback ao usuário (exibido no popup flutuante) e `SetCurrentPrompt(string)` para atualizar o prefixo da linha de comando conforme o comando ativo. O `CadController.SetCommand()` sincroniza automaticamente o `CurrentPrompt`. A `BottomBar` assina `CurrentPromptChanged` e `PromptMessageChanged` para manter a interface atualizada.
 
 ```bash
 NormalCAD/
@@ -83,20 +97,36 @@ NormalCAD/
     │
     ├── View/                          # VIEW — Interface Avalonia UI
     │   └── Controls/
-    │       └── CadViewport.cs         # Controle de renderização e navegação
+    │       ├── CadViewport.cs         # Controle de renderização e navegação
+    │       ├── BottomBar.axaml/.cs    # Barra de status, linha de comando e popup
+    │       ├── MenuBar.axaml/.cs      # Barra de menu superior
+    │       ├── PropertyPalette.axaml/.cs  # Painel de propriedades
+    │       └── LayerPalette.axaml/.cs     # Painel de camadas
     │
     ├── Controller/                    # CONTROLLER — Lógica e comandos
-    │   ├── CadController.cs           # Orquestrador central do MVC
+    │   ├── CadController.cs           # Orquestrador central do MVC + seleção
+    │   ├── InputManager.cs            # Gerenciador de entrada, prompts e CurrentPrompt
+    │   ├── CmdManager.cs              # Descoberta, registro e despacho de comandos
     │   ├── Commands/
-    │   │   ├── ICadCommand.cs         # Interface para ferramentas de desenho
-    │   │   ├── SelectCommand.cs       # Ferramenta de seleção
-    │   │   ├── DrawLineCommand.cs     # Ferramenta de linha
-    │   │   └── DrawCircleCommand.cs   # Ferramenta de círculo
+    │   │   ├── ICadCommand.cs         # Interface de comando (Name, LocalName, Alias, IsInternal)
+    │   │   ├── BaseCommand.cs         # Comando padrão de seleção (interno)
+    │   │   ├── DrawLineCommand.cs     # Ferramenta de linha (_.LINE)
+    │   │   ├── DrawCircleCommand.cs   # Ferramenta de círculo (_.CIRCLE)
+    │   │   ├── EraseCommand.cs        # Excluir selecionados (_.ERASE)
+    │   │   ├── CleanAllCommand.cs     # Limpar todo o desenho (_.CLEANALL)
+    │   │   ├── OpenDxfCommand.cs      # Abrir arquivo DXF (_.DXFIN)
+    │   │   ├── SaveDxfCommand.cs      # Salvar arquivo DXF (_.DXFOUT)
+    │   │   ├── ToggleThemeCommand.cs  # Alternar tema claro/escuro (_.THEME)
+    │   │   └── ExitCommand.cs         # Sair da aplicação (_.QUIT)
     │   └── Services/
     │       └── DxfService.cs          # Importação e exportação de DXF
     │
+    ├── Themes/                        # TEMAS — Recursos de cor
+    │   ├── Colors.axaml               # Definições de cores Light/Dark
+    │   └── ThemeTokens.axaml          # SolidColorBrush mapeados para Theme.*
+    │
     ├── MainWindow.axaml               # Layout principal da janela
-    ├── MainWindow.axaml.cs            # Código-behind da janela principal
+    ├── MainWindow.axaml.cs            # Código-behind + redirecionamento de teclas
     ├── App.axaml                      # Configuração da aplicação Avalonia
     └── Program.cs                     # Ponto de entrada da aplicação
 ```
@@ -153,15 +183,31 @@ dotnet build
 | --- | --- |
 | **Navegar (Pan)** | Arrastar com o botão do **meio** do mouse |
 | **Zoom** | Scroll do mouse (focado na posição do cursor) |
-| **Desenhar Linha** | Clicar em "Linha" e clicar dois pontos no viewport |
-| **Desenhar Círculo** | Clicar em "Círculo", clicar no centro, arrastar e clicar |
-| **Selecionar** | Clicar em "Seleção" e clicar em uma entidade |
-| **Seleção Múltipla** | `Ctrl + Clique` para acumular seleções |
-| **Excluir Selecionados** | Tecla `Delete` |
-| **Cancelar Ferramenta** | Tecla `Escape` |
-| **Abrir DXF** | Botão "Abrir DXF" no menu superior |
-| **Salvar DXF** | Botão "Salvar DXF" no menu superior |
-| **Alternar Tema** | Botão "Alternar Tema" no menu superior |
+| **Desenhar Linha** | Digitar `LINE` / `L` e clicar dois pontos, ou menu Draw → Line |
+| **Desenhar Círculo** | Digitar `CIRCLE` / `C` / `CI` e clicar centro + raio, ou menu Draw → Circle |
+| **Selecionar** | Clicar na entidade; `Ctrl + Clique` acumula seleções |
+| **Seleção por Janela** | Arrastar da esquerda → direita (Window) ou direita → esquerda (Crossing) |
+| **Excluir Selecionados** | Tecla `Delete` ou digitar `ERASE` / `E` |
+| **Cancelar / Voltar** | `Escape` (limpa prompt e volta à seleção) ou menu Edit → Select |
+| **Limpar Tudo** | Digitar `CLEANALL` / `CLA` ou menu Edit → Clean All |
+| **Abrir DXF** | Digitar `DXFIN` / `DXFI` ou menu File → Open |
+| **Salvar DXF** | Digitar `DXFOUT` / `DXFO` ou menu File → Save |
+| **Alternar Tema** | Digitar `THEME` / `TEMA` / `TH` ou menu → Change Theme |
+| **Sair** | Digitar `QUIT` / `EXIT` / `Q` ou menu File → Exit |
+| **Executar Comando** | Digitar nome/alias no prompt e pressionar `Enter` ou `Espaço` |
+
+### Tabela de Comandos e Aliases
+
+| Comando | Digite | Aliases |
+| --- | --- | --- |
+| Line | `LINE` | `L` |
+| Circle | `CIRCLE` | `C`, `CI` |
+| Erase | `ERASE` | `E` |
+| Clean All | `CLEANALL` | `CLA` |
+| Open DXF | `DXFIN` | `DXFI` |
+| Save DXF | `DXFOUT` | `DXFO` |
+| Toggle Theme | `THEME` | `TEMA`, `TH` |
+| Quit | `QUIT` | `EXIT`, `Q` |
 
 ---
 

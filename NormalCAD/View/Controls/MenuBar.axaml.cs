@@ -25,37 +25,36 @@ public partial class MenuBar : UserControl
 
     private static List<MenuEntry> GetMenuStructure() =>
     [
-        // MenuEntry(Header, CommandName, Icon, Children)
         new("Base", null, "avares://NormalCAD/Assets/normalcad.ico",
         [
-            new("Options", "options", null),
-            new(null, null, null), // separator
-            new("Change Theme", "change_theme", null)
+            new("Options", "OPTIONS", null),
+            new(null, null, null),
+            new("Change Theme", "THEME", null)
         ]),
         new("File", null, null,
         [
-            new("Open", "file.open", null),
-            new("Save", "file.save", null),
-            new(null, null, null), // separator
-            new("Exit", "file.exit", null)
+            new("Open", "DXFIN", null),
+            new("Save", "DXFOUT", null),
+            new(null, null, null),
+            new("Exit", "QUIT", null)
         ]),
         new("Edit", null, null,
         [
-            new("Undo", "edit.undo", null),
-            new("Redo", "edit.redo", null),
-            new(null, null, null), // separator
-            new("Select", "edit.select", null),
-            new("Erase", "edit.erase", null),
-            new("Clean All", "edit.clean_all", null)
+            new("Undo", "UNDO", null),
+            new("Redo", "REDO", null),
+            new(null, null, null),
+            new("Select", "SELECT", null),
+            new("Erase", "ERASE", null),
+            new("Clean All", "CLEANALL", null)
         ]),
         new("Draw", null, null,
         [
-            new("Line", "draw.line", null),
-            new("Circle", "draw.circle", null)
+            new("Line", "LINE", null),
+            new("Circle", "CIRCLE", null)
         ]),
         new("Help", null, null,
         [
-            new("About", "help.about", null)
+            new("About", "ABOUT", null)
         ])
     ];
 
@@ -94,13 +93,17 @@ public partial class MenuBar : UserControl
         else if (entry.CommandName is not null)
         {
             item.Tag = entry.CommandName;
-            item.Click += async (sender, e) =>
+            item.Click += (sender, e) =>
             {
                 var item = sender as MenuItem;
                 var cmdName = item?.Tag as string;
                 if (cmdName is not null)
                 {
-                    await Controller!.CmdManager.ExecuteCommand(cmdName);
+                    _ = Controller!.CmdManager.ExecuteCommand(cmdName);
+                }
+                else
+                {
+                    Controller?.CancelCurrentCommand();
                 }
             };
         }

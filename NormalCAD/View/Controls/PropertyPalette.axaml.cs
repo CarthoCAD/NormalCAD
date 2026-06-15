@@ -40,7 +40,7 @@ namespace NormalCAD.View.Controls
         private void OnSelectionChanged()
         {
             if (_controller == null) return;
-            var selectedIds = _controller.Viewport.SelectedEntityIds;
+            var selectedIds = _controller.SelectedEntityIds;
 
             var txtPropsTitle = this.FindControl<TextBlock>("TxtPropsTitle");
             var panelLineProps = this.FindControl<StackPanel>("PanelLineProps");

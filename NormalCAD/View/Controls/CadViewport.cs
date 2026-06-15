@@ -30,7 +30,6 @@ public class CadViewport : Control
     public Point3d WorldCenter { get; set; } = Point3d.Origin;
     public double Zoom { get; set; } = 1.0;
 
-    public HashSet<ObjectId> SelectedEntityIds { get; } = new HashSet<ObjectId>();
     public Entity? ActiveCommandPreview { get; set; }
     public Point? SelectionStartPoint { get; set; }
     public Point? SelectionEndPoint { get; set; }
@@ -50,6 +49,7 @@ public class CadViewport : Control
     {
         ClipToBounds = true;
         Focusable = true;
+        _currentMouseScreenPos = new Point(120, 120);
         UpdateSystemCursor();
     }
 
@@ -343,7 +343,7 @@ public class CadViewport : Control
                 {
                     if (Database.TryGetObject(entId, out var entObj) && entObj is Entity ent)
                     {
-                        DrawEntity(context, ent, SelectedEntityIds.Contains(entId));
+                        DrawEntity(context, ent, Controller?.IsSelected(entId) ?? false);
                     }
                 }
             }
