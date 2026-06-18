@@ -3,7 +3,6 @@ using NormalCAD.Core.Geometry;
 using ACadSharp;
 using ACadSharp.Tables;
 using CSMath;
-using AcadVPort = ACadSharp.Tables.VPort;
 
 namespace NormalCAD.Controller.Services.Converters
 {
@@ -12,14 +11,14 @@ namespace NormalCAD.Controller.Services.Converters
         public bool CanConvertToAcad => true;
         public bool CanConvertToNormal => true;
 
-        public AcadVPort ConvertToAcad(ViewportTableRecord source)
+        public ACadSharp.Tables.VPort ConvertToAcad(ViewportTableRecord source)
         {
-            var vp = new AcadVPort(source.Name);
+            var vp = new ACadSharp.Tables.VPort(source.Name);
             ApplyToAcad(source, vp);
             return vp;
         }
 
-        public void ApplyToAcad(ViewportTableRecord source, AcadVPort target)
+        public void ApplyToAcad(ViewportTableRecord source, ACadSharp.Tables.VPort target)
         {
             target.BottomLeft = new XY(-1, -1);
             target.TopRight = new XY(1, 1);
@@ -39,7 +38,7 @@ namespace NormalCAD.Controller.Services.Converters
             target.SnapSpacing = new XY(source.SnapSpacingX, source.SnapSpacingY);
         }
 
-        public ViewportTableRecord ConvertToNormal(AcadVPort source)
+        public ViewportTableRecord ConvertToNormal(ACadSharp.Tables.VPort source)
         {
             return new ViewportTableRecord(
                 source.Name,

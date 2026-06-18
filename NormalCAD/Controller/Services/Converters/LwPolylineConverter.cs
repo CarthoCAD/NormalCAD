@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using NormalCAD.Core.Entities;
 using NormalCAD.Core.Geometry;
-using AcadLwPolyline = ACadSharp.Entities.LwPolyline;
 
 namespace NormalCAD.Controller.Services.Converters
 {
@@ -10,7 +9,7 @@ namespace NormalCAD.Controller.Services.Converters
         public bool CanConvertToAcad => false;
         public bool CanConvertToNormal => true;
 
-        public IEnumerable<Line> ConvertToNormal(AcadLwPolyline source)
+        public IEnumerable<Line> ConvertToNormal(ACadSharp.Entities.LwPolyline source)
         {
             var lines = new List<Line>();
 

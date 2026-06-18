@@ -98,6 +98,21 @@ namespace NormalCAD.Controller
 
         public bool IsSelected(ObjectId id) => _selectedEntityIds.Contains(id);
 
+        public EntityColor GetResolvedColor()
+        {
+            if (!ActiveColor.IsByLayer)
+                return ActiveColor;
+
+            if (Database.TryGetObject(Database.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
+            {
+                var layerId = lt[ActiveLayer];
+                if (!layerId.IsNull)
+                    return lt.GetRecord(layerId).Color;
+            }
+
+            return EntityColor.White;
+        }
+
         public void AddToSelection(ObjectId id)
         {
             _selectedEntityIds.Add(id);

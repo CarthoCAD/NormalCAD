@@ -81,7 +81,7 @@ namespace NormalCAD.Controller.Commands
             _controller.Viewport.ActiveCommandPreview = new Circle(_center.Value, radius)
             {
                 Layer = _controller.ActiveLayer,
-                Color = _controller.ActiveColor
+                Color = _controller.GetResolvedColor()
             };
         }
 

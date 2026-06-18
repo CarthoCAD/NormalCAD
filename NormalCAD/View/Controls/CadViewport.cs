@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using NormalCAD.Core;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.Entities;
+using NormalCAD.View.Drawing;
 
 namespace NormalCAD.View.Controls;
 
@@ -55,6 +56,7 @@ public class CadViewport : Control
 
     private bool _isPanning = false;
     private Point _lastMousePos;
+    private readonly DrawingService _drawingService = new();
 
     static CadViewport()
     {
@@ -198,12 +200,15 @@ public class CadViewport : Control
         DrawSystemAxes(context);
 
         // 4. Desenha as Entidades do Banco de Dados
-        DrawDatabaseEntities(context);
+        if (Controller != null)
+            _drawingService.DrawDatabase(context, Controller, WorldToScreen, Zoom);
 
         // 5. Desenha o Preview do Comando Ativo
-        if (ActiveCommandPreview != null)
+        if (ActiveCommandPreview != null && Controller != null)
         {
-            DrawEntity(context, ActiveCommandPreview, isSelected: false, isPreview: true);
+            _drawingService.DrawEntity(context, ActiveCommandPreview, Controller,
+                                    isSelected: false, isPreview: true,
+                                    WorldToScreen, Zoom);
         }
 
         // 6. Desenha o Indicador de Snap
@@ -344,129 +349,6 @@ public class CadViewport : Control
             Point p2 = WorldToScreen(new Point3d(worldMax.X, 0));
             context.DrawLine(xAxisPen, p1, p2);
         }
-    }
-
-    private void DrawDatabaseEntities(DrawingContext context)
-    {
-        if (Database == null) return;
-
-        if (Database.TryGetObject(Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
-        {
-            var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-            if (!modelSpaceId.IsNull && Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-            {
-                foreach (var entId in btr.GetEntityIds())
-                {
-                    if (Database.TryGetObject(entId, out var entObj) && entObj is Entity ent)
-                    {
-                        DrawEntity(context, ent, Controller?.IsSelected(entId) ?? false);
-                    }
-                }
-            }
-        }
-    }
-
-    private void DrawEntity(DrawingContext context, Entity ent, bool isSelected, bool isPreview = false)
-    {
-        var baseColor = GetEntityRenderColor(ent);
-        Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
-        if (isPreview)
-        {
-            renderColor = Color.Parse("#FF9900");
-        }
-
-        var brush = new SolidColorBrush(renderColor);
-        var pen = new Pen(brush, isSelected ? 3.0 : (isPreview ? 1.0 : 1.5));
-        if (isPreview)
-        {
-            pen.DashStyle = DashStyle.Dash;
-        }
-
-        if (ent is Line line)
-        {
-            context.DrawLine(pen, WorldToScreen(line.StartPoint), WorldToScreen(line.EndPoint));
-        }
-        else if (ent is Circle circle)
-        {
-            context.DrawEllipse(null, pen, WorldToScreen(circle.Center), circle.Radius * Zoom, circle.Radius * Zoom);
-        }
-        else if (ent is Arc arc)
-        {
-            var arcGeom = CreateArcGeometry(WorldToScreen(arc.Center), arc.Radius * Zoom, arc.StartAngle, arc.EndAngle);
-            context.DrawGeometry(null, pen, arcGeom);
-        }
-    }
-
-    private Color GetEntityRenderColor(Entity ent)
-    {
-        EntityColor coreColor = ent.Color;
-        if (coreColor.IsByLayer && Database != null)
-        {
-            if (Database.TryGetObject(Database.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
-            {
-                var layerId = lt[ent.Layer];
-                if (!layerId.IsNull)
-                {
-                    var layer = lt.GetRecord(layerId);
-                    coreColor = layer.Color;
-                }
-            }
-        }
-
-        var final = Color.FromArgb(coreColor.A, coreColor.R, coreColor.G, coreColor.B);
-
-        if (IsLightTheme  && final == Colors.White)
-            return Colors.Black;
-
-        return final;
-    }
-
-    private Geometry CreateArcGeometry(Point center, double radius, double startAngleDeg, double endAngleDeg)
-    {
-        if (endAngleDeg < startAngleDeg)
-            endAngleDeg += 360.0;
-
-        double sweepAngle = endAngleDeg - startAngleDeg;
-        if (sweepAngle >= 360.0)
-        {
-            return new EllipseGeometry(new Rect(center.X - radius, center.Y - radius, radius * 2, radius * 2));
-        }
-
-        double startRad = startAngleDeg * Math.PI / 180.0;
-        double endRad = endAngleDeg * Math.PI / 180.0;
-
-        Point startPt = new Point(
-            center.X + radius * Math.Cos(startRad),
-            center.Y - radius * Math.Sin(startRad) // Y invertido para tela
-        );
-
-        Point endPt = new Point(
-            center.X + radius * Math.Cos(endRad),
-            center.Y - radius * Math.Sin(endRad) // Y invertido para tela
-        );
-
-        var pathGeometry = new PathGeometry();
-        var pathFigure = new PathFigure
-        {
-            StartPoint = startPt,
-            IsClosed = false
-        };
-
-        bool isLargeArc = sweepAngle > 180.0;
-
-        var arcSegment = new ArcSegment
-        {
-            Point = endPt,
-            Size = new Size(radius, radius),
-            RotationAngle = 0,
-            IsLargeArc = isLargeArc,
-            SweepDirection = SweepDirection.CounterClockwise // No CAD, o padrão do arco é anti-horário
-        };
-
-        pathFigure.Segments!.Add(arcSegment);
-        pathGeometry.Figures!.Add(pathFigure);
-
-        return pathGeometry;
     }
 
     private void DrawSnapIndicator(DrawingContext context)

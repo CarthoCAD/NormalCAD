@@ -3,17 +3,13 @@ using System.Collections.Generic;
 using NormalCAD.Core;
 using NormalCAD.Core.Entities;
 using ACadSharp;
-using AcadEntity = ACadSharp.Entities.Entity;
-using AcadLayer = ACadSharp.Tables.Layer;
-using AcadLwPolyline = ACadSharp.Entities.LwPolyline;
-using AcadVPort = ACadSharp.Tables.VPort;
 
 namespace NormalCAD.Controller.Services.Converters
 {
     public class ConverterService
     {
-        private readonly Dictionary<Type, Func<AcadEntity, NormalCAD.Core.Entity?>> _acadToNormal = new();
-        private readonly Dictionary<Type, Func<NormalCAD.Core.Entity, CadDocument, AcadEntity?>> _normalToAcad = new();
+        private readonly Dictionary<Type, Func<ACadSharp.Entities.Entity, NormalCAD.Core.Entity?>> _acadToNormal = new();
+        private readonly Dictionary<Type, Func<NormalCAD.Core.Entity, CadDocument, ACadSharp.Entities.Entity?>> _normalToAcad = new();
         private LayerConverter? _layerConverter;
         private LwPolylineConverter? _lwPolylineConverter;
         private VPortConverter? _vportConverter;
@@ -40,15 +36,15 @@ namespace NormalCAD.Controller.Services.Converters
 
         public void Register<TNormal, TAcad>(EntityConverter<TNormal, TAcad> converter)
             where TNormal : NormalCAD.Core.Entity
-            where TAcad : AcadEntity
+            where TAcad : ACadSharp.Entities.Entity
         {
             _acadToNormal[typeof(TAcad)] = source => converter.ConvertToNormal((TAcad)source);
             _normalToAcad[typeof(TNormal)] = (source, cd) => converter.ConvertToAcad((TNormal)source, cd);
         }
 
-        public NormalCAD.Core.Entity? ConvertToNormal(AcadEntity source)
+        public NormalCAD.Core.Entity? ConvertToNormal(ACadSharp.Entities.Entity source)
         {
-            if (_lwPolylineConverter != null && source is AcadLwPolyline lwPoly)
+            if (_lwPolylineConverter != null && source is ACadSharp.Entities.LwPolyline lwPoly)
                 return null;
 
             var type = source.GetType();
@@ -58,7 +54,7 @@ namespace NormalCAD.Controller.Services.Converters
             return null;
         }
 
-        public IEnumerable<NormalCAD.Core.Entities.Line> ConvertLwPolylineToNormal(AcadLwPolyline source)
+        public IEnumerable<NormalCAD.Core.Entities.Line> ConvertLwPolylineToNormal(ACadSharp.Entities.LwPolyline source)
         {
             if (_lwPolylineConverter == null)
                 return Array.Empty<NormalCAD.Core.Entities.Line>();
@@ -66,7 +62,7 @@ namespace NormalCAD.Controller.Services.Converters
             return _lwPolylineConverter.ConvertToNormal(source);
         }
 
-        public AcadEntity? ConvertToAcad(NormalCAD.Core.Entity source, CadDocument cadDoc)
+        public ACadSharp.Entities.Entity? ConvertToAcad(NormalCAD.Core.Entity source, CadDocument cadDoc)
         {
             var type = source.GetType();
             if (_normalToAcad.TryGetValue(type, out var converter))
@@ -75,27 +71,27 @@ namespace NormalCAD.Controller.Services.Converters
             return null;
         }
 
-        public LayerTableRecord? ConvertLayerToNormal(AcadLayer source)
+        public LayerTableRecord? ConvertLayerToNormal(ACadSharp.Tables.Layer source)
         {
             return _layerConverter?.ConvertToNormal(source);
         }
 
-        public AcadLayer? ConvertLayerToAcad(LayerTableRecord source)
+        public ACadSharp.Tables.Layer? ConvertLayerToAcad(LayerTableRecord source)
         {
             return _layerConverter?.ConvertToAcad(source);
         }
 
-        public ViewportTableRecord? ConvertVPortToNormal(AcadVPort source)
+        public ViewportTableRecord? ConvertVPortToNormal(ACadSharp.Tables.VPort source)
         {
             return _vportConverter?.ConvertToNormal(source);
         }
 
-        public AcadVPort? ConvertVPortToAcad(ViewportTableRecord source)
+        public ACadSharp.Tables.VPort? ConvertVPortToAcad(ViewportTableRecord source)
         {
             return _vportConverter?.ConvertToAcad(source);
         }
 
-        public void ApplyVPortToAcad(ViewportTableRecord source, AcadVPort target)
+        public void ApplyVPortToAcad(ViewportTableRecord source, ACadSharp.Tables.VPort target)
         {
             _vportConverter?.ApplyToAcad(source, target);
         }

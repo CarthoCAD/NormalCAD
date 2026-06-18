@@ -75,7 +75,7 @@ namespace NormalCAD.Controller.Commands
             _controller.Viewport.ActiveCommandPreview = new Line(_startPoint.Value, worldPt)
             {
                 Layer = _controller.ActiveLayer,
-                Color = _controller.ActiveColor
+                Color = _controller.GetResolvedColor()
             };
         }
 

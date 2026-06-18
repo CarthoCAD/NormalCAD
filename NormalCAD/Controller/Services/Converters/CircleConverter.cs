@@ -1,16 +1,15 @@
 using ACadSharp;
 using NormalCAD.Core.Entities;
 using NormalCAD.Core.Geometry;
-using AcadCircle = ACadSharp.Entities.Circle;
 using CSMath;
 
 namespace NormalCAD.Controller.Services.Converters
 {
-    public class CircleConverter : EntityConverter<Circle, AcadCircle>
+    public class CircleConverter : EntityConverter<Circle, ACadSharp.Entities.Circle>
     {
-        public override AcadCircle ConvertToAcad(Circle source, CadDocument cadDoc)
+        public override ACadSharp.Entities.Circle ConvertToAcad(Circle source, CadDocument cadDoc)
         {
-            var result = new AcadCircle(
+            var result = new ACadSharp.Entities.Circle(
                 new XYZ(source.Center.X, source.Center.Y, source.Center.Z),
                 source.Radius
             );
@@ -18,7 +17,7 @@ namespace NormalCAD.Controller.Services.Converters
             return result;
         }
 
-        public override Circle ConvertToNormal(AcadCircle source)
+        public override Circle ConvertToNormal(ACadSharp.Entities.Circle source)
         {
             var result = new Circle(
                 new Point3d(source.Center.X, source.Center.Y, source.Center.Z),

@@ -2,17 +2,15 @@ using System;
 using ACadSharp;
 using NormalCAD.Core.Entities;
 using NormalCAD.Core.Geometry;
-using AcadArc = ACadSharp.Entities.Arc;
 using CSMath;
 
 namespace NormalCAD.Controller.Services.Converters
 {
-    public class ArcConverter : EntityConverter<Arc, AcadArc>
+    public class ArcConverter : EntityConverter<Arc, ACadSharp.Entities.Arc>
     {
-        public override AcadArc ConvertToAcad(Arc source, CadDocument cadDoc)
+        public override ACadSharp.Entities.Arc ConvertToAcad(Arc source, CadDocument cadDoc)
         {
-            // NormalCAD usa graus, ACadSharp usa radianos
-            var result = new AcadArc(
+            var result = new ACadSharp.Entities.Arc(
                 new XYZ(source.Center.X, source.Center.Y, source.Center.Z),
                 source.Radius,
                 source.StartAngle * Math.PI / 180.0,
@@ -22,9 +20,8 @@ namespace NormalCAD.Controller.Services.Converters
             return result;
         }
 
-        public override Arc ConvertToNormal(AcadArc source)
+        public override Arc ConvertToNormal(ACadSharp.Entities.Arc source)
         {
-            // ACadSharp usa radianos, NormalCAD usa graus
             var result = new Arc(
                 new Point3d(source.Center.X, source.Center.Y, source.Center.Z),
                 source.Radius,

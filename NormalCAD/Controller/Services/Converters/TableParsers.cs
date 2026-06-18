@@ -2,7 +2,6 @@ using NormalCAD.Core;
 using NormalCAD.Core.Entities;
 using ACadSharp;
 using CadDocument = ACadSharp.CadDocument;
-using AcadLwPolyline = ACadSharp.Entities.LwPolyline;
 
 namespace NormalCAD.Controller.Services.Converters
 {
@@ -68,7 +67,7 @@ namespace NormalCAD.Controller.Services.Converters
 
             foreach (var acadEntity in cadDoc.Entities)
             {
-                if (acadEntity is AcadLwPolyline lwPoly)
+                if (acadEntity is ACadSharp.Entities.LwPolyline lwPoly)
                 {
                     foreach (var line in converters.ConvertLwPolylineToNormal(lwPoly))
                     {

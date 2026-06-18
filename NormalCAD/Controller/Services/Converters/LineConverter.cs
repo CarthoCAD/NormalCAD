@@ -1,16 +1,15 @@
 using ACadSharp;
 using NormalCAD.Core.Entities;
 using NormalCAD.Core.Geometry;
-using AcadLine = ACadSharp.Entities.Line;
 using CSMath;
 
 namespace NormalCAD.Controller.Services.Converters
 {
-    public class LineConverter : EntityConverter<Line, AcadLine>
+    public class LineConverter : EntityConverter<Line, ACadSharp.Entities.Line>
     {
-        public override AcadLine ConvertToAcad(Line source, CadDocument cadDoc)
+        public override ACadSharp.Entities.Line ConvertToAcad(Line source, CadDocument cadDoc)
         {
-            var result = new AcadLine(
+            var result = new ACadSharp.Entities.Line(
                 new XYZ(source.StartPoint.X, source.StartPoint.Y, source.StartPoint.Z),
                 new XYZ(source.EndPoint.X, source.EndPoint.Y, source.EndPoint.Z)
             );
@@ -18,7 +17,7 @@ namespace NormalCAD.Controller.Services.Converters
             return result;
         }
 
-        public override Line ConvertToNormal(AcadLine source)
+        public override Line ConvertToNormal(ACadSharp.Entities.Line source)
         {
             var result = new Line(
                 new Point3d(source.StartPoint.X, source.StartPoint.Y, source.StartPoint.Z),

@@ -1,5 +1,4 @@
 using NormalCAD.Core;
-using AcadLayer = ACadSharp.Tables.Layer;
 
 namespace NormalCAD.Controller.Services.Converters
 {
@@ -8,16 +7,16 @@ namespace NormalCAD.Controller.Services.Converters
         public bool CanConvertToAcad => true;
         public bool CanConvertToNormal => true;
 
-        public AcadLayer ConvertToAcad(LayerTableRecord source)
+        public ACadSharp.Tables.Layer ConvertToAcad(LayerTableRecord source)
         {
-            return new AcadLayer(source.Name)
+            return new ACadSharp.Tables.Layer(source.Name)
             {
                 Color = ColorConverter.FromEntityColor(source.Color),
                 IsOn = source.IsVisible
             };
         }
 
-        public LayerTableRecord ConvertToNormal(AcadLayer source)
+        public LayerTableRecord ConvertToNormal(ACadSharp.Tables.Layer source)
         {
             return new LayerTableRecord(source.Name, ColorConverter.ToEntityColor(source.Color))
             {
