@@ -18,6 +18,7 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 
 - **Linha** — Desenho em cadeia (o final de uma linha é o início da próxima), com preview dinâmico tracejado durante o posicionamento.
 - **Círculo** — Definição por clique no centro e arrastar para ajustar o raio, com preview em tempo real.
+- **Polilinha** — Cliques sucessivos adicionam vértices; `Enter` finaliza aberta, `C` finaliza fechada. Preview em tempo real com rubber-band até o cursor.
 - **Seleção** — Clique para selecionar entidades individualmente; `Ctrl + Clique` para seleção múltipla acumulativa. Arraste da esquerda→direita para Window Select ou direita→esquerda para Crossing Select. O conjunto de seleção é gerenciado pelo `CadController` com API dedicada (`AddToSelection`, `RemoveFromSelection`, `ClearSelection`, `IsSelected`).
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
 - **Limpar** — Botão para apagar todo o desenho atual.
@@ -26,8 +27,8 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 
 Atração automática do cursor a pontos notáveis de entidades existentes ao aproximar o mouse:
 
-- **Endpoint** — Extremidades de linhas e arcos (indicador: **caixa verde**).
-- **Midpoint** — Ponto médio de linhas (indicador: **triângulo verde**).
+- **Endpoint** — Extremidades de linhas, arcos e vértices de polilinhas (indicador: **caixa verde**).
+- **Midpoint** — Ponto médio de linhas e segmentos de polilinhas (indicador: **triângulo verde**).
 - **Center** — Centro de círculos e arcos (indicador: **círculo verde**).
 
 ### 🗺️ Viewport e Navegação
@@ -41,7 +42,7 @@ Atração automática do cursor a pontos notáveis de entidades existentes ao ap
 
 Usando a biblioteca **ACadSharp** (versão 3.6.29, licença MIT):
 
-- **Abrir DXF** — Importa linhas, círculos, arcos e polilinhas (`LwPolyline`/`Polyline2D`). As polilinhas são decompostas automaticamente em segmentos de linhas simples. As camadas e viewports do arquivo são recriadas no banco de dados interno.
+- **Abrir DXF** — Importa linhas, círculos, arcos e polilinhas (`LwPolyline`). As camadas e viewports do arquivo são recriadas no banco de dados interno. Polilinhas preservam sua estrutura de vértices e estado de fechamento.
 - **Salvar DXF** — Exporta o desenho atual para um arquivo `.dxf` compatível com AutoCAD, LibreCAD, QCAD e outros softwares CAD.
 - **Abrir DWG** — Suporte a leitura de arquivos `.dwg` nas versões R14 até 2020 (AC1014–AC1032). Versões não suportadas exibem mensagem informativa.
 - **Salvar DWG** — Exporta usando o formato AC1032 (AutoCAD 2018–2020), a versão mais suportada pelo ACadSharp.
@@ -100,12 +101,19 @@ NormalCAD/
     │       └── Vector3d.cs            # Vetor tridimensional
     │
     ├── View/                          # VIEW — Interface Avalonia UI
-    │   └── Controls/
-    │       ├── CadViewport.cs         # Controle de renderização e navegação
-    │       ├── BottomBar.axaml/.cs    # Barra de status, linha de comando e popup
-    │       ├── MenuBar.axaml/.cs      # Barra de menu superior
-    │       ├── PropertyPalette.axaml/.cs  # Painel de propriedades
-    │       └── LayerPalette.axaml/.cs     # Painel de camadas
+    │   ├── Controls/
+    │   │   ├── CadViewport.cs         # Controle de renderização e navegação
+    │   │   ├── BottomBar.axaml/.cs    # Barra de status, linha de comando e popup
+    │   │   ├── MenuBar.axaml/.cs      # Barra de menu superior
+    │   │   ├── PropertyPalette.axaml/.cs  # Painel de propriedades
+    │   │   └── LayerPalette.axaml/.cs     # Painel de camadas
+    │   └── Drawing/
+    │       ├── IEntityRenderer.cs     # Interface de renderização de entidade
+    │       ├── DrawingService.cs      # Registro de renderizadores + cache de cores por layer
+    │       ├── LineRenderer.cs        # Renderizador de linha
+    │       ├── CircleRenderer.cs      # Renderizador de círculo
+    │       ├── ArcRenderer.cs         # Renderizador de arco
+    │       └── PolylineRenderer.cs    # Renderizador de polilinha
     │
     ├── Controller/                    # CONTROLLER — Lógica e comandos
     │   ├── CadController.cs           # Orquestrador central do MVC + seleção
@@ -116,6 +124,7 @@ NormalCAD/
     │   │   ├── BaseCommand.cs         # Comando padrão de seleção (interno)
     │   │   ├── DrawLineCommand.cs     # Ferramenta de linha (_.LINE)
     │   │   ├── DrawCircleCommand.cs   # Ferramenta de círculo (_.CIRCLE)
+    │   │   ├── DrawPolylineCommand.cs # Ferramenta de polilinha (_.PLINE)
     │   │   ├── EraseCommand.cs        # Excluir selecionados (_.ERASE)
     │   │   ├── CleanAllCommand.cs     # Limpar todo o desenho (_.CLEANALL)
     │   │   ├── OpenDxfCommand.cs      # Abrir arquivo DXF (_.DXFIN)
@@ -133,7 +142,7 @@ NormalCAD/
     │           ├── LineConverter.cs       # Line ↔ ACadSharp.Line
     │           ├── CircleConverter.cs     # Circle ↔ ACadSharp.Circle
     │           ├── ArcConverter.cs        # Arc ↔ ACadSharp.Arc (graus ↔ radianos)
-    │           ├── LwPolylineConverter.cs # LwPolyline → IEnumerable<Line> (1:N)
+    │           ├── LwPolylineConverter.cs # LwPolyline ↔ ACadSharp.LwPolyline (bidirecional)
     │           ├── LayerConverter.cs      # LayerTableRecord ↔ ACadSharp.Layer
     │           ├── VPortConverter.cs      # ViewportTableRecord ↔ ACadSharp.VPort
     │           ├── ConverterService.cs    # Registro e despacho de conversores por tipo
@@ -203,6 +212,7 @@ dotnet build
 | **Zoom** | Scroll do mouse (focado na posição do cursor) |
 | **Desenhar Linha** | Digitar `LINE` / `L` e clicar dois pontos, ou menu Draw → Line |
 | **Desenhar Círculo** | Digitar `CIRCLE` / `C` / `CI` e clicar centro + raio, ou menu Draw → Circle |
+| **Desenhar Polilinha** | Digitar `PLINE` / `PL` e clicar vértices; `Enter` finaliza aberta, `C` finaliza fechada, ou menu Draw → Polyline |
 | **Selecionar** | Clicar na entidade; `Ctrl + Clique` acumula seleções |
 | **Seleção por Janela** | Arrastar da esquerda → direita (Window) ou direita → esquerda (Crossing) |
 | **Excluir Selecionados** | Tecla `Delete` ou digitar `ERASE` / `E` |
@@ -222,6 +232,7 @@ dotnet build
 | --- | --- | --- |
 | Line | `LINE` | `L` |
 | Circle | `CIRCLE` | `C`, `CI` |
+| Polyline | `PLINE` | `PL` |
 | Erase | `ERASE` | `E` |
 | Clean All | `CLEANALL` | `CLA` |
 | Open DXF | `DXFIN` | `DXFI` |

@@ -11,7 +11,6 @@ namespace NormalCAD.Controller.Services.Converters
         private readonly Dictionary<Type, Func<ACadSharp.Entities.Entity, NormalCAD.Core.Entity?>> _acadToNormal = new();
         private readonly Dictionary<Type, Func<NormalCAD.Core.Entity, CadDocument, ACadSharp.Entities.Entity?>> _normalToAcad = new();
         private LayerConverter? _layerConverter;
-        private LwPolylineConverter? _lwPolylineConverter;
         private VPortConverter? _vportConverter;
 
         public ConverterService()
@@ -19,19 +18,14 @@ namespace NormalCAD.Controller.Services.Converters
             Register(new LineConverter());
             Register(new CircleConverter());
             Register(new ArcConverter());
+            Register(new LwPolylineConverter());
             _layerConverter = new LayerConverter();
-            _lwPolylineConverter = new LwPolylineConverter();
             _vportConverter = new VPortConverter();
         }
 
         public void RegisterLayerConverter(LayerConverter converter)
         {
             _layerConverter = converter;
-        }
-
-        public void RegisterLwPolylineConverter(LwPolylineConverter converter)
-        {
-            _lwPolylineConverter = converter;
         }
 
         public void Register<TNormal, TAcad>(EntityConverter<TNormal, TAcad> converter)
@@ -44,22 +38,11 @@ namespace NormalCAD.Controller.Services.Converters
 
         public NormalCAD.Core.Entity? ConvertToNormal(ACadSharp.Entities.Entity source)
         {
-            if (_lwPolylineConverter != null && source is ACadSharp.Entities.LwPolyline lwPoly)
-                return null;
-
             var type = source.GetType();
             if (_acadToNormal.TryGetValue(type, out var converter))
                 return converter(source);
 
             return null;
-        }
-
-        public IEnumerable<NormalCAD.Core.Entities.Line> ConvertLwPolylineToNormal(ACadSharp.Entities.LwPolyline source)
-        {
-            if (_lwPolylineConverter == null)
-                return Array.Empty<NormalCAD.Core.Entities.Line>();
-
-            return _lwPolylineConverter.ConvertToNormal(source);
         }
 
         public ACadSharp.Entities.Entity? ConvertToAcad(NormalCAD.Core.Entity source, CadDocument cadDoc)

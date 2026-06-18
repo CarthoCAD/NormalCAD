@@ -14,6 +14,9 @@ namespace NormalCAD.Core
 
         public TransactionManager TransactionManager { get; }
 
+        public event Action? Changed;
+        public event Action? LayersChanged;
+
         public Database()
         {
             // O próprio banco de dados se registra
@@ -57,6 +60,16 @@ namespace NormalCAD.Core
         internal void RegisterObject(DBObject dbObj)
         {
             _objects[dbObj.ObjectId] = dbObj;
+        }
+
+        internal void RaiseChanged()
+        {
+            Changed?.Invoke();
+        }
+
+        internal void RaiseLayersChanged()
+        {
+            LayersChanged?.Invoke();
         }
 
         public DBObject GetObject(ObjectId id)

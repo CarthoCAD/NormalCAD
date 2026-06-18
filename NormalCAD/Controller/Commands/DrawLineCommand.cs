@@ -1,5 +1,4 @@
 using Avalonia.Input;
-using NormalCAD.Core;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.Entities;
 using NormalCAD.View.Controls;
@@ -42,28 +41,13 @@ namespace NormalCAD.Controller.Commands
             }
             else
             {
-                using (var trans = _controller.Database.TransactionManager.StartTransaction())
+                var line = new Line(_startPoint.Value, worldPt)
                 {
-                    if (_controller.Database.TryGetObject(_controller.Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
-                    {
-                        var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                        if (_controller.Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                        {
-                            var line = new Line(_startPoint.Value, worldPt)
-                            {
-                                Layer = _controller.ActiveLayer,
-                                Color = _controller.ActiveColor
-                            };
-                            btr.AppendEntity(line);
-                            trans.AddNewlyCreatedDBObject(line, true);
-                        }
-                    }
-                    trans.Commit();
-                }
+                    Layer = _controller.ActiveLayer,
+                    Color = _controller.ActiveColor
+                };
+                _controller.AddNewEntityToActiveSpace(line);
 
-                _controller.NotifyDatabaseChanged();
-
-                // AutoCAD-like chain drawing: o fim da linha anterior vira o início da próxima
                 _startPoint = worldPt;
             }
         }
@@ -75,7 +59,7 @@ namespace NormalCAD.Controller.Commands
             _controller.Viewport.ActiveCommandPreview = new Line(_startPoint.Value, worldPt)
             {
                 Layer = _controller.ActiveLayer,
-                Color = _controller.GetResolvedColor()
+                Color = _controller.ActiveColor
             };
         }
 

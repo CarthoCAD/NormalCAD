@@ -7,6 +7,7 @@ namespace NormalCAD.Core
     {
         private readonly Database _database;
         private readonly List<DBObject> _addedObjects = new List<DBObject>();
+        private readonly HashSet<DBObject> _modifiedObjects = new HashSet<DBObject>();
         private bool _isCommitted = false;
         private bool _isDisposed = false;
 
@@ -21,6 +22,7 @@ namespace NormalCAD.Core
             if (mode == OpenMode.ForWrite && !_isCommitted)
             {
                 obj.IsModified = true;
+                _modifiedObjects.Add(obj);
             }
             return obj;
         }
@@ -38,13 +40,28 @@ namespace NormalCAD.Core
         {
             if (_isCommitted) return;
             _isCommitted = true;
-            
+
+            bool layerModified = false;
+
             foreach (var obj in _addedObjects)
             {
                 obj.IsNewObject = false;
                 obj.IsModified = false;
+                if (obj is LayerTableRecord)
+                    layerModified = true;
             }
+
+            foreach (var obj in _modifiedObjects)
+            {
+                if (obj is LayerTableRecord)
+                    layerModified = true;
+            }
+
             _database.TransactionManager.EndTransaction(this);
+            _database.RaiseChanged();
+
+            if (layerModified)
+                _database.RaiseLayersChanged();
         }
 
         public void Abort()

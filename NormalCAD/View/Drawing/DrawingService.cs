@@ -10,12 +10,15 @@ namespace NormalCAD.View.Drawing
     public class DrawingService
     {
         private readonly Dictionary<Type, IEntityRenderer> _renderers = new();
+        private readonly Dictionary<string, Color> _layerColorCache = new(StringComparer.OrdinalIgnoreCase);
+        private bool _subscribed;
 
         public DrawingService()
         {
             Register<Line>(new LineRenderer());
             Register<Circle>(new CircleRenderer());
             Register<Arc>(new ArcRenderer());
+            Register<LwPolyline>(new PolylineRenderer());
         }
 
         public void Register<T>(IEntityRenderer renderer) where T : Entity
@@ -26,6 +29,8 @@ namespace NormalCAD.View.Drawing
         public void DrawDatabase(DrawingContext context, Controller.CadController controller,
                                   Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
+            EnsureSubscribed(controller);
+
             var db = controller.Database;
             if (!db.TryGetObject(db.BlockTableId, out var btObj) || btObj is not BlockTable bt)
                 return;
@@ -48,7 +53,9 @@ namespace NormalCAD.View.Drawing
                                bool isSelected, bool isPreview,
                                Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
-            var baseColor = GetEntityRenderColor(ent, controller.Database, controller.IsLightTheme);
+            EnsureSubscribed(controller);
+
+            var baseColor = ResolveEntityColor(ent, controller.Database, controller.IsLightTheme);
             Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
             if (isPreview)
                 renderColor = Color.Parse("#FF9900");
@@ -63,28 +70,46 @@ namespace NormalCAD.View.Drawing
                 renderer.Render(context, ent, pen, worldToScreen, zoom);
         }
 
-        private static Color GetEntityRenderColor(Entity ent, Database database, bool isLightTheme)
+        private void EnsureSubscribed(Controller.CadController controller)
         {
-            EntityColor coreColor = ent.Color;
-            if (coreColor.IsByLayer)
+            if (_subscribed) return;
+            _subscribed = true;
+            controller.Database.LayersChanged += OnLayersChanged;
+        }
+
+        private void OnLayersChanged()
+        {
+            _layerColorCache.Clear();
+        }
+
+        private Color ResolveEntityColor(Entity ent, Database database, bool isLightTheme)
+        {
+            if (!ent.Color.IsByLayer)
             {
+                var final = Color.FromArgb(ent.Color.A, ent.Color.R, ent.Color.G, ent.Color.B);
+                if (isLightTheme && final == Colors.White)
+                    return Colors.Black;
+                return final;
+            }
+
+            // ByLayer: check cache first
+            if (!_layerColorCache.TryGetValue(ent.Layer, out var cachedColor))
+            {
+                EntityColor coreColor = EntityColor.White;
                 if (database.TryGetObject(database.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
                 {
                     var layerId = lt[ent.Layer];
                     if (!layerId.IsNull)
-                    {
-                        var layer = lt.GetRecord(layerId);
-                        coreColor = layer.Color;
-                    }
+                        coreColor = lt.GetRecord(layerId).Color;
                 }
+                cachedColor = Color.FromArgb(coreColor.A, coreColor.R, coreColor.G, coreColor.B);
+                _layerColorCache[ent.Layer] = cachedColor;
             }
 
-            var final = Color.FromArgb(coreColor.A, coreColor.R, coreColor.G, coreColor.B);
-
-            if (isLightTheme && final == Colors.White)
+            if (isLightTheme && cachedColor == Colors.White)
                 return Colors.Black;
 
-            return final;
+            return cachedColor;
         }
     }
 }

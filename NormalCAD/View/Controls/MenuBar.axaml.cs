@@ -58,7 +58,8 @@ public partial class MenuBar : UserControl
         new("Draw", null, null,
         [
             new("Line", "LINE", null),
-            new("Circle", "CIRCLE", null)
+            new("Circle", "CIRCLE", null),
+            new("Polyline", "PLINE", null)
         ]),
         new("Help", null, null,
         [

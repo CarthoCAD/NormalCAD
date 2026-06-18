@@ -67,16 +67,6 @@ namespace NormalCAD.Controller.Services.Converters
 
             foreach (var acadEntity in cadDoc.Entities)
             {
-                if (acadEntity is ACadSharp.Entities.LwPolyline lwPoly)
-                {
-                    foreach (var line in converters.ConvertLwPolylineToNormal(lwPoly))
-                    {
-                        btr.AppendEntity(line);
-                        trans.AddNewlyCreatedDBObject(line, true);
-                    }
-                    continue;
-                }
-
                 var normalEntity = converters.ConvertToNormal(acadEntity);
                 if (normalEntity == null) continue;
 

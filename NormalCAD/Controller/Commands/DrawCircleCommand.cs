@@ -1,5 +1,4 @@
 using Avalonia.Input;
-using NormalCAD.Core;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.Entities;
 using System;
@@ -46,26 +45,12 @@ namespace NormalCAD.Controller.Commands
                 double radius = _center.Value.DistanceTo(worldPt);
                 if (radius > 1e-6)
                 {
-                    using (var trans = _controller.Database.TransactionManager.StartTransaction())
+                    var circle = new Circle(_center.Value, radius)
                     {
-                        if (_controller.Database.TryGetObject(_controller.Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
-                        {
-                            var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                            if (_controller.Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                            {
-                                var circle = new Circle(_center.Value, radius)
-                                {
-                                    Layer = _controller.ActiveLayer,
-                                    Color = _controller.ActiveColor
-                                };
-                                btr.AppendEntity(circle);
-                                trans.AddNewlyCreatedDBObject(circle, true);
-                            }
-                        }
-                        trans.Commit();
-                    }
-
-                    _controller.NotifyDatabaseChanged();
+                        Layer = _controller.ActiveLayer,
+                        Color = _controller.ActiveColor
+                    };
+                    _controller.AddNewEntityToActiveSpace(circle);
                 }
 
                 _center = null;
@@ -81,7 +66,7 @@ namespace NormalCAD.Controller.Commands
             _controller.Viewport.ActiveCommandPreview = new Circle(_center.Value, radius)
             {
                 Layer = _controller.ActiveLayer,
-                Color = _controller.GetResolvedColor()
+                Color = _controller.ActiveColor
             };
         }
 

@@ -34,18 +34,27 @@ namespace NormalCAD.Controller
         {
             Database = database;
             Viewport = viewport;
-            Viewport.Database = database;
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
 
+            database.Changed += OnDatabaseChanged;
+
             SetCommand(new BaseCommand());
+        }
+
+        private void OnDatabaseChanged()
+        {
+            DatabaseChanged?.Invoke();
+            Viewport.InvalidateVisual();
         }
 
         public void SetDatabase(Database db)
         {
+            Database.Changed -= OnDatabaseChanged;
             Database = db;
-            Viewport.Database = db;
+            Database.Changed += OnDatabaseChanged;
+
             ClearSelection();
             Viewport.ActiveCommandPreview = null;
             SetCommand(new BaseCommand());
@@ -98,19 +107,21 @@ namespace NormalCAD.Controller
 
         public bool IsSelected(ObjectId id) => _selectedEntityIds.Contains(id);
 
-        public EntityColor GetResolvedColor()
+        public void AddNewEntityToActiveSpace(Entity entity)
         {
-            if (!ActiveColor.IsByLayer)
-                return ActiveColor;
-
-            if (Database.TryGetObject(Database.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
+            using (var trans = Database.TransactionManager.StartTransaction())
             {
-                var layerId = lt[ActiveLayer];
-                if (!layerId.IsNull)
-                    return lt.GetRecord(layerId).Color;
+                if (Database.TryGetObject(Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
+                {
+                    var modelSpaceId = bt[BlockTableRecord.ModelSpace];
+                    if (Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
+                    {
+                        btr.AppendEntity(entity);
+                        trans.AddNewlyCreatedDBObject(entity, true);
+                    }
+                }
+                trans.Commit();
             }
-
-            return EntityColor.White;
         }
 
         public void AddToSelection(ObjectId id)
@@ -149,12 +160,6 @@ namespace NormalCAD.Controller
         public void NotifySelectionChanged()
         {
             SelectionChanged?.Invoke();
-        }
-
-        public void NotifyDatabaseChanged()
-        {
-            DatabaseChanged?.Invoke();
-            Viewport.InvalidateVisual();
         }
     }
 }

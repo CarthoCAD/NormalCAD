@@ -34,7 +34,6 @@ namespace NormalCAD.Controller.Commands
                 }
 
                 controller.ClearSelection();
-                controller.NotifyDatabaseChanged();
             }
 
             controller.SetCommand(new BaseCommand());

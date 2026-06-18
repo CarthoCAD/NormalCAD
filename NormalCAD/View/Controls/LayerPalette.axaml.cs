@@ -101,7 +101,6 @@ namespace NormalCAD.View.Controls
                         trans.Commit();
                     }
                     txtNewLayerName.Text = "";
-                    _controller.NotifyDatabaseChanged();
                 }
                 catch (Exception ex)
                 {

@@ -1,53 +1,36 @@
 using System.Collections.Generic;
+using ACadSharp;
 using NormalCAD.Core.Entities;
 using NormalCAD.Core.Geometry;
+using CSMath;
 
 namespace NormalCAD.Controller.Services.Converters
 {
-    public class LwPolylineConverter : IConverter
+    public class LwPolylineConverter : EntityConverter<LwPolyline, ACadSharp.Entities.LwPolyline>
     {
-        public bool CanConvertToAcad => false;
-        public bool CanConvertToNormal => true;
-
-        public IEnumerable<Line> ConvertToNormal(ACadSharp.Entities.LwPolyline source)
+        public override ACadSharp.Entities.LwPolyline ConvertToAcad(LwPolyline source, CadDocument cadDoc)
         {
-            var lines = new List<Line>();
+            var vertices = new List<ACadSharp.Entities.LwPolyline.Vertex>();
+            foreach (var pt in source.Vertices)
+                vertices.Add(new ACadSharp.Entities.LwPolyline.Vertex(new XY(pt.X, pt.Y)));
 
-            if (source.Vertices.Count < 2)
-                return lines;
-
-            var layerName = source.Layer?.Name ?? "0";
-            var entityColor = ColorConverter.ToEntityColor(source.Color);
-
-            for (int i = 0; i < source.Vertices.Count - 1; i++)
+            var result = new ACadSharp.Entities.LwPolyline(vertices)
             {
-                var v1 = source.Vertices[i];
-                var v2 = source.Vertices[i + 1];
-                lines.Add(new Line(
-                    new Point3d(v1.Location.X, v1.Location.Y, 0.0),
-                    new Point3d(v2.Location.X, v2.Location.Y, 0.0)
-                )
-                {
-                    Layer = layerName,
-                    Color = entityColor
-                });
-            }
+                IsClosed = source.IsClosed
+            };
+            ApplyLayerAndColorToAcad(result, source, cadDoc);
+            return result;
+        }
 
-            if (source.IsClosed)
-            {
-                var vLast = source.Vertices[source.Vertices.Count - 1];
-                var vFirst = source.Vertices[0];
-                lines.Add(new Line(
-                    new Point3d(vLast.Location.X, vLast.Location.Y, 0.0),
-                    new Point3d(vFirst.Location.X, vFirst.Location.Y, 0.0)
-                )
-                {
-                    Layer = layerName,
-                    Color = entityColor
-                });
-            }
+        public override LwPolyline ConvertToNormal(ACadSharp.Entities.LwPolyline source)
+        {
+            var vertices = new List<Point3d>();
+            foreach (var v in source.Vertices)
+                vertices.Add(new Point3d(v.Location.X, v.Location.Y, 0));
 
-            return lines;
+            var result = new LwPolyline(vertices, source.IsClosed);
+            ApplyLayerAndColorToNormal(result, source);
+            return result;
         }
     }
 }

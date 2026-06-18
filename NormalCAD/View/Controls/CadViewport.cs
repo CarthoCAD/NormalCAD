@@ -25,7 +25,6 @@ public class CadViewport : Control
     public CadCursorState CurrentCursorState {get; set;} = CadCursorState.PickCross;
     private Point _currentMouseScreenPos;
 
-    public Database? Database { get; set; }
     public Controller.CadController? Controller { get; set; }
 
     public Point3d WorldCenter { get; set; } = Point3d.Origin;
@@ -384,22 +383,23 @@ public class CadViewport : Control
         activeSnap = SnapType.None;
         snapPoint = Point3d.Origin;
 
-        if (Database == null || CurrentCursorState != CadCursorState.Crosshair)
+        var db = Controller?.Database;
+        if (db == null || CurrentCursorState != CadCursorState.Crosshair)
             return ScreenToWorld(screenMousePos);
 
         double snapAperturePixels = 15;
         double bestDistance = snapAperturePixels;
 
-        if (!Database.TryGetObject(Database.BlockTableId, out var btObj) || btObj is not BlockTable bt)
+        if (!db.TryGetObject(db.BlockTableId, out var btObj) || btObj is not BlockTable bt)
             return ScreenToWorld(screenMousePos);
 
         ObjectId modelSpaceId = bt[BlockTableRecord.ModelSpace];
-        if (modelSpaceId.IsNull || !Database.TryGetObject(modelSpaceId, out var btrObj) || btrObj is not BlockTableRecord modelSpace)
+        if (modelSpaceId.IsNull || !db.TryGetObject(modelSpaceId, out var btrObj) || btrObj is not BlockTableRecord modelSpace)
             return ScreenToWorld(screenMousePos);
 
         foreach (var entId in modelSpace.GetEntityIds())
         {
-            if (!Database.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
+            if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                 continue;
 
             if (ent is Line line)
@@ -437,6 +437,29 @@ public class CadViewport : Control
 
                 CheckSnapCandidate(screenMousePos, startPt, SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
                 CheckSnapCandidate(screenMousePos, endPt, SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
+            }
+            else if (ent is LwPolyline poly)
+            {
+                for (int i = 0; i < poly.Vertices.Count; i++)
+                {
+                    CheckSnapCandidate(screenMousePos, poly.Vertices[i], SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
+
+                    if (i < poly.Vertices.Count - 1)
+                    {
+                        var midPt = new Point3d(
+                            (poly.Vertices[i].X + poly.Vertices[i + 1].X) / 2,
+                            (poly.Vertices[i].Y + poly.Vertices[i + 1].Y) / 2, 0);
+                        CheckSnapCandidate(screenMousePos, midPt, SnapType.Midpoint, ref activeSnap, ref snapPoint, ref bestDistance);
+                    }
+                }
+
+                if (poly.IsClosed && poly.Vertices.Count > 1)
+                {
+                    var midPt = new Point3d(
+                        (poly.Vertices[poly.Vertices.Count - 1].X + poly.Vertices[0].X) / 2,
+                        (poly.Vertices[poly.Vertices.Count - 1].Y + poly.Vertices[0].Y) / 2, 0);
+                    CheckSnapCandidate(screenMousePos, midPt, SnapType.Midpoint, ref activeSnap, ref snapPoint, ref bestDistance);
+                }
             }
         }
 
