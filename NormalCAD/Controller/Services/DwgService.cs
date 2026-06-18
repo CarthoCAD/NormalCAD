@@ -8,23 +8,32 @@ using CadDocument = ACadSharp.CadDocument;
 
 namespace NormalCAD.Controller.Services
 {
-    public static class DxfService
+    public static class DwgService
     {
         private static readonly ConverterService _converters = new ConverterService();
 
-        public static Database LoadDxf(string filePath)
+        public static Database LoadDwg(string filePath)
         {
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("Arquivo DXF não encontrado.", filePath);
+                throw new FileNotFoundException("Arquivo DWG não encontrado.", filePath);
 
             CadDocument cadDoc;
-            using (var reader = new DxfReader(filePath))
+            using (var reader = new DwgReader(filePath))
             {
-                cadDoc = reader.Read();
+                try
+                {
+                    cadDoc = reader.Read();
+                }
+                catch (Exception ex) when (ex is NotSupportedException || ex.Message.Contains("version", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new Exception(
+                        "Este arquivo DWG está em uma versão não suportada pelo ACadSharp. " +
+                        "Versões suportadas: AutoCAD R14, 2000-2020 (AC1014 a AC1032).", ex);
+                }
             }
 
             if (cadDoc == null)
-                throw new Exception("Falha ao carregar o documento DXF.");
+                throw new Exception("Falha ao carregar o documento DWG.");
 
             var db = new Database();
 
@@ -40,15 +49,15 @@ namespace NormalCAD.Controller.Services
             return db;
         }
 
-        public static void SaveDxf(Database db, string filePath)
+        public static void SaveDwg(Database db, string filePath)
         {
-            var cadDoc = new CadDocument();
+            var cadDoc = new CadDocument(ACadVersion.AC1032);
 
             TableParsers.SaveLayers(db, cadDoc, _converters);
             TableParsers.SaveViewports(db, cadDoc, _converters);
             TableParsers.SaveEntities(db, cadDoc, _converters);
 
-            using (var writer = new DxfWriter(filePath, cadDoc, false))
+            using (var writer = new DwgWriter(filePath, cadDoc))
             {
                 writer.Write();
             }

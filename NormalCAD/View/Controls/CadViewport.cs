@@ -31,6 +31,22 @@ public class CadViewport : Control
     public double Zoom { get; set; } = 1.0;
 
     public Entity? ActiveCommandPreview { get; set; }
+
+    public void RestoreViewport(ViewportTableRecord vtr)
+    {
+        WorldCenter = vtr.Center;
+        if (Bounds.Height > 0)
+            Zoom = Bounds.Height / vtr.ViewHeight;
+        else
+            Zoom = 1.0;
+        InvalidateVisual();
+    }
+
+    public void UpdateViewportRecord(ViewportTableRecord vtr)
+    {
+        vtr.Center = WorldCenter;
+        vtr.ViewHeight = Bounds.Height > 0 ? Bounds.Height / Zoom : 100.0;
+    }
     public Point? SelectionStartPoint { get; set; }
     public Point? SelectionEndPoint { get; set; }
 

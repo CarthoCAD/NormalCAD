@@ -33,8 +33,16 @@ public partial class MenuBar : UserControl
         ]),
         new("File", null, null,
         [
-            new("Open", "DXFIN", null),
-            new("Save", "DXFOUT", null),
+            new("Open", null, null,
+            [
+                new("Open DXF...", "DXFIN", null),
+                new("Open DWG...", "DWGIN", null)
+            ]),
+            new("Save", null, null,
+            [
+                new("Save DXF...", "DXFOUT", null),
+                new("Save DWG...", "DWGOUT", null)
+            ]),
             new(null, null, null),
             new("Exit", "QUIT", null)
         ]),

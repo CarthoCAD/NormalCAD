@@ -10,6 +10,7 @@ namespace NormalCAD.Core
 
         public ObjectId BlockTableId { get; private set; }
         public ObjectId LayerTableId { get; private set; }
+        public ObjectId ViewportTableId { get; private set; }
 
         public TransactionManager TransactionManager { get; }
 
@@ -39,6 +40,13 @@ namespace NormalCAD.Core
             // Cria a camada padrão "0"
             var layerZero = new LayerTableRecord("0", EntityColor.White);
             layerTable.Add(layerZero);
+
+            // Inicializa a tabela de viewports com o viewport *Active
+            var viewportTable = new ViewportTable(this);
+            ViewportTableId = viewportTable.ObjectId;
+
+            var activeViewport = new ViewportTableRecord(ViewportTable.ActiveViewport, Geometry.Point3d.Origin, 100.0);
+            viewportTable.Add(activeViewport);
         }
 
         internal ObjectId GenerateNextId()

@@ -49,8 +49,33 @@ namespace NormalCAD.Controller
             ClearSelection();
             Viewport.ActiveCommandPreview = null;
             SetCommand(new BaseCommand());
+            RestoreViewportState();
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
+        }
+
+        public void SaveViewportState()
+        {
+            if (!Database.TryGetObject(Database.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
+                return;
+
+            var activeId = vt[ViewportTable.ActiveViewport];
+            if (activeId.IsNull) return;
+
+            var vpr = vt.GetRecord(activeId);
+            Viewport.UpdateViewportRecord(vpr);
+        }
+
+        public void RestoreViewportState()
+        {
+            if (!Database.TryGetObject(Database.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
+                return;
+
+            var activeId = vt[ViewportTable.ActiveViewport];
+            if (activeId.IsNull) return;
+
+            var vpr = vt.GetRecord(activeId);
+            Viewport.RestoreViewport(vpr);
         }
 
         public void SetCommand(ICadCommand command)

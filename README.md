@@ -1,6 +1,6 @@
 # NormalCAD
 
-> Protótipo de sistema CAD 2D simples desenvolvido em **C#** com **Avalonia UI**, estruturado na arquitetura **MVC** e com suporte a leitura e escrita de arquivos **DXF** via biblioteca **netDxf**.
+> Protótipo de sistema CAD 2D simples desenvolvido em **C#** com **Avalonia UI**, estruturado na arquitetura **MVC** e com suporte a leitura e escrita de arquivos **DXF/DWG** via biblioteca **ACadSharp**.
 
 ---
 
@@ -8,7 +8,7 @@
 
 O **NormalCAD** é um protótipo de aplicação de desenho técnico (CAD) 2D de código aberto. Seu objetivo é demonstrar como construir um sistema CAD funcional usando tecnologias .NET modernas e abertas, sem depender de bibliotecas proprietárias como o SDK do AutoCAD.
 
-A arquitetura interna do banco de dados do desenho foi modelada com base na **API .NET do AutoCAD** (ObjectARX/Managed), utilizando os mesmos conceitos de `Database`, `ObjectId`, `Transaction`, `BlockTable`, `LayerTable` e entidades (`Entity`), tornando o projeto familiar para desenvolvedores da área de AEC (Arquitetura, Engenharia e Construção).
+A arquitetura interna do banco de dados do desenho foi modelada com base na **API .NET do AutoCAD** (ObjectARX/Managed), utilizando os mesmos conceitos de `Database`, `ObjectId`, `Transaction`, `BlockTable`, `LayerTable`, `ViewportTable` e entidades (`Entity`), tornando o projeto familiar para desenvolvedores da área de AEC (Arquitetura, Engenharia e Construção).
 
 ---
 
@@ -35,14 +35,16 @@ Atração automática do cursor a pontos notáveis de entidades existentes ao ap
 - **Zoom** — Scroll do mouse com foco na posição do cursor.
 - **Pan** — Arrastar com o botão do meio do mouse.
 - **Grade Adaptativa** — Grade cartesiana que se adapta automaticamente ao nível de zoom (ex: escala de 1, 5, 10, 50, 100 unidades).
-- **Eixos Cartesianos** — Eixo X em vermelho e Eixo Y em verde visíveis quando próximos da tela.
+- **Persistência de Viewport** — A posição da vista (`WorldCenter` + `Zoom`) é salva no registro `*ACTIVE` da `ViewportTable` e restaurada ao reabrir o arquivo.
 
-### 📂 Importação / Exportação DXF
+### 📂 Importação / Exportação DXF e DWG
 
-Usando a biblioteca **netDxf** (versão 3.0.1, licença LGPL):
+Usando a biblioteca **ACadSharp** (versão 3.6.29, licença MIT):
 
-- **Abrir DXF** — Importa linhas, círculos, arcos e polilinhas (`Polyline2D`). As polilinhas são decompostas automaticamente em segmentos de linhas simples. As camadas do arquivo DXF são recriadas no banco de dados interno.
+- **Abrir DXF** — Importa linhas, círculos, arcos e polilinhas (`LwPolyline`/`Polyline2D`). As polilinhas são decompostas automaticamente em segmentos de linhas simples. As camadas e viewports do arquivo são recriadas no banco de dados interno.
 - **Salvar DXF** — Exporta o desenho atual para um arquivo `.dxf` compatível com AutoCAD, LibreCAD, QCAD e outros softwares CAD.
+- **Abrir DWG** — Suporte a leitura de arquivos `.dwg` nas versões R14 até 2020 (AC1014–AC1032). Versões não suportadas exibem mensagem informativa.
+- **Salvar DWG** — Exporta usando o formato AC1032 (AutoCAD 2018–2020), a versão mais suportada pelo ACadSharp.
 
 ### ⌨️ Linha de Comando Integrada (estilo AutoCAD)
 
@@ -89,6 +91,8 @@ NormalCAD/
     │   ├── BlockTableRecord.cs        # Bloco (inclui ModelSpace)
     │   ├── LayerTable.cs              # Tabela de camadas
     │   ├── LayerTableRecord.cs        # Definição de uma camada
+    │   ├── ViewportTable.cs           # Tabela de viewports
+    │   ├── ViewportTableRecord.cs     # Registro de viewport (*Active, centro, altura)
     │   ├── Transaction.cs             # Transação de modificação no DB
     │   ├── TransactionManager.cs      # Gerenciador da pilha de transações
     │   └── Geometry/
@@ -116,10 +120,24 @@ NormalCAD/
     │   │   ├── CleanAllCommand.cs     # Limpar todo o desenho (_.CLEANALL)
     │   │   ├── OpenDxfCommand.cs      # Abrir arquivo DXF (_.DXFIN)
     │   │   ├── SaveDxfCommand.cs      # Salvar arquivo DXF (_.DXFOUT)
+    │   │   ├── OpenDwgCommand.cs      # Abrir arquivo DWG (_.DWGIN)
+    │   │   ├── SaveDwgCommand.cs      # Salvar arquivo DWG (_.DWGOUT)
     │   │   ├── ToggleThemeCommand.cs  # Alternar tema claro/escuro (_.THEME)
     │   │   └── ExitCommand.cs         # Sair da aplicação (_.QUIT)
     │   └── Services/
-    │       └── DxfService.cs          # Importação e exportação de DXF
+    │       ├── DxfService.cs          # Serviço de importação/exportação DXF
+    │       ├── DwgService.cs          # Serviço de importação/exportação DWG
+    │       └── Converters/
+    │           ├── IConverter.cs          # Interface base de conversor
+    │           ├── EntityConverter.cs     # Base abstrata p/ conversão de entidades + ColorConverter
+    │           ├── LineConverter.cs       # Line ↔ ACadSharp.Line
+    │           ├── CircleConverter.cs     # Circle ↔ ACadSharp.Circle
+    │           ├── ArcConverter.cs        # Arc ↔ ACadSharp.Arc (graus ↔ radianos)
+    │           ├── LwPolylineConverter.cs # LwPolyline → IEnumerable<Line> (1:N)
+    │           ├── LayerConverter.cs      # LayerTableRecord ↔ ACadSharp.Layer
+    │           ├── VPortConverter.cs      # ViewportTableRecord ↔ ACadSharp.VPort
+    │           ├── ConverterService.cs    # Registro e despacho de conversores por tipo
+    │           └── TableParsers.cs        # Módulo estático de parsing de tabelas (Layers, Viewports, Entities)
     │
     ├── Themes/                        # TEMAS — Recursos de cor
     │   ├── Colors.axaml               # Definições de cores Light/Dark
@@ -141,7 +159,7 @@ NormalCAD/
 | `Avalonia.Desktop` | 12.0.4 | MIT | Suporte para Windows/Linux/macOS |
 | `Avalonia.Themes.Fluent` | 12.0.4 | MIT | Tema visual padrão |
 | `Avalonia.Fonts.Inter` | 12.0.4 | MIT | Fonte Inter para tipografia |
-| `netDxf.netstandard` | 3.0.1 | LGPL-3.0 | Leitura e escrita de arquivos DXF |
+| `ACadSharp` | 3.6.29 | MIT | Leitura e escrita de arquivos DXF e DWG |
 
 ---
 
@@ -190,8 +208,10 @@ dotnet build
 | **Excluir Selecionados** | Tecla `Delete` ou digitar `ERASE` / `E` |
 | **Cancelar / Voltar** | `Escape` (limpa prompt e volta à seleção) ou menu Edit → Select |
 | **Limpar Tudo** | Digitar `CLEANALL` / `CLA` ou menu Edit → Clean All |
-| **Abrir DXF** | Digitar `DXFIN` / `DXFI` ou menu File → Open |
-| **Salvar DXF** | Digitar `DXFOUT` / `DXFO` ou menu File → Save |
+| **Abrir DXF** | Digitar `DXFIN` / `DXFI` ou menu File → Open → Open DXF... |
+| **Abrir DWG** | Digitar `DWGIN` / `DWG` ou menu File → Open → Open DWG... |
+| **Salvar DXF** | Digitar `DXFOUT` / `DXFO` ou menu File → Save → Save DXF... |
+| **Salvar DWG** | Digitar `DWGOUT` / `DWGS` ou menu File → Save → Save DWG... |
 | **Alternar Tema** | Digitar `THEME` / `TEMA` / `TH` ou menu → Change Theme |
 | **Sair** | Digitar `QUIT` / `EXIT` / `Q` ou menu File → Exit |
 | **Executar Comando** | Digitar nome/alias no prompt e pressionar `Enter` ou `Espaço` |
@@ -206,6 +226,8 @@ dotnet build
 | Clean All | `CLEANALL` | `CLA` |
 | Open DXF | `DXFIN` | `DXFI` |
 | Save DXF | `DXFOUT` | `DXFO` |
+| Open DWG | `DWGIN` | `DWG` |
+| Save DWG | `DWGOUT` | `DWGS` |
 | Toggle Theme | `THEME` | `TEMA`, `TH` |
 | Quit | `QUIT` | `EXIT`, `Q` |
 

@@ -4,11 +4,11 @@ using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Controller.Commands
 {
-    public class SaveDxfCommand : ICadCommand
+    public class SaveDwgCommand : ICadCommand
     {
-        public string Name => "_.DXFOUT";
-        public string LocalName => "DXFOUT";
-        public string Alias => "DXFO";
+        public string Name => "_.DWGOUT";
+        public string LocalName => "DWGOUT";
+        public string Alias => "DWGS";
         public bool IsInternal => false;
 
         public async void Activate(CadController controller)
@@ -18,9 +18,9 @@ namespace NormalCAD.Controller.Commands
             {
                 var file = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
                 {
-                    Title = "Salvar Desenho DXF",
-                    DefaultExtension = ".dxf",
-                    FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DXF") { Patterns = new[] { "*.dxf" } } }
+                    Title = "Salvar Desenho DWG",
+                    DefaultExtension = ".dwg",
+                    FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DWG") { Patterns = new[] { "*.dwg" } } }
                 });
 
                 if (file != null)
@@ -29,12 +29,12 @@ namespace NormalCAD.Controller.Commands
                     try
                     {
                         controller.SaveViewportState();
-                        Services.DxfService.SaveDxf(controller.Database, path);
-                        controller.InputManager.SetPromptMessage($"DXF salvo: {System.IO.Path.GetFileName(path)}");
+                        Services.DwgService.SaveDwg(controller.Database, path);
+                        controller.InputManager.SetPromptMessage($"DWG salvo: {System.IO.Path.GetFileName(path)}");
                     }
                     catch (Exception ex)
                     {
-                        controller.InputManager.SetPromptMessage($"Erro ao salvar DXF: {ex.Message}");
+                        controller.InputManager.SetPromptMessage($"Erro ao salvar DWG: {ex.Message}");
                     }
                 }
             }

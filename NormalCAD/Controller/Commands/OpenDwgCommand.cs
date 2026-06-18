@@ -4,11 +4,11 @@ using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Controller.Commands
 {
-    public class SaveDxfCommand : ICadCommand
+    public class OpenDwgCommand : ICadCommand
     {
-        public string Name => "_.DXFOUT";
-        public string LocalName => "DXFOUT";
-        public string Alias => "DXFO";
+        public string Name => "_.DWGIN";
+        public string LocalName => "DWGIN";
+        public string Alias => "DWG";
         public bool IsInternal => false;
 
         public async void Activate(CadController controller)
@@ -16,25 +16,25 @@ namespace NormalCAD.Controller.Commands
             var window = (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window != null)
             {
-                var file = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                var files = await window.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
                 {
-                    Title = "Salvar Desenho DXF",
-                    DefaultExtension = ".dxf",
-                    FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DXF") { Patterns = new[] { "*.dxf" } } }
+                    Title = "Abrir Desenho DWG",
+                    AllowMultiple = false,
+                    FileTypeFilter = new[] { new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DWG") { Patterns = new[] { "*.dwg" } } }
                 });
 
-                if (file != null)
+                if (files.Count > 0)
                 {
-                    string path = file.Path.LocalPath;
+                    string path = files[0].Path.LocalPath;
                     try
                     {
-                        controller.SaveViewportState();
-                        Services.DxfService.SaveDxf(controller.Database, path);
-                        controller.InputManager.SetPromptMessage($"DXF salvo: {System.IO.Path.GetFileName(path)}");
+                        var db = Services.DwgService.LoadDwg(path);
+                        controller.SetDatabase(db);
+                        controller.InputManager.SetPromptMessage($"DWG carregado: {System.IO.Path.GetFileName(path)}");
                     }
                     catch (Exception ex)
                     {
-                        controller.InputManager.SetPromptMessage($"Erro ao salvar DXF: {ex.Message}");
+                        controller.InputManager.SetPromptMessage($"Erro ao abrir DWG: {ex.Message}");
                     }
                 }
             }

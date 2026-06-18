@@ -6,7 +6,7 @@ namespace NormalCAD.Core.Entities
     {
         public Point3d Center { get; set; }
         public double Radius { get; set; }
-        public double StartAngle { get; set; } // Em graus (como no netDxf)
+        public double StartAngle { get; set; } // Em graus (ACadSharp usa radianos, conversão feita no DxfService)
         public double EndAngle { get; set; } // Em graus
 
         public Arc()
