@@ -35,7 +35,7 @@
         </Grid>
       </Border>
       <Panel Grid.Column="2" VerticalAlignment="Center" Width="320">
-        <TextBlock Name="TxtCoordinates" Text="X: 0.0000, Y: 0.0000" Foreground="{DynamicResource Theme.Text}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Right" FontWeight="SemiBold"/>
+        <TextBlock Name="TxtCoordinates" Text="0.0000,0.0000" Foreground="{DynamicResource Theme.Text}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Right" FontWeight="SemiBold"/>
       </Panel>
     </Grid>
   </Border>

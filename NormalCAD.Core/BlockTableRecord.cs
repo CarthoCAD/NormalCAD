@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using NormalCAD.Core.Geometry;
+using NormalCAD.Core.Spatial;
 
 namespace NormalCAD.Core
 {
@@ -8,7 +10,8 @@ namespace NormalCAD.Core
         public const string ModelSpace = "*Model_Space";
         public const string PaperSpace = "*Paper_Space";
 
-        private readonly List<ObjectId> _entityIds = new List<ObjectId>();
+        private readonly List<ObjectId> _entityIds = [];
+        private readonly RTree _spatialIndex = new();
 
         public BlockTableRecord()
         {
@@ -35,11 +38,29 @@ namespace NormalCAD.Core
             db.RegisterObject(entity);
 
             _entityIds.Add(entity.ObjectId);
+            _spatialIndex.Insert(entity.GeometricExtents, entity.ObjectId);
         }
 
         public void RemoveEntity(ObjectId entityId)
         {
+            if (this.Database != null && this.Database.TryGetObject(entityId, out var obj) && obj is Entity ent)
+            {
+                _spatialIndex.Remove(ent.GeometricExtents, entityId);
+            }
             _entityIds.Remove(entityId);
+        }
+
+        public IEnumerable<ObjectId> QueryExtents(Extents3d bounds)
+        {
+            return _spatialIndex.Search(bounds);
+        }
+
+        public IEnumerable<ObjectId> QueryNearPoint(Point3d point, double tolerance)
+        {
+            var queryBounds = new Extents3d(
+                new Point3d(point.X - tolerance, point.Y - tolerance, point.Z),
+                new Point3d(point.X + tolerance, point.Y + tolerance, point.Z));
+            return _spatialIndex.Search(queryBounds);
         }
     }
 }

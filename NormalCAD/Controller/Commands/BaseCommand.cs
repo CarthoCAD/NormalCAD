@@ -71,7 +71,12 @@ namespace NormalCAD.Controller.Commands
                 var modelSpaceId = bt[BlockTableRecord.ModelSpace];
                 if (!modelSpaceId.IsNull && db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
                 {
-                    foreach (var entId in btr.GetEntityIds())
+                    double zoom = Math.Max(viewport.Zoom, 0.001);
+                    double worldTolerance = 100.0 / zoom;
+                    Point3d worldMouse = viewport.ScreenToWorld(mouseScreenPos);
+                    var candidateIds = btr.QueryNearPoint(worldMouse, worldTolerance);
+
+                    foreach (var entId in candidateIds)
                     {
                         if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                             continue;
@@ -146,7 +151,12 @@ namespace NormalCAD.Controller.Commands
                 var modelSpaceId = bt[BlockTableRecord.ModelSpace];
                 if (!modelSpaceId.IsNull && db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
                 {
-                    foreach (var entId in btr.GetEntityIds())
+                    var worldTL = viewport.ScreenToWorld(rect.TopLeft);
+                    var worldBR = viewport.ScreenToWorld(rect.BottomRight);
+                    var worldBounds = Extents3d.FromPoints(worldTL, worldBR);
+                    var candidateIds = btr.QueryExtents(worldBounds);
+
+                    foreach (var entId in candidateIds)
                     {
                         if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                             continue;

@@ -397,7 +397,10 @@ public class CadViewport : Control
         if (modelSpaceId.IsNull || !db.TryGetObject(modelSpaceId, out var btrObj) || btrObj is not BlockTableRecord modelSpace)
             return ScreenToWorld(screenMousePos);
 
-        foreach (var entId in modelSpace.GetEntityIds())
+        Point3d worldMouse = ScreenToWorld(screenMousePos);
+        double worldTolerance = snapAperturePixels / Math.Max(Zoom, 0.001);
+
+        foreach (var entId in modelSpace.QueryNearPoint(worldMouse, worldTolerance))
         {
             if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                 continue;

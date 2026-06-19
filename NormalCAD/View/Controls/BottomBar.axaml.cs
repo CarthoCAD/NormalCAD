@@ -128,7 +128,7 @@ namespace NormalCAD.View.Controls
             var txtCoordinates = this.FindControl<TextBlock>("TxtCoordinates");
             if (txtCoordinates != null)
             {
-                txtCoordinates.Text = $"X: {worldPos.X:F4}, Y: {worldPos.Y:F4}";
+                txtCoordinates.Text = worldPos.ToString2D();
             }
         }
         private void OnBtnModelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
