@@ -58,7 +58,7 @@ namespace NormalCAD.Controller
                 return;
             }
 
-            if (e.Key == Key.Escape || e.Key == Key.Return || e.Key == Key.Space)
+            if (e.Key == Key.Escape)
             {
                 _controller.CancelCurrentCommand();
                 e.Handled = true;

@@ -254,11 +254,11 @@ namespace NormalCAD.Controller.Commands
                 }
                 return true;
             }
-            else if (ent is LwPolyline poly)
+            else if (ent is Polyline poly)
             {
-                foreach (var v in poly.Vertices)
+                for (int i = 0; i < poly.NumberOfVertices; i++)
                 {
-                    if (!rect.Contains(viewport.WorldToScreen(v))) return false;
+                    if (!rect.Contains(viewport.WorldToScreen(poly.GetPoint3dAt(i)))) return false;
                 }
                 return true;
             }
@@ -344,12 +344,12 @@ namespace NormalCAD.Controller.Commands
                     lastScreenPt = pScreen;
                 }
             }
-            else if (ent is LwPolyline poly)
+            else if (ent is Polyline poly)
             {
-                for (int i = 0; i < poly.Vertices.Count - 1; i++)
+                for (int i = 0; i < poly.NumberOfVertices - 1; i++)
                 {
-                    var p1 = viewport.WorldToScreen(poly.Vertices[i]);
-                    var p2 = viewport.WorldToScreen(poly.Vertices[i + 1]);
+                    var p1 = viewport.WorldToScreen(poly.GetPoint3dAt(i));
+                    var p2 = viewport.WorldToScreen(poly.GetPoint3dAt(i + 1));
 
                     if (rect.Contains(p1) || rect.Contains(p2)) return true;
 
@@ -360,10 +360,10 @@ namespace NormalCAD.Controller.Commands
                         return true;
                 }
 
-                if (poly.IsClosed && poly.Vertices.Count > 1)
+                if (poly.Closed && poly.NumberOfVertices > 1)
                 {
-                    var p1 = viewport.WorldToScreen(poly.Vertices[poly.Vertices.Count - 1]);
-                    var p2 = viewport.WorldToScreen(poly.Vertices[0]);
+                    var p1 = viewport.WorldToScreen(poly.GetPoint3dAt(poly.NumberOfVertices - 1));
+                    var p2 = viewport.WorldToScreen(poly.GetPoint3dAt(0));
                     if (rect.Contains(p1) || rect.Contains(p2)) return true;
                     if (SegmentsIntersect(p1, p2, topLeft, topRight) ||
                         SegmentsIntersect(p1, p2, topRight, bottomRight) ||
@@ -415,20 +415,20 @@ namespace NormalCAD.Controller.Commands
 
                 return double.MaxValue;
             }
-            else if (ent is LwPolyline poly)
+            else if (ent is Polyline poly)
             {
                 double best = double.MaxValue;
-                for (int i = 0; i < poly.Vertices.Count - 1; i++)
+                for (int i = 0; i < poly.NumberOfVertices - 1; i++)
                 {
-                    var p1 = viewport.WorldToScreen(poly.Vertices[i]);
-                    var p2 = viewport.WorldToScreen(poly.Vertices[i + 1]);
+                    var p1 = viewport.WorldToScreen(poly.GetPoint3dAt(i));
+                    var p2 = viewport.WorldToScreen(poly.GetPoint3dAt(i + 1));
                     double d = DistanceToSegment(p, p1, p2);
                     if (d < best) best = d;
                 }
-                if (poly.IsClosed && poly.Vertices.Count > 1)
+                if (poly.Closed && poly.NumberOfVertices > 1)
                 {
-                    var p1 = viewport.WorldToScreen(poly.Vertices[poly.Vertices.Count - 1]);
-                    var p2 = viewport.WorldToScreen(poly.Vertices[0]);
+                    var p1 = viewport.WorldToScreen(poly.GetPoint3dAt(poly.NumberOfVertices - 1));
+                    var p2 = viewport.WorldToScreen(poly.GetPoint3dAt(0));
                     double d = DistanceToSegment(p, p1, p2);
                     if (d < best) best = d;
                 }

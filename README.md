@@ -18,7 +18,8 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 
 - **Linha** — Desenho em cadeia (o final de uma linha é o início da próxima), com preview dinâmico tracejado durante o posicionamento.
 - **Círculo** — Definição por clique no centro e arrastar para ajustar o raio, com preview em tempo real.
-- **Polilinha** — Cliques sucessivos adicionam vértices; `Enter` finaliza aberta, `C` finaliza fechada. Preview em tempo real com rubber-band até o cursor.
+- **Arco** — Clique no centro, arraste para definir raio + ângulo inicial, clique para ângulo final. Preview dinâmico.
+- **Polilinha** — Cliques sucessivos adicionam vértices; `Enter`/`Espaço` finaliza aberta, `C` finaliza fechada. Preview em tempo real.
 - **Seleção** — Clique para selecionar entidades individualmente; `Ctrl + Clique` para seleção múltipla acumulativa. Arraste da esquerda→direita para Window Select ou direita→esquerda para Crossing Select. O conjunto de seleção é gerenciado pelo `CadController` com API dedicada (`AddToSelection`, `RemoveFromSelection`, `ClearSelection`, `IsSelected`).
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
 - **Limpar** — Botão para apagar todo o desenho atual.
@@ -82,7 +83,8 @@ NormalCAD/
     │   ├── Database.cs                # Container principal do desenho
     │   ├── ObjectId.cs                # Identificador único para objetos
     │   ├── DBObject.cs                # Classe base para objetos persistíveis
-    │   ├── Entity.cs                  # Classe base para entidades geométricas
+    │   ├── Entity.cs                  # Classe base (GeometricExtents, TransformBy, GetOsnapPoints)
+    │   ├── Curve.cs                   # Classe abstrata de curva (Length, Closed, StartPoint, EndPoint)
     │   ├── EntityColor.cs             # Cor de entidade (ByLayer ou RGBA)
     │   ├── OpenMode.cs                # Enum ForRead / ForWrite
     │   ├── SnapType.cs                # Enum de tipos de snap
@@ -97,8 +99,11 @@ NormalCAD/
     │   ├── Transaction.cs             # Transação de modificação no DB
     │   ├── TransactionManager.cs      # Gerenciador da pilha de transações
     │   └── Geometry/
+    │       ├── Point2d.cs             # Ponto bidimensional
     │       ├── Point3d.cs             # Ponto tridimensional
-    │       └── Vector3d.cs            # Vetor tridimensional
+    │       ├── Vector3d.cs            # Vetor tridimensional
+    │       ├── Matrix3d.cs            # Matriz 4x4 (translação, rotação, escala)
+    │       └── Extents3d.cs           # Bounding box 3D (MinPoint, MaxPoint, Contains)
     │
     ├── View/                          # VIEW — Interface Avalonia UI
     │   ├── Controls/
@@ -124,6 +129,7 @@ NormalCAD/
     │   │   ├── BaseCommand.cs         # Comando padrão de seleção (interno)
     │   │   ├── DrawLineCommand.cs     # Ferramenta de linha (_.LINE)
     │   │   ├── DrawCircleCommand.cs   # Ferramenta de círculo (_.CIRCLE)
+    │   │   ├── DrawArcCommand.cs      # Ferramenta de arco (_.ARC)
     │   │   ├── DrawPolylineCommand.cs # Ferramenta de polilinha (_.PLINE)
     │   │   ├── EraseCommand.cs        # Excluir selecionados (_.ERASE)
     │   │   ├── CleanAllCommand.cs     # Limpar todo o desenho (_.CLEANALL)
@@ -142,7 +148,7 @@ NormalCAD/
     │           ├── LineConverter.cs       # Line ↔ ACadSharp.Line
     │           ├── CircleConverter.cs     # Circle ↔ ACadSharp.Circle
     │           ├── ArcConverter.cs        # Arc ↔ ACadSharp.Arc (graus ↔ radianos)
-    │           ├── LwPolylineConverter.cs # LwPolyline ↔ ACadSharp.LwPolyline (bidirecional)
+    │           ├── PolylineConverter.cs   # Polyline ↔ ACadSharp.LwPolyline (Elevation + Point2d)
     │           ├── LayerConverter.cs      # LayerTableRecord ↔ ACadSharp.Layer
     │           ├── VPortConverter.cs      # ViewportTableRecord ↔ ACadSharp.VPort
     │           ├── ConverterService.cs    # Registro e despacho de conversores por tipo
@@ -212,6 +218,7 @@ dotnet build
 | **Zoom** | Scroll do mouse (focado na posição do cursor) |
 | **Desenhar Linha** | Digitar `LINE` / `L` e clicar dois pontos, ou menu Draw → Line |
 | **Desenhar Círculo** | Digitar `CIRCLE` / `C` / `CI` e clicar centro + raio, ou menu Draw → Circle |
+| **Desenhar Arco** | Digitar `ARC` / `A` e clicar centro → raio → ângulo final, ou menu Draw → Arc |
 | **Desenhar Polilinha** | Digitar `PLINE` / `PL` e clicar vértices; `Enter` finaliza aberta, `C` finaliza fechada, ou menu Draw → Polyline |
 | **Selecionar** | Clicar na entidade; `Ctrl + Clique` acumula seleções |
 | **Seleção por Janela** | Arrastar da esquerda → direita (Window) ou direita → esquerda (Crossing) |
@@ -232,6 +239,7 @@ dotnet build
 | --- | --- | --- |
 | Line | `LINE` | `L` |
 | Circle | `CIRCLE` | `C`, `CI` |
+| Arc | `ARC` | `A` |
 | Polyline | `PLINE` | `PL` |
 | Erase | `ERASE` | `E` |
 | Clean All | `CLEANALL` | `CLA` |

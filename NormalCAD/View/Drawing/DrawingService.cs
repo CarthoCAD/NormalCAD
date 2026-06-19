@@ -18,7 +18,7 @@ namespace NormalCAD.View.Drawing
             Register<Line>(new LineRenderer());
             Register<Circle>(new CircleRenderer());
             Register<Arc>(new ArcRenderer());
-            Register<LwPolyline>(new PolylineRenderer());
+            Register<Polyline>(new PolylineRenderer());
         }
 
         public void Register<T>(IEntityRenderer renderer) where T : Entity

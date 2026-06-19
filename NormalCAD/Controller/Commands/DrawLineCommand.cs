@@ -65,6 +65,13 @@ namespace NormalCAD.Controller.Commands
 
         public void OnKeyDown(KeyEventArgs e)
         {
+            if (_controller == null) return;
+
+            if (e.Key == Key.Enter || e.Key == Key.Space)
+            {
+                _controller.SetCommand(new BaseCommand());
+                e.Handled = true;
+            }
         }
     }
 }

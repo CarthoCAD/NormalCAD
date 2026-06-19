@@ -18,7 +18,7 @@ namespace NormalCAD.Controller.Services.Converters
             Register(new LineConverter());
             Register(new CircleConverter());
             Register(new ArcConverter());
-            Register(new LwPolylineConverter());
+            Register(new PolylineConverter());
             _layerConverter = new LayerConverter();
             _vportConverter = new VPortConverter();
         }

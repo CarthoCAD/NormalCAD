@@ -402,64 +402,10 @@ public class CadViewport : Control
             if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                 continue;
 
-            if (ent is Line line)
+            if (ent is Entity)
             {
-                CheckSnapCandidate(screenMousePos, line.StartPoint, SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-                CheckSnapCandidate(screenMousePos, line.EndPoint, SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-
-                Point3d midPt = new Point3d(
-                    (line.StartPoint.X + line.EndPoint.X) / 2,
-                    (line.StartPoint.Y + line.EndPoint.Y) / 2,
-                    (line.StartPoint.Z + line.EndPoint.Z) / 2
-                );
-                CheckSnapCandidate(screenMousePos, midPt, SnapType.Midpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-            }
-            else if (ent is Circle circle)
-            {
-                CheckSnapCandidate(screenMousePos, circle.Center, SnapType.Center, ref activeSnap, ref snapPoint, ref bestDistance);
-            }
-            else if (ent is Arc arc)
-            {
-                CheckSnapCandidate(screenMousePos, arc.Center, SnapType.Center, ref activeSnap, ref snapPoint, ref bestDistance);
-
-                double startRad = arc.StartAngle * Math.PI / 180.0;
-                double endRad = arc.EndAngle * Math.PI / 180.0;
-                Point3d startPt = new Point3d(
-                    arc.Center.X + arc.Radius * Math.Cos(startRad),
-                    arc.Center.Y + arc.Radius * Math.Sin(startRad),
-                    arc.Center.Z
-                );
-                Point3d endPt = new Point3d(
-                    arc.Center.X + arc.Radius * Math.Cos(endRad),
-                    arc.Center.Y + arc.Radius * Math.Sin(endRad),
-                    arc.Center.Z
-                );
-
-                CheckSnapCandidate(screenMousePos, startPt, SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-                CheckSnapCandidate(screenMousePos, endPt, SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-            }
-            else if (ent is LwPolyline poly)
-            {
-                for (int i = 0; i < poly.Vertices.Count; i++)
-                {
-                    CheckSnapCandidate(screenMousePos, poly.Vertices[i], SnapType.Endpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-
-                    if (i < poly.Vertices.Count - 1)
-                    {
-                        var midPt = new Point3d(
-                            (poly.Vertices[i].X + poly.Vertices[i + 1].X) / 2,
-                            (poly.Vertices[i].Y + poly.Vertices[i + 1].Y) / 2, 0);
-                        CheckSnapCandidate(screenMousePos, midPt, SnapType.Midpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-                    }
-                }
-
-                if (poly.IsClosed && poly.Vertices.Count > 1)
-                {
-                    var midPt = new Point3d(
-                        (poly.Vertices[poly.Vertices.Count - 1].X + poly.Vertices[0].X) / 2,
-                        (poly.Vertices[poly.Vertices.Count - 1].Y + poly.Vertices[0].Y) / 2, 0);
-                    CheckSnapCandidate(screenMousePos, midPt, SnapType.Midpoint, ref activeSnap, ref snapPoint, ref bestDistance);
-                }
+                foreach (var (pt, type) in ent.GetOsnapPoints())
+                    CheckSnapCandidate(screenMousePos, pt, type, ref activeSnap, ref snapPoint, ref bestDistance);
             }
         }
 
