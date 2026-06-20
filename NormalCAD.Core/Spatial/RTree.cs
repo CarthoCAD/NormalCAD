@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.Spatial

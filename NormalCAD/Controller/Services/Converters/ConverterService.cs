@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using NormalCAD.Core;
-using NormalCAD.Core.Entities;
+using NormalCAD.Core.DatabaseServices;
 using ACadSharp;
 
 namespace NormalCAD.Controller.Services.Converters
 {
     public class ConverterService
     {
-        private readonly Dictionary<Type, Func<ACadSharp.Entities.Entity, NormalCAD.Core.Entity?>> _acadToNormal = new();
-        private readonly Dictionary<Type, Func<NormalCAD.Core.Entity, CadDocument, ACadSharp.Entities.Entity?>> _normalToAcad = new();
+        private readonly Dictionary<Type, Func<ACadSharp.Entities.Entity, NormalCAD.Core.DatabaseServices.Entity?>> _acadToNormal = new();
+        private readonly Dictionary<Type, Func<NormalCAD.Core.DatabaseServices.Entity, CadDocument, ACadSharp.Entities.Entity?>> _normalToAcad = new();
         private LayerConverter? _layerConverter;
         private VPortConverter? _vportConverter;
 
@@ -29,14 +28,14 @@ namespace NormalCAD.Controller.Services.Converters
         }
 
         public void Register<TNormal, TAcad>(EntityConverter<TNormal, TAcad> converter)
-            where TNormal : NormalCAD.Core.Entity
+            where TNormal : NormalCAD.Core.DatabaseServices.Entity
             where TAcad : ACadSharp.Entities.Entity
         {
             _acadToNormal[typeof(TAcad)] = source => converter.ConvertToNormal((TAcad)source);
             _normalToAcad[typeof(TNormal)] = (source, cd) => converter.ConvertToAcad((TNormal)source, cd);
         }
 
-        public NormalCAD.Core.Entity? ConvertToNormal(ACadSharp.Entities.Entity source)
+        public NormalCAD.Core.DatabaseServices.Entity? ConvertToNormal(ACadSharp.Entities.Entity source)
         {
             var type = source.GetType();
             if (_acadToNormal.TryGetValue(type, out var converter))
@@ -45,7 +44,7 @@ namespace NormalCAD.Controller.Services.Converters
             return null;
         }
 
-        public ACadSharp.Entities.Entity? ConvertToAcad(NormalCAD.Core.Entity source, CadDocument cadDoc)
+        public ACadSharp.Entities.Entity? ConvertToAcad(NormalCAD.Core.DatabaseServices.Entity source, CadDocument cadDoc)
         {
             var type = source.GetType();
             if (_normalToAcad.TryGetValue(type, out var converter))

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public abstract class SymbolTable : DBObject
     {

@@ -1,5 +1,4 @@
-using NormalCAD.Core;
-using NormalCAD.Core.Entities;
+using NormalCAD.Core.DatabaseServices;
 using ACadSharp;
 using CadDocument = ACadSharp.CadDocument;
 
@@ -122,7 +121,7 @@ namespace NormalCAD.Controller.Services.Converters
 
             foreach (var entId in btr.GetEntityIds())
             {
-                if (!db.TryGetObject(entId, out var entObj) || entObj is not NormalCAD.Core.Entity normalEnt)
+                if (!db.TryGetObject(entId, out var entObj) || entObj is not NormalCAD.Core.DatabaseServices.Entity normalEnt)
                     continue;
 
                 var acadEntity = converters.ConvertToAcad(normalEnt, cadDoc);

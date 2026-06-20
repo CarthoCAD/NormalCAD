@@ -1,5 +1,5 @@
 using System;
-using NormalCAD.Core;
+using NormalCAD.Core.DatabaseServices;
 
 namespace NormalCAD.Core.Geometry
 {

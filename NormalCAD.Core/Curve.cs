@@ -1,6 +1,6 @@
 using NormalCAD.Core.Geometry;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public abstract class Curve : Entity
     {

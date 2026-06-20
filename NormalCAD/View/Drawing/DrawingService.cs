@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Media;
-using NormalCAD.Core;
-using NormalCAD.Core.Entities;
+using NormalCAD.Core.DatabaseServices;
 
 namespace NormalCAD.View.Drawing
 {

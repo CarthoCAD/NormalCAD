@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NormalCAD.Core.Geometry;
 
-namespace NormalCAD.Core.Entities
+namespace NormalCAD.Core.DatabaseServices
 {
     public class Polyline : Curve
     {

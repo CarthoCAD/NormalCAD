@@ -1,7 +1,7 @@
 using System;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
-using NormalCAD.Core.Entities;
+using NormalCAD.Core.DatabaseServices;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands

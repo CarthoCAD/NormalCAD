@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using NormalCAD.Core;
-using NormalCAD.Core.Entities;
+using NormalCAD.Core.DatabaseServices;
 
 namespace NormalCAD.View.Controls
 {

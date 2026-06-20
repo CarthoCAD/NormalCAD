@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NormalCAD.Core.Geometry;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public abstract class Entity : DBObject
     {

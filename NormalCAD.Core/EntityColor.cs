@@ -1,6 +1,6 @@
 using System;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public struct EntityColor : IEquatable<EntityColor>
     {

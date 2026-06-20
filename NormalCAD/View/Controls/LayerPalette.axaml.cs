@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using NormalCAD.Core;
+using NormalCAD.Core.DatabaseServices;
 
 namespace NormalCAD.View.Controls
 {

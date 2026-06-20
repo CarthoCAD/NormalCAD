@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public static class Culture
     {

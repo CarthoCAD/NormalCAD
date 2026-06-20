@@ -1,6 +1,6 @@
 using System;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public class DBObject : IDisposable
     {

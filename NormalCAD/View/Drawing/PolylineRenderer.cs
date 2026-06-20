@@ -1,9 +1,8 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
-using NormalCAD.Core;
+using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
-using NormalCAD.Core.Entities;
 
 namespace NormalCAD.View.Drawing
 {

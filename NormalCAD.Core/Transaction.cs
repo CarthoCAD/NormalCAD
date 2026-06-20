@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public class Transaction : IDisposable
     {

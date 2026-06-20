@@ -1,4 +1,4 @@
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public enum OpenMode
     {

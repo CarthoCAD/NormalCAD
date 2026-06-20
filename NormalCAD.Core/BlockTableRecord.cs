@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.Spatial;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public class BlockTableRecord : SymbolTableRecord
     {

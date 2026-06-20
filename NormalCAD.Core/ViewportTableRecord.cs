@@ -1,6 +1,6 @@
 using NormalCAD.Core.Geometry;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Core.DatabaseServices
 {
     public class ViewportTableRecord : SymbolTableRecord
     {

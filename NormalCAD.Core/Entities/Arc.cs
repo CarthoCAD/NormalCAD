@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using NormalCAD.Core.Geometry;
 
-namespace NormalCAD.Core.Entities
+namespace NormalCAD.Core.DatabaseServices
 {
     public class Arc : Curve
     {
