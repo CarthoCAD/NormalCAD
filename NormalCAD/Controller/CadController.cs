@@ -1,8 +1,11 @@
-using Avalonia.Input;
 using System;
 using System.Collections.Generic;
+using Avalonia.Input;
+using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Core.EditorInput;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Host;
 using NormalCAD.View.Controls;
 using NormalCAD.Controller.Commands;
 
@@ -10,7 +13,8 @@ namespace NormalCAD.Controller
 {
     public class CadController
     {
-        public Database Database { get; private set; }
+        public Document Document { get; private set; }
+        public Database Database => Document.Database;
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
         public InputManager InputManager { get; }
@@ -29,15 +33,33 @@ namespace NormalCAD.Controller
         public event Action? DatabaseChanged;
         public event Action<string>? ActiveCommandChanged;
 
-        public CadController(Database database, CadViewport viewport)
+        public CadController(Document document, CadViewport viewport)
         {
-            Database = database;
+            Document = document;
             Viewport = viewport;
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
 
-            database.Changed += OnDatabaseChanged;
+            document.Database.Changed += OnDatabaseChanged;
+
+            SetCommand(new BaseCommand());
+        }
+
+        public CadController(CadViewport viewport)
+        {
+            if (Application.Host == null)
+            {
+                Application.Host = new Host.ApplicationHost();
+            }
+
+            Document = Application.Host.CreateDocument();
+            Viewport = viewport;
+            Viewport.Controller = this;
+            CmdManager = new CmdManager(this);
+            InputManager = new InputManager(this);
+
+            Document.Database.Changed += OnDatabaseChanged;
 
             SetCommand(new BaseCommand());
         }
@@ -48,11 +70,11 @@ namespace NormalCAD.Controller
             Viewport.InvalidateVisual();
         }
 
-        public void SetDatabase(Database db)
+        public void SetDocument(Document document)
         {
-            Database.Changed -= OnDatabaseChanged;
-            Database = db;
-            Database.Changed += OnDatabaseChanged;
+            Document.Database.Changed -= OnDatabaseChanged;
+            Document = document;
+            Document.Database.Changed += OnDatabaseChanged;
 
             ClearSelection();
             Viewport.ActiveCommandPreview = null;
@@ -62,9 +84,19 @@ namespace NormalCAD.Controller
             Viewport.InvalidateVisual();
         }
 
+        public void SetDatabase(Database db)
+        {
+            var doc = new Document(db) { Name = System.IO.Path.GetFileName("drawing.dwg") };
+            doc.Editor = new Editor(doc);
+            Application.DocumentManager.Add(doc);
+            Application.DocumentManager.SetActive(doc);
+            SetDocument(doc);
+        }
+
         public void SaveViewportState()
         {
-            if (!Database.TryGetObject(Database.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
+            var db = Document.Database;
+            if (!db.TryGetObject(db.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
                 return;
 
             var activeId = vt[ViewportTable.ActiveViewport];
@@ -76,7 +108,8 @@ namespace NormalCAD.Controller
 
         public void RestoreViewportState()
         {
-            if (!Database.TryGetObject(Database.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
+            var db = Document.Database;
+            if (!db.TryGetObject(db.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
                 return;
 
             var activeId = vt[ViewportTable.ActiveViewport];
@@ -91,35 +124,49 @@ namespace NormalCAD.Controller
             _activeCommand?.Deactivate();
             Viewport.ActiveCommandPreview = null;
             _activeCommand = command;
-            _activeCommand.Activate(this);
-            
             InputManager.SetCurrentPrompt(_activeCommand.LocalName);
+            _activeCommand.Activate(this);            
             ActiveCommandChanged?.Invoke(_activeCommand.LocalName);
             Viewport.InvalidateVisual();
         }
 
         public void CancelCurrentCommand()
         {
+            ClearKeywords();
             ClearSelection();
             SetCommand(new BaseCommand());
+        }
+
+        public void ClearKeywords()
+        {
+            InputManager.ClearKeywords();
+        }
+
+        public bool TryHandleKeyword(string text)
+        {
+            return InputManager.TryHandleKeyword(text);
         }
 
         public bool IsSelected(ObjectId id) => _selectedEntityIds.Contains(id);
 
         public void AddNewEntityToActiveSpace(Entity entity)
         {
-            using (var trans = Database.TransactionManager.StartTransaction())
+            using (Document.LockDocument())
             {
-                if (Database.TryGetObject(Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
+                var db = Document.Database;
+                using (var trans = db.TransactionManager.StartTransaction())
                 {
-                    var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                    if (Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
+                    if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
                     {
-                        btr.AppendEntity(entity);
-                        trans.AddNewlyCreatedDBObject(entity, true);
+                        var modelSpaceId = bt[BlockTableRecord.ModelSpace];
+                        if (db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
+                        {
+                            btr.AppendEntity(entity);
+                            trans.AddNewlyCreatedDBObject(entity, true);
+                        }
                     }
+                    trans.Commit();
                 }
-                trans.Commit();
             }
         }
 

@@ -89,10 +89,17 @@ namespace NormalCAD.View.Controls
             if (e.Key == Key.Enter || e.Key == Key.Space)
             {
                 string commandText = _txtPrompt.Text?.Trim() ?? "";
+                _txtPrompt.Text = "";
                 if (!string.IsNullOrEmpty(commandText))
                 {
-                    await _controller.CmdManager.ExecuteCommand(commandText);
-                    _txtPrompt.Text = "";
+                    if (_controller.InputManager.HasKeywords)
+                    {
+                        _controller.TryHandleKeyword(commandText);
+                    }
+                    else
+                    {
+                        await _controller.CmdManager.ExecuteCommand(commandText);
+                    }
                 }
                 e.Handled = true;
             }
@@ -102,7 +109,7 @@ namespace NormalCAD.View.Controls
         {
             if (_txtPromptPrefix != null)
             {
-                _txtPromptPrefix.Text = prompt + ":";
+                _txtPromptPrefix.Text = prompt;
             }
         }
 

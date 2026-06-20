@@ -12,6 +12,11 @@ namespace NormalCAD.Controller
         private readonly List<string> _promptHistory = new();
         private const int MaxPromptHistory = 100;
 
+        private string[] _keywords = Array.Empty<string>();
+        private Action<string>? _keywordHandler;
+
+        public bool HasKeywords => _keywords.Length > 0;
+
         public event Action<string>? PromptMessageChanged;
         public event Action<string>? CurrentPromptChanged;
 
@@ -22,19 +27,77 @@ namespace NormalCAD.Controller
             _controller = controller;
         }
 
+        public void SetCurrentPrompt(string cmdName)
+        {
+            SetCurrentPrompt(cmdName, "", null, null);
+        }
+
+        public void SetCurrentPrompt(string cmdName, string message,
+            string[]? keywords = null, Action<string>? callback = null)
+        {
+            _keywords = keywords ?? Array.Empty<string>();
+            _keywordHandler = callback;
+
+            var prompt = keywords is { Length: > 0 }
+                ? $"{cmdName} {message} or [{string.Join("/", keywords)}]:"
+                : $"{cmdName} {message}:";
+
+            if (CurrentPrompt == prompt) return;
+            CurrentPrompt = prompt;
+            CurrentPromptChanged?.Invoke(prompt);
+        }
+
+        public void ClearKeywords()
+        {
+            _keywords = Array.Empty<string>();
+            _keywordHandler = null;
+        }
+
+        public bool TryHandleKeyword(string text)
+        {
+            if (!HasKeywords)
+                return false;
+
+            var handler = _keywordHandler;
+            if (handler == null)
+                return false;
+
+            foreach (var kw in _keywords)
+            {
+                if (string.Equals(kw, text, StringComparison.OrdinalIgnoreCase))
+                {
+                    handler(kw);
+                    return true;
+                }
+            }
+
+            var matches = new List<string>();
+            foreach (var kw in _keywords)
+            {
+                if (kw.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                    matches.Add(kw);
+            }
+
+            if (matches.Count == 1)
+            {
+                handler(matches[0]);
+                return true;
+            }
+
+            if (matches.Count > 1)
+                SetPromptMessage("Ambiguous keyword.");
+            else
+                SetPromptMessage("Option keyword required.");
+
+            return true;
+        }
+
         public void SetPromptMessage(string message)
         {
             _promptHistory.Add(message);
             if (_promptHistory.Count > MaxPromptHistory)
                 _promptHistory.RemoveAt(0);
             PromptMessageChanged?.Invoke(message);
-        }
-
-        public void SetCurrentPrompt(string prompt)
-        {
-            if (CurrentPrompt == prompt) return;
-            CurrentPrompt = prompt;
-            CurrentPromptChanged?.Invoke(prompt);
         }
 
         public IReadOnlyList<string> GetRecentPrompts() => _promptHistory.AsReadOnly();

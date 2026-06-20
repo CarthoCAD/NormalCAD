@@ -8,7 +8,7 @@
 
 O **NormalCAD** é um protótipo de aplicação de desenho técnico (CAD) 2D de código aberto. Seu objetivo é demonstrar como construir um sistema CAD funcional usando tecnologias .NET modernas e abertas, sem depender de bibliotecas proprietárias como o SDK do AutoCAD.
 
-A arquitetura interna do banco de dados do desenho foi modelada com base na **API .NET do AutoCAD** (ObjectARX/Managed), utilizando os mesmos conceitos de `Database`, `ObjectId`, `Transaction`, `BlockTable`, `LayerTable`, `ViewportTable` e entidades (`Entity`), tornando o projeto familiar para desenvolvedores da área de AEC (Arquitetura, Engenharia e Construção).
+A arquitetura interna do banco de dados do desenho foi modelada com base na **API .NET do AutoCAD** (ObjectARX/Managed), utilizando os mesmos conceitos de `Database`, `ObjectId`, `Transaction`, `BlockTable`, `LayerTable`, `ViewportTable` e entidades (`Entity`), tornando o projeto familiar para desenvolvedores da área de AEC (Arquitetura, Engenharia e Construção). A estrutura de namespaces também espelha a API do AutoCAD: `NormalCAD.Core.ApplicationServices`, `NormalCAD.Core.DatabaseServices`, `NormalCAD.Core.EditorInput` e `NormalCAD.Core.Geometry`.
 
 ---
 
@@ -17,12 +17,20 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 ### 🖊️ Ferramentas de Desenho
 
 - **Linha** — Desenho em cadeia (o final de uma linha é o início da próxima), com preview dinâmico tracejado durante o posicionamento.
-- **Círculo** — Definição por clique no centro e arrastar para ajustar o raio, com preview em tempo real.
+- **Círculo** — Clique no centro, arraste para definir raio. Suporte a alternância `Radius`/`Diameter` via keyword no prompt.
 - **Arco** — Clique no centro, arraste para definir raio + ângulo inicial, clique para ângulo final. Preview dinâmico.
-- **Polilinha** — Cliques sucessivos adicionam vértices; `Enter`/`Espaço` finaliza aberta, `C` finaliza fechada. Preview em tempo real.
+- **Polilinha** — Cliques sucessivos adicionam vértices; `Enter`/`Espaço` finaliza aberta. Keywords `Undo` (remove último vértice) e `Close` (fecha polilinha) no prompt, com prefix matching (ex: digitar "U" para Undo). Preview atualiza automaticamente ao usar keywords.
 - **Seleção** — Clique para selecionar entidades individualmente; `Ctrl + Clique` para seleção múltipla acumulativa. Arraste da esquerda→direita para Window Select ou direita→esquerda para Crossing Select. Utiliza índice espacial R*-tree para performance em desenhos grandes.
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
 - **Limpar** — Botão para apagar todo o desenho atual.
+
+### ⌨️ Linha de Comando Integrada (estilo AutoCAD)
+
+- **Prompt de Comandos** — `TextBox` na barra inferior: digite o nome ou alias de um comando e pressione `Enter` ou `Espaço` para executá-lo. `Escape` cancela o comando ativo.
+- **Sistema de Keywords** — Comandos podem registrar opções no prompt (ex: `[Undo/Close]`, `[Diameter/Radius]`). O usuário digita a keyword completa ou apenas o prefixo (`U` → Undo). Se houver ambiguidade (duas keywords com o mesmo prefixo), o sistema rejeita e informa. Quando keywords estão ativas, o prompt bloqueia execução de novos comandos.
+- **Prompt Dinâmico** — Formato AutoCAD: `"PLINE Specify next point or [Undo/Close]:"`. Prefixo do prompt (`PLINE:`, `CIRCLE:`, etc.) atualiza conforme o comando ativo.
+- **Aliases** — Cada comando registra automaticamente seus aliases (ex: `C` ou `CI` para `CIRCLE`). O `CmdManager` resolve aliases via descoberta por reflection.
+- **Popup Flutuante** — Mensagens de feedback do sistema aparecem acima da barra de comando com animação de fade-in/fade-out.
 
 ### 🧲 Object Snapping (Atração Magnética)
 
@@ -39,15 +47,8 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 
 ### 📂 Importação / Exportação DXF e DWG
 
-- **Abrir DXF** — Importa linhas, círculos, arcos e polilinhas (`LwPolyline`).
-- **Salvar DXF** — Exporta para `.dxf` compatível com AutoCAD, LibreCAD, QCAD.
-- **Abrir DWG** — Suporte a R14 até 2020 (AC1014–AC1032).
-- **Salvar DWG** — Exporta no formato AC1032 (AutoCAD 2018–2020).
-
-### ⌨️ Linha de Comando Integrada
-
-- Prompt de comandos estilo AutoCAD com aliases, histórico e auto-foco.
-- Popup flutuante com animação de fade-in/fade-out para feedback.
+- **Abrir DXF/DWG** — Importa linhas, círculos, arcos e polilinhas (`LwPolyline`). Cria novo documento via `Application.DocumentManager`.
+- **Salvar DXF/DWG** — Exporta no formato compatível com AutoCAD, LibreCAD, QCAD.
 
 ### 🎨 Interface e Temas
 
@@ -60,38 +61,46 @@ A arquitetura interna do banco de dados do desenho foi modelada com base na **AP
 
 ```bash
 NormalCAD.sln
-├── NormalCAD.Core/          # Class Library — Modelo de dados (API compatível com AutoCAD .NET)
+├── NormalCAD.Core/              # Class Library — Modelo de dados (zero dependências)
 │   ├── NormalCAD.Core.csproj
-│   ├── Database.cs, Entity.cs, DBObject.cs, ObjectId.cs
-│   ├── BlockTable.cs, BlockTableRecord.cs
-│   ├── LayerTable.cs, LayerTableRecord.cs
-│   ├── ViewportTable.cs, ViewportTableRecord.cs
-│   ├── SymbolTable.cs, SymbolTableRecord.cs
-│   ├── Transaction.cs, TransactionManager.cs
-│   ├── EntityColor.cs, OpenMode.cs, SnapType.cs, Culture.cs
-│   ├── Entities/
-│   │   ├── Line.cs, Circle.cs, Arc.cs, Polyline.cs
-│   ├── Geometry/
-│   │   ├── Point2d.cs, Point3d.cs, Vector3d.cs
-│   │   ├── Matrix3d.cs, Extents3d.cs
-│   └── Spatial/
-│       └── RTree.cs           # Índice espacial R*-tree
+│   ├── ApplicationServices/     # Application, Document, DocumentCollection, DocumentLock
+│   │   ├── Application.cs       # Facade estático (singleton), Application.Host
+│   │   ├── Document.cs          # Database + Editor + LockDocument()
+│   │   ├── DocumentCollection.cs # MdiActiveDocument
+│   │   └── DocumentLock.cs      # IDisposable, Monitor.Enter/Exit
+│   ├── DatabaseServices/        # Database, Entity, Curve, Line, Circle, Arc, Polyline
+│   │   ├── Database.cs, DBObject.cs, ObjectId.cs
+│   │   ├── BlockTable.cs, BlockTableRecord.cs
+│   │   ├── LayerTable.cs, LayerTableRecord.cs
+│   │   ├── ViewportTable.cs, ViewportTableRecord.cs
+│   │   ├── SymbolTable.cs, SymbolTableRecord.cs
+│   │   ├── Transaction.cs, TransactionManager.cs
+│   │   ├── EntityColor.cs, OpenMode.cs, SnapType.cs, Culture.cs
+│   │   └── Line.cs, Circle.cs, Arc.cs, Polyline.cs
+│   ├── EditorInput/             # Editor, PromptPointResult, PromptPointOptions, PromptStatus
+│   │   ├── Editor.cs            # GetPoint(string), GetPoint(PromptPointOptions) — casca temporária
+│   │   └── PromptResult.cs      # PromptStatus (OK/Cancel/Keyword/Error)
+│   ├── Geometry/                # Point2d, Point3d, Vector3d, Matrix3d, Extents3d
+│   ├── Spatial/                 # RTree (índice espacial R*-tree)
+│   └── IApplicationHost.cs      # Interface internal de inicialização do host
 │
-├── NormalCAD/               # WinExe — Aplicação (Avalonia UI + comandos)
-│   ├── NormalCAD.csproj       (Referencia NormalCAD.Core)
-│   ├── Controller/            # Lógica de comandos e orquestração
-│   │   ├── CadController.cs
-│   │   ├── CmdManager.cs, InputManager.cs
-│   │   ├── Commands/          # ICadCommand implementations
-│   │   └── Services/          # DWG/DXF + Conversores
-│   ├── View/                  # Interface Avalonia
-│   │   ├── Controls/          # CadViewport, BottomBar, MenuBar, paletas
-│   │   └── Drawing/           # Renderers (Line, Circle, Arc, Polyline)
+├── NormalCAD/                   # WinExe — Aplicação (Avalonia UI + comandos)
+│   ├── NormalCAD.csproj          (Referencia NormalCAD.Core)
+│   ├── Host/                    # Implementação do host
+│   │   └── ApplicationHost.cs   # IApplicationHost, cria documentos
+│   ├── Controller/              # Lógica de comandos e orquestração
+│   │   ├── CadController.cs     # Orquestrador central (inicializa Application, gerencia Document)
+│   │   ├── CmdManager.cs        # Descoberta, registro e despacho de comandos
+│   │   ├── InputManager.cs      # Input + prompt keywords + prefix matching
+│   │   └── Commands/            # ICadCommand implementations
+│   ├── View/                    # Interface Avalonia
+│   │   ├── Controls/            # CadViewport, BottomBar, MenuBar, paletas
+│   │   └── Drawing/             # Renderers (Line, Circle, Arc, Polyline)
 │   ├── MainWindow.axaml, App.axaml, Program.cs
 │   └── Themes/
 │
-└── NormalCAD.Tests/          # Testes unitários (xUnit)
-    ├── NormalCAD.Tests.csproj  (Referencia NormalCAD.Core)
+└── NormalCAD.Tests/             # Testes unitários (xUnit)
+    ├── NormalCAD.Tests.csproj    (Referencia NormalCAD.Core)
     └── Core/Spatial/
         └── RTreeTests.cs
 ```
@@ -141,14 +150,6 @@ dotnet run --project NormalCAD/NormalCAD.csproj
 dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 ```
 
-### Compilar projetos individuais
-
-```bash
-dotnet build NormalCAD.Core/NormalCAD.Core.csproj     # Apenas o modelo de dados
-dotnet build NormalCAD/NormalCAD.csproj               # Apenas a aplicação
-dotnet build NormalCAD.Tests/NormalCAD.Tests.csproj   # Apenas os testes
-```
-
 ---
 
 ## Como Usar
@@ -158,9 +159,9 @@ dotnet build NormalCAD.Tests/NormalCAD.Tests.csproj   # Apenas os testes
 | **Navegar (Pan)** | Arrastar com o botão do **meio** do mouse |
 | **Zoom** | Scroll do mouse (focado na posição do cursor) |
 | **Desenhar Linha** | Digitar `LINE` / `L` e clicar dois pontos, ou menu Draw → Line |
-| **Desenhar Círculo** | Digitar `CIRCLE` / `C` / `CI` e clicar centro + raio, ou menu Draw → Circle |
+| **Desenhar Círculo** | Digitar `CIRCLE` / `C` / `CI` — clique no centro; digite `D` + Enter para Diameter, `R` + Enter para Radius; clique para definir raio/diâmetro |
 | **Desenhar Arco** | Digitar `ARC` / `A` e clicar centro → raio → ângulo final, ou menu Draw → Arc |
-| **Desenhar Polilinha** | Digitar `PLINE` / `PL` e clicar vértices; `Enter` finaliza aberta, `C` finaliza fechada |
+| **Desenhar Polilinha** | Digitar `PLINE` / `PL` e clicar vértices; `Enter` finaliza aberta; keywords: `U` (Undo), `C` (Close via prompt) |
 | **Selecionar** | Clicar na entidade; `Ctrl + Clique` acumula seleções |
 | **Seleção por Janela** | Arrastar da esquerda → direita (Window) ou direita → esquerda (Crossing) |
 | **Excluir Selecionados** | Tecla `Delete` ou digitar `ERASE` / `E` |
