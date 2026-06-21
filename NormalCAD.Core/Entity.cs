@@ -80,28 +80,19 @@ namespace NormalCAD.Core.DatabaseServices
 
         public virtual double GetDistanceTo(Point3d point)
         {
-            var extents = GeometricExtents;
-            double minDist = double.MaxValue;
-
-            foreach (var pt in GetBoundingPoints())
-            {
-                double d = pt.DistanceTo(point);
-                if (d < minDist)
-                    minDist = d;
-            }
-            return minDist;
+            var curve = GetGeometricCurve();
+            return curve?.GetDistanceTo(point) ?? double.MaxValue;
         }
 
-        public virtual IEnumerable<Point3d> GetBoundingPoints()
+        public virtual Curve3d? GetGeometricCurve() => null;
+
+        public virtual void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
         {
-            var e = GeometricExtents;
-            yield return e.MinPoint;
-            yield return e.MaxPoint;
-            yield return new Point3d(e.MinPoint.X, e.MaxPoint.Y, 0);
-            yield return new Point3d(e.MaxPoint.X, e.MinPoint.Y, 0);
+            var myCurve = GetGeometricCurve();
+            var otherCurve = entity.GetGeometricCurve();
+            if (myCurve != null && otherCurve != null)
+                myCurve.IntersectWith(otherCurve, points);
         }
-
-        public abstract void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points);
 
         public void Erase()
         {

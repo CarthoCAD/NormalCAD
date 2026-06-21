@@ -96,30 +96,8 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public override double GetDistanceTo(Point3d point)
-        {
-            double d = Center.DistanceTo(point);
-            return Math.Abs(d - Radius);
-        }
-
-        public override void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
-        {
-            switch (entity)
-            {
-                case Circle circle:
-                    IntersectCircleCircle(this, circle, points);
-                    break;
-                case Line line:
-                    line.IntersectWith(this, intersectType, points);
-                    break;
-                case Arc arc:
-                    arc.IntersectWith(this, intersectType, points);
-                    break;
-                case Polyline poly:
-                    poly.IntersectWith(this, intersectType, points);
-                    break;
-            }
-        }
+        public override Curve3d? GetGeometricCurve()
+            => CircularArc3d.FullCircle(Center, Radius);
 
         public override void List()
         {
@@ -128,30 +106,6 @@ namespace NormalCAD.Core.DatabaseServices
             System.Diagnostics.Debug.WriteLine($"Center: ({Center.X:F4}, {Center.Y:F4}, {Center.Z:F4})");
             System.Diagnostics.Debug.WriteLine($"Radius: {Radius:F4}");
             System.Diagnostics.Debug.WriteLine($"Length: {Length:F4}");
-        }
-
-        private static void IntersectCircleCircle(Circle c1, Circle c2, Point3dCollection points)
-        {
-            double d = c1.Center.DistanceTo(c2.Center);
-            if (d > c1.Radius + c2.Radius || d < Math.Abs(c1.Radius - c2.Radius) || d < 1e-12)
-                return;
-
-            double a = (c1.Radius * c1.Radius - c2.Radius * c2.Radius + d * d) / (2 * d);
-            double hSq = c1.Radius * c1.Radius - a * a;
-            if (hSq < 0) return;
-
-            double h = Math.Sqrt(hSq);
-            double cx2 = c1.Center.X + a * (c2.Center.X - c1.Center.X) / d;
-            double cy2 = c1.Center.Y + a * (c2.Center.Y - c1.Center.Y) / d;
-
-            points.Add(new Point3d(
-                cx2 + h * (c2.Center.Y - c1.Center.Y) / d,
-                cy2 - h * (c2.Center.X - c1.Center.X) / d, 0));
-
-            if (h > 1e-9)
-                points.Add(new Point3d(
-                    cx2 - h * (c2.Center.Y - c1.Center.Y) / d,
-                    cy2 + h * (c2.Center.X - c1.Center.X) / d, 0));
         }
     }
 }

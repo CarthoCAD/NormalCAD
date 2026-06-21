@@ -143,7 +143,7 @@ namespace NormalCAD.View.Controls
             _controller?.InputManager.SetPromptMessage("Tool not implemented yet");
         }
 
-        public void ShowFloatingPrompt(string message, int autoHideMs = 5000)
+        public void ShowFloatingPrompt(string message, int autoHideMs = 3000)
         {
             if (_promptPopup == null || _txtPromptPopup == null || _promptPopupBorder == null) return;
 

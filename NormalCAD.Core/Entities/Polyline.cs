@@ -23,7 +23,10 @@ namespace NormalCAD.Core.DatabaseServices
         public override Point3d EndPoint =>
             _vertices.Count > 0 ? _vertices[_vertices.Count - 1].ToPoint3d(Elevation) : Point3d.Origin;
 
-        public new bool Closed { get; set; }
+        private bool _closed;
+        public override bool Closed => _closed;
+
+        public void SetClosed(bool value) => _closed = value;
         public override double Length => ComputeLength();
 
         public override Extents3d GeometricExtents
@@ -55,7 +58,7 @@ namespace NormalCAD.Core.DatabaseServices
         public Polyline(IEnumerable<Point2d> vertices, bool closed = false)
         {
             _vertices.AddRange(vertices);
-            Closed = closed;
+            _closed = closed;
         }
 
         public override Entity Clone()
@@ -134,29 +137,18 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public override double GetDistanceTo(Point3d point)
+        public override Curve3d? GetGeometricCurve()
         {
-            double minDist = double.MaxValue;
             int count = Closed ? _vertices.Count : _vertices.Count - 1;
+            var segments = new Curve3d[count];
             for (int i = 0; i < count; i++)
             {
                 int j = (i + 1) % _vertices.Count;
-                var seg = new Line(_vertices[i].ToPoint3d(Elevation), _vertices[j].ToPoint3d(Elevation));
-                double d = seg.GetDistanceTo(point);
-                if (d < minDist) minDist = d;
+                segments[i] = new LineSegment3d(
+                    _vertices[i].ToPoint3d(Elevation),
+                    _vertices[j].ToPoint3d(Elevation));
             }
-            return minDist;
-        }
-
-        public override void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
-        {
-            int count = Closed ? _vertices.Count : _vertices.Count - 1;
-            for (int i = 0; i < count; i++)
-            {
-                int j = (i + 1) % _vertices.Count;
-                var seg = new Line(_vertices[i].ToPoint3d(Elevation), _vertices[j].ToPoint3d(Elevation));
-                seg.IntersectWith(entity, intersectType, points);
-            }
+            return new CompositeCurve3d(segments);
         }
 
         public override void List()

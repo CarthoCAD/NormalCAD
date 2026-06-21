@@ -91,62 +91,8 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public override double GetDistanceTo(Point3d point)
-        {
-            double d = Center.DistanceTo(point);
-            double distFromArc = Math.Abs(d - Radius);
-
-            if (IsAngleOnArc(Math.Atan2(point.Y - Center.Y, point.X - Center.X) * 180.0 / Math.PI))
-                return distFromArc;
-
-            double d1 = StartPoint.DistanceTo(point);
-            double d2 = EndPoint.DistanceTo(point);
-            return Math.Min(Math.Min(d1, d2), distFromArc);
-        }
-
-        private bool IsAngleOnArc(double angleDeg)
-        {
-            if (angleDeg < 0) angleDeg += 360;
-            double sa = StartAngle % 360;
-            double ea = EndAngle % 360;
-            if (sa < 0) sa += 360;
-            if (ea < 0) ea += 360;
-
-            if (sa <= ea)
-                return angleDeg >= sa && angleDeg <= ea;
-            else
-                return angleDeg >= sa || angleDeg <= ea;
-        }
-
-        public override void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
-        {
-            switch (entity)
-            {
-                case Line line:
-                {
-                    var tempCircle = new Circle(Center, Radius);
-                    var circlePoints = new Point3dCollection();
-                    tempCircle.IntersectWith(line, intersectType, circlePoints);
-
-                    foreach (var pt in circlePoints)
-                    {
-                        double angle = Math.Atan2(pt.Y - Center.Y, pt.X - Center.X) * 180.0 / Math.PI;
-                        if (IsAngleOnArc(angle))
-                            points.Add(pt);
-                    }
-                    break;
-                }
-                case Circle circle:
-                    circle.IntersectWith(new Circle(Center, Radius), intersectType, points);
-                    break;
-                case Arc arc:
-                    IntersectArcArc(this, arc, points);
-                    break;
-                case Polyline poly:
-                    poly.IntersectWith(this, intersectType, points);
-                    break;
-            }
-        }
+        public override Curve3d? GetGeometricCurve()
+            => new CircularArc3d(Center, Radius, StartAngle, EndAngle);
 
         public override void List()
         {
@@ -157,22 +103,6 @@ namespace NormalCAD.Core.DatabaseServices
             System.Diagnostics.Debug.WriteLine($"Start Angle: {StartAngle:F4}");
             System.Diagnostics.Debug.WriteLine($"End Angle: {EndAngle:F4}");
             System.Diagnostics.Debug.WriteLine($"Length: {Length:F4}");
-        }
-
-        private static void IntersectArcArc(Arc a1, Arc a2, Point3dCollection points)
-        {
-            var c1 = new Circle(a1.Center, a1.Radius);
-            var c2 = new Circle(a2.Center, a2.Radius);
-            var circlePoints = new Point3dCollection();
-            c1.IntersectWith(c2, Intersect.OnBothOperands, circlePoints);
-
-            foreach (var pt in circlePoints)
-            {
-                double ang1 = Math.Atan2(pt.Y - a1.Center.Y, pt.X - a1.Center.X) * 180.0 / Math.PI;
-                double ang2 = Math.Atan2(pt.Y - a2.Center.Y, pt.X - a2.Center.X) * 180.0 / Math.PI;
-                if (a1.IsAngleOnArc(ang1) && a2.IsAngleOnArc(ang2))
-                    points.Add(pt);
-            }
         }
 
         private Point3d PointAtAngle(double angleDeg)

@@ -174,22 +174,31 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public override void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
+        public override Curve3d? GetGeometricCurve()
         {
             if (BlockTableRecordId.IsNull || Database == null)
-                return;
+                return null;
 
             if (!Database.TryGetObject(BlockTableRecordId, out var obj) || obj is not BlockTableRecord btr)
-                return;
+                return null;
 
+            var segments = new List<Curve3d>();
             foreach (var entId in btr.GetEntityIds())
             {
                 if (!Database.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                     continue;
 
                 var copy = ent.GetTransformedCopy(_blockTransform);
-                copy.IntersectWith(entity, intersectType, points);
+                var curve = copy.GetGeometricCurve();
+                if (curve != null)
+                {
+                    if (curve is CompositeCurve3d comp)
+                        segments.AddRange(comp.Segments);
+                    else
+                        segments.Add(curve);
+                }
             }
+            return segments.Count > 0 ? new CompositeCurve3d(segments) : null;
         }
 
         public override void List()
