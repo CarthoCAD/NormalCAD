@@ -3,43 +3,15 @@
              x:Class="NormalCAD.View.Controls.PropertyPalette">
   <ScrollViewer Padding="10">
     <StackPanel Spacing="10">
-      <TextBlock Name="TxtPropsTitle" Text="Nenhum objeto selecionado" Foreground="{DynamicResource Theme.TextSec}" FontSize="13" FontStyle="Italic"/>
-      
-      <!-- Seção de propriedades visíveis dinamicamente -->
-      <StackPanel Name="PanelLineProps" IsVisible="False" Spacing="8">
-        <TextBlock Text="LINHA" Foreground="#007ACC" FontWeight="Bold" FontSize="11"/>
-        
-        <TextBlock Name="LblStartX" Text="Início X:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtLineStartX" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-        
-        <TextBlock Name="LblStartY" Text="Início Y:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtLineStartY" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-        
-        <TextBlock Name="LblEndX" Text="Fim X:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtLineEndX" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-        
-        <TextBlock Name="LblEndY" Text="Fim Y:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtLineEndY" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-
-        <TextBlock Name="LblLineLayer" Text="Camada:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtLineLayer" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-      </StackPanel>
-
-      <StackPanel Name="PanelCircleProps" IsVisible="False" Spacing="8">
-        <TextBlock Text="CÍRCULO" Foreground="#007ACC" FontWeight="Bold" FontSize="11"/>
-        
-        <TextBlock Name="LblCenterX" Text="Centro X:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtCircleCenterX" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-        
-        <TextBlock Name="LblCenterY" Text="Centro Y:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtCircleCenterY" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-        
-        <TextBlock Name="LblRadius" Text="Raio:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtCircleRadius" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-
-        <TextBlock Name="LblCircleLayer" Text="Camada:" Foreground="{DynamicResource Theme.TextSec}" FontSize="11"/>
-        <TextBox Name="TxtCircleLayer" IsReadOnly="True" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" Height="26" VerticalContentAlignment="Center"/>
-      </StackPanel>
+      <TextBlock Name="TxtPropsTitle" Text="No selection"
+                 Foreground="{DynamicResource Theme.Text}"
+                 FontSize="12" FontWeight="Bold"/>
+      <Grid Name="PropsGrid">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+      </Grid>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

@@ -1,19 +1,57 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
 {
     public class Arc : Curve
     {
-        public Point3d Center { get; set; }
+        [Category("Geometry")]
+        [DisplayName("Center X")]
+        public double CenterX
+        {
+            get => Center.X;
+            set => Center = new Point3d(value, Center.Y, Center.Z);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Center Y")]
+        public double CenterY
+        {
+            get => Center.Y;
+            set => Center = new Point3d(Center.X, value, Center.Z);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Radius")]
         public double Radius { get; set; }
+
+        [Category("Geometry")]
+        [DisplayName("Start Angle")]
         public double StartAngle { get; set; }
+
+        [Category("Geometry")]
+        [DisplayName("End Angle")]
         public double EndAngle { get; set; }
 
+        
+        public Point3d Center { get; set; }
+
+        
         public override Point3d StartPoint => PointAtAngle(StartAngle);
+
+        
         public override Point3d EndPoint => PointAtAngle(EndAngle);
+
+        [Category("Geometry")]
+        [DisplayName("Length")]
+        [ReadOnly(true)]
         public override double Length => Radius * Math.Abs(EndAngle - StartAngle) * Math.PI / 180.0;
+
+        [Category("Geometry")]
+        [DisplayName("Closed")]
+        [ReadOnly(true)]
         public override bool Closed => false;
 
         public override Extents3d GeometricExtents => ComputeExtents();

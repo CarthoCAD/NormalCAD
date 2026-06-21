@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
@@ -11,9 +12,66 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Point3d StartPoint => _startPoint;
         public override Point3d EndPoint => _endPoint;
+
+        [Category("Geometry")]
+        [DisplayName("Start X")]
+        public double StartX
+        {
+            get => _startPoint.X;
+            set => _startPoint = new Point3d(value, _startPoint.Y, _startPoint.Z);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Start Y")]
+        public double StartY
+        {
+            get => _startPoint.Y;
+            set => _startPoint = new Point3d(_startPoint.X, value, _startPoint.Z);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Start Z")]
+        public double StartZ
+        {
+            get => _startPoint.Z;
+            set => _startPoint = new Point3d(_startPoint.X, _startPoint.Y, value);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("End X")]
+        public double EndX
+        {
+            get => _endPoint.X;
+            set => _endPoint = new Point3d(value, _endPoint.Y, _endPoint.Z);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("End Y")]
+        public double EndY
+        {
+            get => _endPoint.Y;
+            set => _endPoint = new Point3d(_endPoint.X, value, _endPoint.Z);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("End Z")]
+        public double EndZ
+        {
+            get => _endPoint.Z;
+            set => _endPoint = new Point3d(_endPoint.X, _endPoint.Y, value);
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Length")]
+        [ReadOnly(true)]
         public override double Length => _startPoint.DistanceTo(_endPoint);
+
+        [Category("Geometry")]
+        [DisplayName("Closed")]
+        [ReadOnly(true)]
         public override bool Closed => false;
 
+        
         public override Extents3d GeometricExtents =>
             Extents3d.FromPoints(_startPoint, _endPoint);
 
@@ -52,6 +110,7 @@ namespace NormalCAD.Core.DatabaseServices
                 (_startPoint.Z + _endPoint.Z) / 2), SnapType.Midpoint);
         }
 
+        
         public Point3d Midpoint => new Point3d(
             (_startPoint.X + _endPoint.X) / 2,
             (_startPoint.Y + _endPoint.Y) / 2,

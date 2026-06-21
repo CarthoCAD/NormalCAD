@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
@@ -10,26 +11,75 @@ namespace NormalCAD.Core.DatabaseServices
         private double _rotation;
         private Vector3d _scaleFactors;
 
-        public Point3d Position
+        [Category("Geometry")]
+        [DisplayName("Position X")]
+        public double PositionX
         {
-            get => _position;
-            set { _position = value; UpdateBlockTransform(); }
+            get => _position.X;
+            set { _position = new Point3d(value, _position.Y, _position.Z); UpdateBlockTransform(); }
         }
 
+        [Category("Geometry")]
+        [DisplayName("Position Y")]
+        public double PositionY
+        {
+            get => _position.Y;
+            set { _position = new Point3d(_position.X, value, _position.Z); UpdateBlockTransform(); }
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Rotation")]
         public double Rotation
         {
             get => _rotation;
             set { _rotation = value; UpdateBlockTransform(); }
         }
 
+        [Category("Geometry")]
+        [DisplayName("Scale X")]
+        public double ScaleX
+        {
+            get => _scaleFactors.X;
+            set { SetScaleFactor(value, _scaleFactors.Y, _scaleFactors.Z); }
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Scale Y")]
+        public double ScaleY
+        {
+            get => _scaleFactors.Y;
+            set { SetScaleFactor(_scaleFactors.X, value, _scaleFactors.Z); }
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Scale Z")]
+        public double ScaleZ
+        {
+            get => _scaleFactors.Z;
+            set { SetScaleFactor(_scaleFactors.X, _scaleFactors.Y, value); }
+        }
+
+        [Category("Geometry")]
+        [DisplayName("Block Name")]
+        [ReadOnly(true)]
+        public string BlockName { get; set; } = string.Empty;
+
+        
+        public Point3d Position
+        {
+            get => _position;
+            set { _position = value; UpdateBlockTransform(); }
+        }
+
+        
         public Vector3d ScaleFactors
         {
             get => _scaleFactors;
             set { _scaleFactors = value; UpdateBlockTransform(); }
         }
 
+        
         public ObjectId BlockTableRecordId { get; set; }
-        public string BlockName { get; set; } = string.Empty;
 
         private Matrix3d _blockTransform = Matrix3d.Identity;
         public override Matrix3d BlockTransform => _blockTransform;
@@ -80,6 +130,12 @@ namespace NormalCAD.Core.DatabaseServices
             _blockTransform[2, 2] = _scaleFactors.Z;
             _blockTransform[2, 3] = _position.Z;
             _blockTransform[3, 3] = 1;
+        }
+
+        private void SetScaleFactor(double x, double y, double z)
+        {
+            _scaleFactors = new Vector3d(x, y, z);
+            UpdateBlockTransform();
         }
 
         public override Entity Clone()

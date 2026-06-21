@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using NormalCAD.Core.Geometry;
 
@@ -8,9 +9,30 @@ namespace NormalCAD.Core.DatabaseServices
     public class Polyline : Curve
     {
         private readonly List<Point2d> _vertices = new();
+        private bool _closed;
 
+        [Category("Geometry")]
+        [DisplayName("Elevation")]
         public double Elevation { get; set; }
+
+        [Category("Geometry")]
+        [DisplayName("Vertices")]
+        [ReadOnly(true)]
         public int NumberOfVertices => _vertices.Count;
+
+        [Category("Geometry")]
+        [DisplayName("Closed")]
+        public override bool Closed => _closed;
+
+        [Category("Geometry")]
+        [DisplayName("Length")]
+        [ReadOnly(true)]
+        public override double Length => ComputeLength();
+
+        [Category("Geometry")]
+        [DisplayName("Area")]
+        [ReadOnly(true)]
+        public override double Area => base.Area;
 
         public Point3d GetPoint3dAt(int index) => _vertices[index].ToPoint3d(Elevation);
 
@@ -23,11 +45,7 @@ namespace NormalCAD.Core.DatabaseServices
         public override Point3d EndPoint =>
             _vertices.Count > 0 ? _vertices[_vertices.Count - 1].ToPoint3d(Elevation) : Point3d.Origin;
 
-        private bool _closed;
-        public override bool Closed => _closed;
-
         public void SetClosed(bool value) => _closed = value;
-        public override double Length => ComputeLength();
 
         public override Extents3d GeometricExtents
         {

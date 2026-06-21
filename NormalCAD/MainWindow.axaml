@@ -31,33 +31,56 @@
     <!-- BARRA DE STATUS INFERIOR -->
     <controls:BottomBar Name="BottomBar" DockPanel.Dock="Bottom" />
 
-    <!-- VIEWPORT CENTRAL & GAVETA LATERAL -->
+    <!-- VIEWPORT + SIDEBAR OVERLAY -->
     <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="Auto" />
-      </Grid.ColumnDefinitions>
-      
-      <!-- VIEWPORT CENTRAL -->
-      <controls:CadViewport Name="Viewport" Grid.Column="0" />
-      
-      <!-- PAINEL GAVETA + BARRA LATERAL DE ABAS -->
-      <Grid Grid.Column="1" Name="SidebarGrid" ColumnDefinitions="Auto, Auto">
-        <!-- Gaveta de Conteúdo -->
-        <Border Grid.Column="0" Name="DrawerPanel" Width="0" Background="{DynamicResource Theme.PanelBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="1,0,0,0">
-          <ContentControl Name="DrawerContent" />
+      <!-- VIEWPORT (preenche toda a area) -->
+      <controls:CadViewport Name="Viewport" />
+
+      <!-- SIDEBAR OVERLAY (sobrepoe o viewport, alinhado a direita) -->
+      <Grid Name="SidebarGrid" HorizontalAlignment="Right" ZIndex="10">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="40" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Gaveta de Conteudo -->
+        <Border Grid.Column="0" Name="DrawerPanel" Width="0"
+                Background="{DynamicResource Theme.PanelBg}"
+                BorderBrush="{DynamicResource Theme.Border}"
+                BorderThickness="1,0,0,0">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="4" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!-- Grip de redimensionamento (borda esquerda) -->
+            <Border Grid.Column="0" Name="DrawerGrip"
+                    Background="Transparent" Cursor="SizeWestEast" />
+            <ContentControl Grid.Column="1" Name="DrawerContent" />
+          </Grid>
         </Border>
-        
-        <!-- Barra de Botões Verticais (Abas) -->
-        <Border Grid.Column="1" Width="40" Background="{DynamicResource Theme.TopBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="1,0,0,0">
+
+        <!-- Barra de Botoes Verticais (sempre visivel) -->
+        <Border Grid.Column="1" Width="40"
+                Background="{DynamicResource Theme.TopBarBg}"
+                BorderBrush="{DynamicResource Theme.Border}"
+                BorderThickness="1,0,0,0">
           <StackPanel Orientation="Vertical" Spacing="10" Margin="0,10">
-            <!-- Botão Propriedades -->
-            <Button Name="BtnTabProps" ToolTip.Tip="Propriedades" Width="30" Height="30" Background="Transparent" BorderThickness="0" CornerRadius="4" HorizontalAlignment="Center">
-              <PathIcon Data="M3,5H21V7H3V5M3,11H21V13H3V11M3,17H21V19H3V17Z" Foreground="{DynamicResource Theme.Text}" Width="16" Height="16"/>
+            <Button Name="BtnTabProps" ToolTip.Tip="Propriedades"
+                    Width="30" Height="30" Background="Transparent"
+                    BorderThickness="0" CornerRadius="4"
+                    HorizontalAlignment="Center">
+              <PathIcon Data="M3,5H21V7H3V5M3,11H21V13H3V11M3,17H21V19H3V17Z"
+                        Foreground="{DynamicResource Theme.Text}"
+                        Width="16" Height="16"/>
             </Button>
-            <!-- Botão Camadas -->
-            <Button Name="BtnTabLayers" ToolTip.Tip="Camadas" Width="30" Height="30" Background="Transparent" BorderThickness="0" CornerRadius="4" HorizontalAlignment="Center">
-              <PathIcon Data="M12,16L22,12L12,8L2,12L12,16M12,18.5L2,14.5L12,18.5L22,14.5L12,18.5M12,21L2,17L12,21L22,17L12,21Z" Foreground="{DynamicResource Theme.Text}" Width="16" Height="16"/>
+            <Button Name="BtnTabLayers" ToolTip.Tip="Camadas"
+                    Width="30" Height="30" Background="Transparent"
+                    BorderThickness="0" CornerRadius="4"
+                    HorizontalAlignment="Center">
+              <PathIcon Data="M12,16L22,12L12,8L2,12L12,16M12,18.5L2,14.5L12,18.5L22,14.5L12,18.5M12,21L2,17L12,21L22,17L12,21Z"
+                        Foreground="{DynamicResource Theme.Text}"
+                        Width="16" Height="16"/>
             </Button>
           </StackPanel>
         </Border>

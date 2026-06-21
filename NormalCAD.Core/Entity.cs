@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using NormalCAD.Core.Geometry;
 
@@ -7,19 +8,48 @@ namespace NormalCAD.Core.DatabaseServices
 {
     public abstract class Entity : DBObject
     {
+        [Category("General")]
+        [DisplayName("Layer")]
         public string Layer { get; set; } = "0";
+
+        
         public ObjectId LayerId { get; set; }
+
+        [Category("General")]
+        [DisplayName("Color")]
+        [ReadOnly(true)]
         public EntityColor Color { get; set; } = EntityColor.ByLayer;
+
+        [Category("General")]
+        [DisplayName("Linetype")]
         public string Linetype { get; set; } = "ByLayer";
+
+        
         public ObjectId LinetypeId { get; set; }
+
+        [Category("General")]
+        [DisplayName("Lineweight")]
         public LineWeight LineWeight { get; set; } = LineWeight.ByLayer;
+
+        [Category("General")]
+        [DisplayName("Linetype Scale")]
         public double LinetypeScale { get; set; } = 1.0;
+
+        [Category("General")]
+        [DisplayName("Transparency")]
         public Transparency Transparency { get; set; } = Transparency.ByLayer;
+
+        [Category("General")]
+        [DisplayName("Visible")]
         public bool Visible { get; set; } = true;
 
+        
         public ObjectId BlockId { get; set; }
+
+        
         public Extents3d Bounds { get; protected set; }
 
+        
         public bool IsHighlighted { get; private set; }
 
         public abstract Entity Clone();
@@ -39,6 +69,7 @@ namespace NormalCAD.Core.DatabaseServices
             target.IsErased = this.IsErased;
         }
 
+        
         public abstract Extents3d GeometricExtents { get; }
 
         public Entity GetTransformedCopy(Matrix3d transform)
@@ -48,7 +79,10 @@ namespace NormalCAD.Core.DatabaseServices
             return copy;
         }
 
+        
         public virtual bool IsContentSnappable => false;
+
+        
         public virtual bool IsSnappable => true;
 
         public virtual IEnumerable<(Point3d Point, SnapType Type)> GetOsnapPoints()
@@ -74,8 +108,10 @@ namespace NormalCAD.Core.DatabaseServices
         {
         }
 
+        
         public abstract void TransformBy(Matrix3d transform);
 
+        
         public virtual Matrix3d BlockTransform => Matrix3d.Identity;
 
         public virtual double GetDistanceTo(Point3d point)
@@ -84,6 +120,7 @@ namespace NormalCAD.Core.DatabaseServices
             return curve?.GetDistanceTo(point) ?? double.MaxValue;
         }
 
+        
         public virtual Curve3d? GetGeometricCurve() => null;
 
         public virtual void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
@@ -94,17 +131,17 @@ namespace NormalCAD.Core.DatabaseServices
                 myCurve.IntersectWith(otherCurve, points);
         }
 
-        public void Erase()
+        public virtual void Erase()
         {
             IsErased = true;
         }
 
-        public void Highlight()
+        public virtual void Highlight()
         {
             IsHighlighted = true;
         }
 
-        public void Unhighlight()
+        public virtual void Unhighlight()
         {
             IsHighlighted = false;
         }
@@ -128,7 +165,6 @@ namespace NormalCAD.Core.DatabaseServices
 
         public virtual void SetDatabaseDefaults(Database database)
         {
-            // Apply current database defaults (layer, linetype, color, etc.)
         }
     }
 }

@@ -29,6 +29,8 @@ namespace NormalCAD.Core.DatabaseServices
 
         public bool IsByLayer => A == 0;
 
+        public override string ToString() => IsByLayer ? "ByLayer" : $"#{R:X2}{G:X2}{B:X2}";
+
         public bool Equals(EntityColor other) => R == other.R && G == other.G && B == other.B && A == other.A;
         public override bool Equals(object? obj) => obj is EntityColor other && Equals(other);
         public override int GetHashCode() => (R, G, B, A).GetHashCode();
