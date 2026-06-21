@@ -22,7 +22,7 @@ namespace NormalCAD.Controller.Services.Converters
                 IsClosed = source.Closed,
                 Elevation = source.Elevation
             };
-            ApplyLayerAndColorToAcad(result, source, cadDoc);
+            ApplyEntityPropertiesToAcad(result, source, cadDoc);
             return result;
         }
 
@@ -36,7 +36,7 @@ namespace NormalCAD.Controller.Services.Converters
             {
                 Elevation = source.Elevation
             };
-            ApplyLayerAndColorToNormal(result, source);
+            ApplyEntityPropertiesToNormal(result, source);
             return result;
         }
     }

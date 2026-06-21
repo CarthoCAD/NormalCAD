@@ -69,6 +69,13 @@ namespace NormalCAD.Controller.Services.Converters
                 var normalEntity = converters.ConvertToNormal(acadEntity);
                 if (normalEntity == null) continue;
 
+                if (normalEntity is BlockReference blockRef && !string.IsNullOrEmpty(blockRef.BlockName))
+                {
+                    var blockRecId = bt[blockRef.BlockName];
+                    if (!blockRecId.IsNull)
+                        blockRef.BlockTableRecordId = blockRecId;
+                }
+
                 btr.AppendEntity(normalEntity);
                 trans.AddNewlyCreatedDBObject(normalEntity, true);
             }

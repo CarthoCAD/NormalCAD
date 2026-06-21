@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NormalCAD.Core.Geometry;
@@ -60,8 +61,7 @@ namespace NormalCAD.Core.DatabaseServices
         public override Entity Clone()
         {
             var clone = new Polyline(_vertices, Closed) { Elevation = Elevation };
-            clone.Layer = Layer;
-            clone.Color = Color;
+            CopyEntityPropertiesTo(clone);
             return clone;
         }
 
@@ -97,6 +97,75 @@ namespace NormalCAD.Core.DatabaseServices
                     (_vertices[_vertices.Count - 1].Y + _vertices[0].Y) / 2);
                 yield return (mid.ToPoint3d(Elevation), SnapType.Midpoint);
             }
+        }
+
+        public override IEnumerable<Point3d> GetGripPoints()
+        {
+            for (int i = 0; i < _vertices.Count; i++)
+                yield return _vertices[i].ToPoint3d(Elevation);
+        }
+
+        public override void MoveGripPointsAt(Point3dCollection grips, Vector3d offset)
+        {
+            for (int i = 0; i < grips.Count && i < _vertices.Count; i++)
+            {
+                _vertices[i] = Point2d.FromPoint3d(grips[i] + offset);
+            }
+        }
+
+        public override IEnumerable<Point3d> GetStretchPoints()
+        {
+            for (int i = 0; i < _vertices.Count; i++)
+                yield return _vertices[i].ToPoint3d(Elevation);
+        }
+
+        public override void MoveStretchPointsAt(Point3dCollection stretches, Vector3d offset)
+        {
+            foreach (var pt in stretches)
+            {
+                for (int i = 0; i < _vertices.Count; i++)
+                {
+                    if (_vertices[i].ToPoint3d(Elevation).DistanceTo(pt) < 1e-9)
+                    {
+                        _vertices[i] = Point2d.FromPoint3d(pt + offset);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public override double GetDistanceTo(Point3d point)
+        {
+            double minDist = double.MaxValue;
+            int count = Closed ? _vertices.Count : _vertices.Count - 1;
+            for (int i = 0; i < count; i++)
+            {
+                int j = (i + 1) % _vertices.Count;
+                var seg = new Line(_vertices[i].ToPoint3d(Elevation), _vertices[j].ToPoint3d(Elevation));
+                double d = seg.GetDistanceTo(point);
+                if (d < minDist) minDist = d;
+            }
+            return minDist;
+        }
+
+        public override void IntersectWith(Entity entity, Intersect intersectType, Point3dCollection points)
+        {
+            int count = Closed ? _vertices.Count : _vertices.Count - 1;
+            for (int i = 0; i < count; i++)
+            {
+                int j = (i + 1) % _vertices.Count;
+                var seg = new Line(_vertices[i].ToPoint3d(Elevation), _vertices[j].ToPoint3d(Elevation));
+                seg.IntersectWith(entity, intersectType, points);
+            }
+        }
+
+        public override void List()
+        {
+            System.Diagnostics.Debug.WriteLine($"                  Polyline");
+            System.Diagnostics.Debug.WriteLine($"Layer: {Layer}");
+            System.Diagnostics.Debug.WriteLine($"Vertices: {NumberOfVertices}");
+            System.Diagnostics.Debug.WriteLine($"Closed: {Closed}");
+            System.Diagnostics.Debug.WriteLine($"Length: {Length:F4}");
         }
 
         private double ComputeLength()

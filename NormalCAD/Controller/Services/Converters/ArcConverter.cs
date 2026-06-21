@@ -16,7 +16,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.StartAngle * Math.PI / 180.0,
                 source.EndAngle * Math.PI / 180.0
             );
-            ApplyLayerAndColorToAcad(result, source, cadDoc);
+            ApplyEntityPropertiesToAcad(result, source, cadDoc);
             return result;
         }
 
@@ -28,7 +28,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.StartAngle * 180.0 / Math.PI,
                 source.EndAngle * 180.0 / Math.PI
             );
-            ApplyLayerAndColorToNormal(result, source);
+            ApplyEntityPropertiesToNormal(result, source);
             return result;
         }
     }

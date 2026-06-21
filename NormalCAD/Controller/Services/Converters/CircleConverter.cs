@@ -13,7 +13,7 @@ namespace NormalCAD.Controller.Services.Converters
                 new XYZ(source.Center.X, source.Center.Y, source.Center.Z),
                 source.Radius
             );
-            ApplyLayerAndColorToAcad(result, source, cadDoc);
+            ApplyEntityPropertiesToAcad(result, source, cadDoc);
             return result;
         }
 
@@ -23,7 +23,7 @@ namespace NormalCAD.Controller.Services.Converters
                 new Point3d(source.Center.X, source.Center.Y, source.Center.Z),
                 source.Radius
             );
-            ApplyLayerAndColorToNormal(result, source);
+            ApplyEntityPropertiesToNormal(result, source);
             return result;
         }
     }
