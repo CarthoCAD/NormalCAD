@@ -1,0 +1,22 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="Theme.PanelBg" Color="{DynamicResource Color.PanelBg}" />
+    <SolidColorBrush x:Key="Theme.TopBarBg" Color="{DynamicResource Color.TopBarBg}" />
+    <SolidColorBrush x:Key="Theme.BottomBarBg" Color="{DynamicResource Color.BottomBarBg}" />
+    <SolidColorBrush x:Key="Theme.Text" Color="{DynamicResource Color.Text}" />
+    <SolidColorBrush x:Key="Theme.TextSec" Color="{DynamicResource Color.TextSec}" />
+    <SolidColorBrush x:Key="Theme.TextBoxBg" Color="{DynamicResource Color.TextBoxBg}" />
+    <SolidColorBrush x:Key="Theme.Border" Color="{DynamicResource Color.Border}" />
+
+    <SolidColorBrush x:Key="Theme.ViewportBg" Color="{DynamicResource Color.ViewportBg}" />
+    <SolidColorBrush x:Key="Theme.ViewportGrid" Color="{DynamicResource Color.ViewportGrid}" />
+    <SolidColorBrush x:Key="Theme.ViewportAxisX" Color="{DynamicResource Color.ViewportAxisX}" />
+    <SolidColorBrush x:Key="Theme.ViewportAxisY" Color="{DynamicResource Color.ViewportAxisY}" />
+    <SolidColorBrush x:Key="Theme.ViewportSnap" Color="{DynamicResource Color.ViewportSnap}" />
+
+    <SolidColorBrush x:Key="Theme.PopupBg" Color="{DynamicResource Color.PopupBg}" />
+    <SolidColorBrush x:Key="Theme.PopupText" Color="{DynamicResource Color.PopupText}" />
+
+</ResourceDictionary>

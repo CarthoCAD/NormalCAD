@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="NormalCAD.View.Controls.BottomBar">
+  <Panel>
+  <Border Background="{DynamicResource Theme.BottomBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="0,1,0,0" Height="32">
+    <Grid ColumnDefinitions="Auto,*,Auto" Margin="10,0">
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Width="320">
+        <Button Name="BtnModel" Content="Model" HorizontalAlignment="Left" FontSize="12" Padding="8,2" />
+      </StackPanel>
+      <Border Grid.Column="1"
+        Name="CmdBorder"
+        BorderBrush="{DynamicResource Theme.Border}"
+        BorderThickness="1"
+        CornerRadius="3"
+        Margin="10,3"
+        Padding="6,0">
+        <Grid ColumnDefinitions="Auto,*">
+          <TextBlock Grid.Column="0"
+                    Name="TxtPromptPrefix"
+                    Text="CMD:"
+                    Foreground="{DynamicResource Theme.TextSec}"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Margin="0,0,4,0"/>
+          <TextBox Grid.Column="1"
+                  Name="TxtPrompt"
+                  BorderThickness="0"
+                  PlaceholderText="Type a command..."
+                  Background="Transparent"
+                  Foreground="{DynamicResource Theme.Text}"
+                  Padding="4,2"
+                  FontSize="12"
+                  MinHeight="10"
+                  VerticalAlignment="Center"/>
+        </Grid>
+      </Border>
+      <Panel Grid.Column="2" VerticalAlignment="Center" Width="320">
+        <TextBlock Name="TxtCoordinates" Text="0.0000,0.0000" Foreground="{DynamicResource Theme.Text}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Right" FontWeight="SemiBold"/>
+      </Panel>
+    </Grid>
+  </Border>
+  <Popup Name="PromptPopup"
+         PlacementTarget="{Binding #CmdBorder}"
+         Placement="Top"
+         PlacementAnchor="Top"
+         IsOpen="False"
+         OverlayDismissEventPassThrough="True">
+    <Border Name="PromptPopupBorder"
+            Background="{DynamicResource Theme.PopupBg}"
+            BorderBrush="{DynamicResource Theme.Border}"
+            BorderThickness="1"
+            CornerRadius="3"
+            Padding="10,4"
+            Margin="0,0,0,6"
+            BoxShadow="0 2 8 #40000000"
+            Opacity="0">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+        </Transitions>
+      </Border.Transitions>
+      <TextBlock Name="TxtPromptPopup"
+                 Foreground="{DynamicResource Theme.PopupText}"
+                 FontSize="13"
+                 FontWeight="SemiBold"
+                 TextWrapping="NoWrap" />
+    </Border>
+  </Popup>
+  </Panel>
+</UserControl>
