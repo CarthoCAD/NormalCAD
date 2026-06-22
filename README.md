@@ -59,8 +59,9 @@ A interseção e distância são delegadas às primitivas geométricas (`Curve3d
 
 ### 📂 Importação / Exportação DXF e DWG
 
-- **Abrir DXF/DWG** — Importa linhas, círculos, arcos, polilinhas (`LwPolyline`) e inserções de bloco (`Insert` → `BlockReference`). Cria novo documento via `Application.DocumentManager`.
-- **Salvar DXF/DWG** — Exporta no formato compatível com AutoCAD, LibreCAD, QCAD, preservando propriedades de entidade (layer, cor, linetype, lineweight, transparência).
+- **Abrir (OPEN)** — Abre arquivos DXF/DWG. Detecta o formato pela extensão e importa linhas, círculos, arcos, polilinhas (`LwPolyline`) e inserções de bloco (`Insert` → `BlockReference`). Cria novo documento via `Application.DocumentManager`.
+- **Salvar (SAVE)** — Salva no caminho atual do documento. Se for um documento novo (sem caminho), comporta-se como SAVEAS.
+- **Salvar Como (SAVEAS)** — Exporta no formato compatível com AutoCAD, LibreCAD, QCAD (DXF ou DWG conforme extensão escolhida), preservando propriedades de entidade (layer, cor, linetype, lineweight, transparência).
 
 ### 🎨 Interface e Temas
 
@@ -199,10 +200,9 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | **Excluir Selecionados** | Tecla `Delete` ou digitar `ERASE` / `E` |
 | **Cancelar / Voltar** | `Escape` (limpa prompt e volta à seleção) ou menu Edit → Select |
 | **Limpar Tudo** | Digitar `CLEANALL` / `CLA` ou menu Edit → Clean All |
-| **Abrir DXF** | Digitar `DXFIN` / `DXFI` ou menu File → Open → Open DXF... |
-| **Abrir DWG** | Digitar `DWGIN` / `DWG` ou menu File → Open → Open DWG... |
-| **Salvar DXF** | Digitar `DXFOUT` / `DXFO` ou menu File → Save → Save DXF... |
-| **Salvar DWG** | Digitar `DWGOUT` / `DWGS` ou menu File → Save → Save DWG... |
+| **Abrir** | Digitar `OPEN` ou menu File → Open... |
+| **Salvar** | Digitar `SAVE` ou menu File → Save |
+| **Salvar Como** | Digitar `SAVEAS` ou menu File → Save As... |
 | **Alternar Tema** | Digitar `THEME` / `TEMA` / `TH` ou menu → Change Theme |
 | **Sair** | Digitar `QUIT` / `EXIT` / `Q` ou menu File → Exit |
 
@@ -216,10 +216,9 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Polyline | `PLINE` | `PL` |
 | Erase | `ERASE` | `E` |
 | Clean All | `CLEANALL` | `CLA` |
-| Open DXF | `DXFIN` | `DXFI` |
-| Save DXF | `DXFOUT` | `DXFO` |
-| Open DWG | `DWGIN` | `DWG` |
-| Save DWG | `DWGOUT` | `DWGS` |
+| Open | `OPEN` | — |
+| Save | `SAVE` | — |
+| Save As | `SAVEAS` | — |
 | Toggle Theme | `THEME` | `TEMA`, `TH` |
 | Quit | `QUIT` | `EXIT`, `Q` |
 

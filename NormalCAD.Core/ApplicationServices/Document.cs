@@ -13,11 +13,14 @@ namespace NormalCAD.Core.ApplicationServices
 
         public string Name { get; set; }
 
+        public string FilePath { get; set; }
+
         public Document(DatabaseServices.Database database)
         {
             Database = database;
             Editor = null!;
             Name = "";
+            FilePath = "";
         }
 
         public DocumentLock LockDocument()

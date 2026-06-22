@@ -4,11 +4,11 @@ using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Controller.Commands
 {
-    public class OpenDwgCommand : ICadCommand
+    public class OpenCommand : ICadCommand
     {
-        public string Name => "_.DWGIN";
-        public string LocalName => "DWGIN";
-        public string Alias => "DWG";
+        public string Name => "_.OPEN";
+        public string LocalName => "OPEN";
+        public string Alias => "";
         public bool IsInternal => false;
 
         public async void Activate(CadController controller)
@@ -18,9 +18,14 @@ namespace NormalCAD.Controller.Commands
             {
                 var files = await window.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
                 {
-                    Title = "Abrir Desenho DWG",
+                    Title = "Abrir Desenho",
                     AllowMultiple = false,
-                    FileTypeFilter = new[] { new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DWG") { Patterns = new[] { "*.dwg" } } }
+                    FileTypeFilter = new[]
+                    {
+                        new Avalonia.Platform.Storage.FilePickerFileType("Arquivos de Desenho") { Patterns = new[] { "*.dwg", "*.dxf" } },
+                        new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DWG") { Patterns = new[] { "*.dwg" } },
+                        new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DXF") { Patterns = new[] { "*.dxf" } }
+                    }
                 });
 
                 if (files.Count > 0)
@@ -28,13 +33,13 @@ namespace NormalCAD.Controller.Commands
                     string path = files[0].Path.LocalPath;
                     try
                     {
-                        var db = Services.DwgService.LoadDwg(path);
-                        controller.SetDatabase(db);
-                        controller.InputManager.SetPromptMessage($"DWG carregado: {System.IO.Path.GetFileName(path)}");
+                        var db = Services.FileService.Load(path);
+                        controller.SetDatabase(db, path);
+                        controller.InputManager.SetPromptMessage($"Desenho carregado: {System.IO.Path.GetFileName(path)}");
                     }
                     catch (Exception ex)
                     {
-                        controller.InputManager.SetPromptMessage($"Erro ao abrir DWG: {ex.Message}");
+                        controller.InputManager.SetPromptMessage($"Erro ao abrir: {ex.Message}");
                     }
                 }
             }

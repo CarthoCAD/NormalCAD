@@ -84,9 +84,10 @@ namespace NormalCAD.Controller
             Viewport.InvalidateVisual();
         }
 
-        public void SetDatabase(Database db)
+        public void SetDatabase(Database db, string filePath)
         {
-            var doc = new Document(db) { Name = System.IO.Path.GetFileName("drawing.dwg") };
+            string name = System.IO.Path.GetFileName(filePath);
+            var doc = new Document(db) { Name = name, FilePath = filePath };
             doc.Editor = new Editor(doc);
             Application.DocumentManager.Add(doc);
             Application.DocumentManager.SetActive(doc);
