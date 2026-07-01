@@ -8,7 +8,7 @@ namespace NormalCAD.Core.DatabaseServices
     {
         protected SymbolTable(Database database)
         {
-            // Associa a tabela ao banco de dados no momento da criação
+            // Associates the table with the database at creation time
             this.ObjectId = database.GenerateNextId();
             database.RegisterObject(this);
         }

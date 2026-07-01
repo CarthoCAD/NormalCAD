@@ -15,7 +15,7 @@ namespace NormalCAD.Controller.Services
         public static Database Load(string filePath)
         {
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("Arquivo não encontrado.", filePath);
+                throw new FileNotFoundException("File not found.", filePath);
 
             string ext = Path.GetExtension(filePath).ToLowerInvariant();
 
@@ -23,11 +23,11 @@ namespace NormalCAD.Controller.Services
             {
                 ".dxf" => ReadDxf(filePath),
                 ".dwg" => ReadDwg(filePath),
-                _ => throw new ArgumentException($"Formato de arquivo não suportado: {ext}")
+                _ => throw new ArgumentException($"Unsupported file format: {ext}")
             };
 
             if (cadDoc == null)
-                throw new Exception("Falha ao carregar o documento.");
+                throw new Exception("Failed to load document.");
 
             var db = new Database();
 
@@ -51,7 +51,7 @@ namespace NormalCAD.Controller.Services
             {
                 ".dxf" => new CadDocument(),
                 ".dwg" => new CadDocument(ACadVersion.AC1032),
-                _ => throw new ArgumentException($"Formato de arquivo não suportado: {ext}")
+                _ => throw new ArgumentException($"Unsupported file format: {ext}")
             };
 
             TableParsers.SaveLayers(db, cadDoc, _converters);
@@ -88,8 +88,8 @@ namespace NormalCAD.Controller.Services
                 catch (Exception ex) when (ex is NotSupportedException || ex.Message.Contains("version", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new Exception(
-                        "Este arquivo DWG está em uma versão não suportada pelo ACadSharp. " +
-                        "Versões suportadas: AutoCAD R14, 2000-2020 (AC1014 a AC1032).", ex);
+                        "This DWG file is in a version not supported by ACadSharp. " +
+                        "Supported versions: AutoCAD R14, 2000-2020 (AC1014 to AC1032).", ex);
                 }
             }
         }

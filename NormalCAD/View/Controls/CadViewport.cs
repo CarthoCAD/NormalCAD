@@ -171,7 +171,7 @@ public class CadViewport : Control
         double viewportCenterX = Bounds.Width / 2;
         double viewportCenterY = Bounds.Height / 2;
 
-        // Ajusta o WorldCenter para manter o ponto sob o mouse na mesma posição de tela
+        // Adjusts WorldCenter to keep the point under the mouse at the same screen position
         WorldCenter = new Point3d(
             worldPos.X - (screenPos.X - viewportCenterX) / newZoom,
             worldPos.Y + (screenPos.Y - viewportCenterY) / newZoom,
@@ -186,22 +186,22 @@ public class CadViewport : Control
     {
         base.Render(context);
 
-        // 1. Desenha o Fundo
+        // 1. Draw Background
         Application.Current!.Resources.TryGetResource("Theme.ViewportBg", Application.Current.ActualThemeVariant, out var resource);
         var bgBrush = resource as SolidColorBrush;
         context.DrawRectangle(bgBrush, null, new Rect(0, 0, Bounds.Width, Bounds.Height));
 
-        // 2. Desenha a Grade (Grid)
+        // 2. Draw Grid
         DrawGrid(context);
 
-        // 3. Desenha Eixos do Sistema
+        // 3. Draw System Axes
         DrawSystemAxes(context);
 
-        // 4. Desenha as Entidades do Banco de Dados
+        // 4. Draw Database Entities
         if (Controller != null)
             _drawingService.DrawDatabase(context, Controller, WorldToScreen, Zoom);
 
-        // 5. Desenha o Preview do Comando Ativo
+        // 5. Draw Active Command Preview
         if (ActiveCommandPreview != null && Controller != null)
         {
             _drawingService.DrawEntity(context, ActiveCommandPreview, Controller,
@@ -209,13 +209,13 @@ public class CadViewport : Control
                                     WorldToScreen, Zoom);
         }
 
-        // 6. Desenha o Indicador de Snap
+        // 6. Draw Snap Indicator
         DrawSnapIndicator(context);
 
-        // 7. Desenha o Cursor Customizado (CAD Style)
+        // 7. Draw Custom Cursor (CAD Style)
         DrawCadCursor(context);
 
-        // 8. Desenha o Retângulo de Seleção (Crossing / Window)
+        // 8. Draw Selection Rectangle (Crossing / Window)
         DrawSelectionBox(context);
     }
 
@@ -259,7 +259,7 @@ public class CadViewport : Control
 
         if (CurrentCursorState == CadCursorState.PickCross || CurrentCursorState == CadCursorState.Crosshair)
         {
-            // Cruz com caixa de seleção
+            // Cross with pickbox
             context.DrawLine(pen, new Point(_currentMouseScreenPos.X - size, _currentMouseScreenPos.Y), new Point(_currentMouseScreenPos.X + size, _currentMouseScreenPos.Y));
             context.DrawLine(pen, new Point(_currentMouseScreenPos.X, _currentMouseScreenPos.Y - size), new Point(_currentMouseScreenPos.X, _currentMouseScreenPos.Y + size));
         }
@@ -269,7 +269,7 @@ public class CadViewport : Control
 
         if (CurrentCursorState == CadCursorState.PickCross || CurrentCursorState == CadCursorState.Pickbox)
         {
-            // Quadrado de seleção
+            // Pickbox
             context.DrawRectangle(pickBoxBg, pen, new Rect(_currentMouseScreenPos.X - pickBoxSize / 2, _currentMouseScreenPos.Y - pickBoxSize / 2, pickBoxSize, pickBoxSize));
         }
     }
@@ -300,7 +300,7 @@ public class CadViewport : Control
         var gridBrush = resource as SolidColorBrush;
         var gridPen = new Pen(gridBrush, 0.8);
 
-        // Linhas verticais
+        // Vertical lines
         for (double x = startX; x <= worldMax.X; x += gridSpacing)
         {
             if (Math.Abs(x) < 1e-6) continue;
@@ -309,7 +309,7 @@ public class CadViewport : Control
             context.DrawLine(gridPen, p1, p2);
         }
 
-        // Linhas horizontais
+        // Horizontal lines
         for (double y = startY; y <= worldMax.Y; y += gridSpacing)
         {
             if (Math.Abs(y) < 1e-6) continue;
@@ -404,7 +404,7 @@ public class CadViewport : Control
             if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                 continue;
 
-            if (ent is Entity)
+            if (ent is not null)
             {
                 foreach (var (pt, type) in ent.GetOsnapPoints())
                     CheckSnapCandidate(screenMousePos, pt, type, ref activeSnap, ref snapPoint, ref bestDistance);
@@ -438,7 +438,7 @@ public class CadViewport : Control
 
 public enum CadCursorState
 {
-    PickCross,  // Modo de seleção (Cruz com caixa de seleção)
-    Crosshair,  // Modo de desenho (Cruz)
-    Pickbox    // Modo de seleção (Quadrado)
+    PickCross,  // Selection mode (Cross with pickbox)
+    Crosshair,  // Drawing mode (Cross)
+    Pickbox    // Selection mode (Square)
 }

@@ -32,7 +32,7 @@ namespace NormalCAD.Controller.Commands
             }
 
             controller.ClearSelection();
-            controller.InputManager.SetPromptMessage("Desenho limpo com sucesso.");
+            controller.InputManager.SetPromptMessage("Drawing cleared successfully.");
 
             controller.SetCommand(new BaseCommand());
         }

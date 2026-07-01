@@ -4,7 +4,7 @@
              x:Class="NormalCAD.View.Controls.LayerPalette">
   <DockPanel Margin="10">
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="0,0,0,10">
-      <TextBox Name="TxtNewLayerName" PlaceholderText="Nova Camada..." Width="150" Height="28" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" VerticalContentAlignment="Center"/>
+      <TextBox Name="TxtNewLayerName" PlaceholderText="New Layer..." Width="150" Height="28" Background="{DynamicResource Theme.TextBoxBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0" VerticalContentAlignment="Center"/>
       <Button Name="BtnAddLayer" Content="+" Width="28" Height="28" Background="#007ACC" Foreground="White" CornerRadius="4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
     </StackPanel>
     <ListBox Name="LstLayers" Background="{DynamicResource Theme.PanelBg}" Foreground="{DynamicResource Theme.Text}" BorderThickness="0">

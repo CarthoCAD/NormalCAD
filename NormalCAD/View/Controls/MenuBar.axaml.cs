@@ -118,8 +118,8 @@ public partial class MenuBar : UserControl
 
 public record MenuEntry(
     string? Header,        // null = separador
-    string? CommandName,   // null = item pai (só abre submenu)
-    string? Icon,          // null = sem ícone
+    string? CommandName,   // null = parent item (opens submenu only)
+    string? Icon,          // null = no icon
     List<MenuEntry>? Children = null
 )
 {

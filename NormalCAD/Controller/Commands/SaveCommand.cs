@@ -21,11 +21,11 @@ namespace NormalCAD.Controller.Commands
                 {
                     controller.SaveViewportState();
                     Services.FileService.Save(controller.Database, filePath);
-                    controller.InputManager.SetPromptMessage($"Desenho salvo: {System.IO.Path.GetFileName(filePath)}");
+                    controller.InputManager.SetPromptMessage($"Drawing saved: {System.IO.Path.GetFileName(filePath)}");
                 }
                 catch (Exception ex)
                 {
-                    controller.InputManager.SetPromptMessage($"Erro ao salvar: {ex.Message}");
+                    controller.InputManager.SetPromptMessage($"Error saving: {ex.Message}");
                 }
             }
             else
@@ -43,13 +43,13 @@ namespace NormalCAD.Controller.Commands
 
             var file = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
             {
-                Title = "Salvar Desenho",
+                Title = "Save Drawing",
                 DefaultExtension = ".dwg",
-                FileTypeChoices = new[]
-                {
+                FileTypeChoices =
+                [
                     new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DWG") { Patterns = new[] { "*.dwg" } },
                     new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DXF") { Patterns = new[] { "*.dxf" } }
-                }
+                ]
             });
 
             if (file != null)
@@ -65,7 +65,7 @@ namespace NormalCAD.Controller.Commands
                 }
                 catch (Exception ex)
                 {
-                    controller.InputManager.SetPromptMessage($"Erro ao salvar: {ex.Message}");
+                    controller.InputManager.SetPromptMessage($"Error saving: {ex.Message}");
                 }
             }
         }

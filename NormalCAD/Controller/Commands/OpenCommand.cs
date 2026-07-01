@@ -18,11 +18,11 @@ namespace NormalCAD.Controller.Commands
             {
                 var files = await window.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
                 {
-                    Title = "Abrir Desenho",
+                    Title = "Open Drawing",
                     AllowMultiple = false,
                     FileTypeFilter = new[]
                     {
-                        new Avalonia.Platform.Storage.FilePickerFileType("Arquivos de Desenho") { Patterns = new[] { "*.dwg", "*.dxf" } },
+                        new Avalonia.Platform.Storage.FilePickerFileType("Drawing Files") { Patterns = new[] { "*.dwg", "*.dxf" } },
                         new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DWG") { Patterns = new[] { "*.dwg" } },
                         new Avalonia.Platform.Storage.FilePickerFileType("AutoCAD DXF") { Patterns = new[] { "*.dxf" } }
                     }
@@ -35,11 +35,11 @@ namespace NormalCAD.Controller.Commands
                     {
                         var db = Services.FileService.Load(path);
                         controller.SetDatabase(db, path);
-                        controller.InputManager.SetPromptMessage($"Desenho carregado: {System.IO.Path.GetFileName(path)}");
+                        controller.InputManager.SetPromptMessage($"Drawing loaded: {System.IO.Path.GetFileName(path)}");
                     }
                     catch (Exception ex)
                     {
-                        controller.InputManager.SetPromptMessage($"Erro ao abrir: {ex.Message}");
+                        controller.InputManager.SetPromptMessage($"Error opening: {ex.Message}");
                     }
                 }
             }

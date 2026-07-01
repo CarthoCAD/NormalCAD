@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/<seu-usuario>/NormalCAD.git
+git clone https://github.com/CarthoCAD/NormalCAD.git
 cd NormalCAD
 dotnet restore
 npm ci
@@ -17,7 +17,7 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 ### Format
 
-```
+```bash
 <type>(<scope>): <short description> (#123)
 
 [optional body]
@@ -55,13 +55,13 @@ Every commit must reference an issue at the end of the subject line. Automated m
 | `themes`    | Light/dark themes                |
 | `ui`        | General UI (menus, layout)       |
 | `tests`     | Unit tests                       |
-| `i18n`      | Translations and localization                     |
-| `build`     | Build system and project files                   |
+| `i18n`      | Translations and localization    |
+| `build`     | Build system and project files   |
 | `release`   | Release process                  |
 
 ### Examples
 
-```
+```bash
 feat(vieweport): add zoom-to-extents command (#42)
 fix(io): prevent crash on empty DXF files (#17)
 i18n(pt-BR): translate property palette strings (#58)
@@ -70,7 +70,7 @@ refactor(geometry): simplify intersection algorithm (#61)
 
 ## Branching
 
-```
+```bash
 main         ← integration and releases
 feat/*       ← new features
 fix/*        ← bug fixes

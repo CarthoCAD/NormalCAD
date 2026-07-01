@@ -21,7 +21,7 @@ namespace NormalCAD.Controller.Commands
             controller.Viewport.IsLightTheme = isLight;
             controller.Viewport.InvalidateVisual();
 
-            controller.InputManager.SetPromptMessage($"Tema alterado para {(isLight ? "Claro" : "Escuro")}.");
+            controller.InputManager.SetPromptMessage($"Theme changed to {(isLight ? "Light" : "Dark")}.");
 
             controller.SetCommand(new BaseCommand());
         }

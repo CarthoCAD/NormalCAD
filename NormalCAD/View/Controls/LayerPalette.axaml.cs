@@ -104,7 +104,7 @@ namespace NormalCAD.View.Controls
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Erro ao criar camada: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error creating layer: {ex.Message}");
                 }
             }
         }
