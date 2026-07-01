@@ -33,6 +33,7 @@ module.exports = {
         'ui',
         'tests',
         'build',
+        'i18n',
         'release'
       ]
     ]

@@ -55,7 +55,8 @@ Every commit must reference an issue at the end of the subject line. Automated m
 | `themes`    | Light/dark themes                |
 | `ui`        | General UI (menus, layout)       |
 | `tests`     | Unit tests                       |
-| `build`     | Build system and project files   |
+| `i18n`      | Translations and localization                     |
+| `build`     | Build system and project files                   |
 | `release`   | Release process                  |
 
 ### Examples
