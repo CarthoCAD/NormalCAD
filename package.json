@@ -1,0 +1,42 @@
+{
+  "name": "normalcad",
+  "private": true,
+  "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.3.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.0",
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "semantic-release": "^24.0.0"
+  },
+  "release": {
+    "branches": ["main"],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md"
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": ["CHANGELOG.md"],
+          "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}"
+        }
+      ],
+      "@semantic-release/github",
+      {
+        "assets": [
+          { "path": "normalcad-win-x64.zip", "label": "Windows (x64)" },
+          { "path": "normalcad-linux-x64.zip", "label": "Linux (x64)" },
+          { "path": "normalcad-osx-x64.zip", "label": "macOS (x64)" }
+        ]
+      }
+    ]
+  }
+}

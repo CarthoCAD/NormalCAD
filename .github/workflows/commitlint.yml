@@ -1,0 +1,42 @@
+name: Lint Commit Messages
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate PR title
+        run: echo "${{ github.event.pull_request.title }}" | npx commitlint
+
+      - name: Validate commits
+        if: github.event.pull_request.commits > 1
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
+
+      - name: Validate issue references
+        run: |
+          commits=$(git log --format='%s' ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          echo "$commits" | while IFS= read -r line; do
+            if echo "$line" | grep -qE '^(Merge (branch|pull request)|Revert )'; then
+              continue
+            fi
+            if ! echo "$line" | grep -qE '\(#[0-9]+\)$'; then
+              echo "ERROR: commit subject must end with issue reference, e.g., (#33)"
+              echo "ERROR: $line"
+              exit 1
+            fi
+          done

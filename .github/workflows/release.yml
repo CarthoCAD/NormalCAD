@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Publish (win-x64)
+        run: dotnet publish NormalCAD/NormalCAD.csproj -c Release -r win-x64 -o publish/win-x64 --self-contained false
+
+      - name: Publish (linux-x64)
+        run: dotnet publish NormalCAD/NormalCAD.csproj -c Release -r linux-x64 -o publish/linux-x64 --self-contained false
+
+      - name: Publish (osx-x64)
+        run: dotnet publish NormalCAD/NormalCAD.csproj -c Release -r osx-x64 -o publish/osx-x64 --self-contained false
+
+      - name: Create archives
+        run: |
+          cd publish
+          zip -r ../normalcad-win-x64.zip win-x64/
+          zip -r ../normalcad-linux-x64.zip linux-x64/
+          zip -r ../normalcad-osx-x64.zip osx-x64/
+        shell: bash
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
