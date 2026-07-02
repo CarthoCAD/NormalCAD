@@ -2,14 +2,17 @@ using System.Collections.Generic;
 using Avalonia.Input;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Commands
 {
     public class CleanAllCommand : ICadCommand
     {
+        private static string MsgCleared => CommandResources.Get("CLEANALL.MSG.CLEARED");
+
         public string Name => "_.CLEANALL";
-        public string LocalName => "CLEANALL";
-        public string Alias => "CLA";
+        public string LocalName => CommandResources.Get("CLEANALL.LOCALNAME");
+        public string Alias => CommandResources.Get("CLEANALL.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)
@@ -32,7 +35,7 @@ namespace NormalCAD.Controller.Commands
             }
 
             controller.ClearSelection();
-            controller.InputManager.SetPromptMessage("Drawing cleared successfully.");
+            controller.InputManager.SetPromptMessage(MsgCleared);
 
             controller.SetCommand(new BaseCommand());
         }

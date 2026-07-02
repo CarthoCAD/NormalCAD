@@ -1,12 +1,13 @@
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Commands
 {
     public class SaveAsCommand : ICadCommand
     {
         public string Name => "_.SAVEAS";
-        public string LocalName => "SAVEAS";
+        public string LocalName => CommandResources.Get("SAVEAS.LOCALNAME");
         public string Alias => "";
         public bool IsInternal => false;
 

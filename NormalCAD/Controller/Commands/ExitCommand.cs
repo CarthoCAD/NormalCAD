@@ -1,14 +1,15 @@
 using Avalonia;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Commands
 {
     public class ExitCommand : ICadCommand
     {
         public string Name => "_.QUIT";
-        public string LocalName => "QUIT";
-        public string Alias => "EXIT,Q";
+        public string LocalName => CommandResources.Get("QUIT.LOCALNAME");
+        public string Alias => CommandResources.Get("QUIT.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)

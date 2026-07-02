@@ -1,6 +1,7 @@
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
@@ -11,8 +12,8 @@ namespace NormalCAD.Controller.Commands
         private Point3d? _startPoint;
 
         public string Name => "_.LINE";
-        public string LocalName => "LINE";
-        public string Alias => "L";
+        public string LocalName => CommandResources.Get("LINE.LOCALNAME");
+        public string Alias => CommandResources.Get("LINE.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)

@@ -4,17 +4,24 @@ using System;
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
 {
     public class BaseCommand : ICadCommand
     {
+        private static string MsgFound => CommandResources.Get("CMD.MSG.FOUND");
+        private static string MsgRemoved => CommandResources.Get("CMD.MSG.REMOVED");
+        private static string MsgFoundN => CommandResources.Get("CMD.MSG.FOUND_N");
+        private static string MsgRemovedN => CommandResources.Get("CMD.MSG.REMOVED_N");
+        private static string PromptOppositeCorner => CommandResources.Get("CMD.PROMPT.OPPOSITECORNER");
+
         private CadController? _controller;
         private bool _isSelectingBox;
 
         public string Name => "*BASECOMMAND";
-        public string LocalName => "CMD";
+        public string LocalName => CommandResources.Get("CMD.LOCALNAME");
         public string Alias => "";
         public bool IsInternal => true;
 
@@ -99,8 +106,8 @@ namespace NormalCAD.Controller.Commands
 
                 int total = _controller.SelectedEntityIds.Count;
                 string message = isShift
-                    ? $"1 removed, {total} total"
-                    : $"1 found, {total} total";
+                    ? string.Format(MsgRemoved, total)
+                    : string.Format(MsgFound, total);
 
                 _controller.InputManager.SetCurrentPrompt(LocalName);
                 _controller.InputManager.SetPromptMessage(message);
@@ -111,7 +118,7 @@ namespace NormalCAD.Controller.Commands
                 _isSelectingBox = true;
                 viewport.SelectionStartPoint = mouseScreenPos;
                 viewport.SelectionEndPoint = mouseScreenPos;
-                _controller.InputManager.SetCurrentPrompt(LocalName, "Specify opposite corner");
+                _controller.InputManager.SetCurrentPrompt(LocalName, PromptOppositeCorner);
                 viewport.InvalidateVisual();
             }
         }
@@ -135,8 +142,8 @@ namespace NormalCAD.Controller.Commands
 
             int total = _controller.SelectedEntityIds.Count;
             string message = isShift
-                ? $"{found} removed, {total} total"
-                : $"{found} found, {total} total";
+                ? string.Format(MsgRemovedN, found, total)
+                : string.Format(MsgFoundN, found, total);
 
             _controller.InputManager.SetPromptMessage(message);
             _controller.Viewport.SelectionStartPoint = null;

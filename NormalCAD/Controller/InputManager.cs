@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Controller.Commands;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller
 {
     public class InputManager
     {
+        private static string DefaultPrompt => CommandResources.Get("CMD.PROMPT.DEFAULT");
+        private static string MsgAmbiguousKeyword => CommandResources.Get("CMD.MSG.AMBIGUOUS_KEYWORD");
+        private static string MsgKeywordRequired => CommandResources.Get("CMD.MSG.KEYWORD_REQUIRED");
+
         private readonly CadController _controller;
         private readonly List<string> _promptHistory = new();
         private const int MaxPromptHistory = 100;
@@ -20,7 +25,7 @@ namespace NormalCAD.Controller
         public event Action<string>? PromptMessageChanged;
         public event Action<string>? CurrentPromptChanged;
 
-        public string CurrentPrompt { get; private set; } = "CMD";
+        public string CurrentPrompt { get; private set; } = DefaultPrompt;
 
         public InputManager(CadController controller)
         {
@@ -85,9 +90,9 @@ namespace NormalCAD.Controller
             }
 
             if (matches.Count > 1)
-                SetPromptMessage("Ambiguous keyword.");
+                SetPromptMessage(MsgAmbiguousKeyword);
             else
-                SetPromptMessage("Option keyword required.");
+                SetPromptMessage(MsgKeywordRequired);
 
             return true;
         }
