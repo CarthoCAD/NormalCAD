@@ -7,10 +7,10 @@ namespace NormalCAD.Controller.Commands
 {
     public class OpenCommand : ICadCommand
     {
-        private static string DialogTitle => CommandResources.Get("OPEN.PROMPT.DIALOGTITLE");
-        private static string FileTypeGroup => CommandResources.Get("OPEN.PROMPT.FILETYPE_GROUP");
-        private static string FileTypeDwg => CommandResources.Get("OPEN.PROMPT.FILETYPE_DWG");
-        private static string FileTypeDxf => CommandResources.Get("OPEN.PROMPT.FILETYPE_DXF");
+        private static string DialogTitle => DialogResources.Get("FILEDIALOG.TITLE.OPEN");
+        private static string FileTypeGroup => DialogResources.Get("FILEDIALOG.FILETYPE.GROUP");
+        private static string FileTypeDwg => DialogResources.Get("FILEDIALOG.FILETYPE.DWG");
+        private static string FileTypeDxf => DialogResources.Get("FILEDIALOG.FILETYPE.DXF");
         private static string MsgLoaded => CommandResources.Get("OPEN.MSG.LOADED");
         private static string MsgError => CommandResources.Get("OPEN.MSG.ERROR");
 

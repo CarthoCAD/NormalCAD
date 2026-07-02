@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== File Dialogs ===== -->
+  <data name="FILEDIALOG.TITLE.OPEN" xml:space="preserve">
+    <value>Open Drawing</value>
+  </data>
+  <data name="FILEDIALOG.TITLE.SAVE" xml:space="preserve">
+    <value>Save Drawing</value>
+  </data>
+  <data name="FILEDIALOG.FILETYPE.GROUP" xml:space="preserve">
+    <value>Drawing Files</value>
+  </data>
+  <data name="FILEDIALOG.FILETYPE.DWG" xml:space="preserve">
+    <value>AutoCAD DWG</value>
+  </data>
+  <data name="FILEDIALOG.FILETYPE.DXF" xml:space="preserve">
+    <value>AutoCAD DXF</value>
+  </data>
+
+  <!-- ===== FileService ===== -->
+  <data name="FILESERVICE.ERROR.NOTFOUND" xml:space="preserve">
+    <value>File not found.</value>
+  </data>
+  <data name="FILESERVICE.ERROR.UNSUPPORTED" xml:space="preserve">
+    <value>Unsupported file format: {0}</value>
+  </data>
+  <data name="FILESERVICE.ERROR.LOADFAILED" xml:space="preserve">
+    <value>Failed to load document.</value>
+  </data>
+  <data name="FILESERVICE.ERROR.DWGVERSION" xml:space="preserve">
+    <value>This DWG file is in a version not supported by ACadSharp. Supported versions: AutoCAD R14, 2000-2020 (AC1014 to AC1032).</value>
+  </data>
+
+  <!-- ===== ApplicationHost ===== -->
+  <data name="APP.DEFAULTNAME" xml:space="preserve">
+    <value>Drawing{0}.dwg</value>
+  </data>
+</root>

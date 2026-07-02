@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== PropertyPalette ===== -->
+  <data name="PROPERTYPALETTE.MSG.NOSELECTION" xml:space="preserve">
+    <value>No selection</value>
+  </data>
+  <data name="PROPERTYPALETTE.MSG.SELECTED" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="PROPERTYPALETTE.MSG.UNKNOWN" xml:space="preserve">
+    <value>Unknown object</value>
+  </data>
+  <data name="PROPERTYPALETTE.CATEGORY.FALLBACK" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="PROPERTYPALETTE.BOOLEAN.YES" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="PROPERTYPALETTE.BOOLEAN.NO" xml:space="preserve">
+    <value>No</value>
+  </data>
+
+  <!-- ===== LayerPalette ===== -->
+  <data name="LAYERPALETTE.PLACEHOLDER.NEWLAYER" xml:space="preserve">
+    <value>New Layer...</value>
+  </data>
+
+  <!-- ===== BottomBar ===== -->
+  <data name="BOTTOMBAR.BUTTON.MODEL" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="BOTTOMBAR.LABEL.CMD" xml:space="preserve">
+    <value>CMD:</value>
+  </data>
+  <data name="BOTTOMBAR.PLACEHOLDER.COMMAND" xml:space="preserve">
+    <value>Type a command...</value>
+  </data>
+  <data name="BOTTOMBAR.MSG.NOTIMPLEMENTED" xml:space="preserve">
+    <value>Tool not implemented yet</value>
+  </data>
+
+  <!-- ===== MenuBar ===== -->
+  <data name="MENUBAR.MENU.BASE" xml:space="preserve">
+    <value>Base</value>
+  </data>
+  <data name="MENUBAR.MENU.FILE" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="MENUBAR.MENU.EDIT" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MENUBAR.MENU.DRAW" xml:space="preserve">
+    <value>Draw</value>
+  </data>
+  <data name="MENUBAR.MENU.HELP" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="MENUBAR.ITEM.BASE.OPTIONS" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="MENUBAR.ITEM.BASE.CHANGETHEME" xml:space="preserve">
+    <value>Change Theme</value>
+  </data>
+  <data name="MENUBAR.ITEM.FILE.OPEN" xml:space="preserve">
+    <value>Open...</value>
+  </data>
+  <data name="MENUBAR.ITEM.FILE.SAVE" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="MENUBAR.ITEM.FILE.SAVEAS" xml:space="preserve">
+    <value>Save As...</value>
+  </data>
+  <data name="MENUBAR.ITEM.FILE.EXIT" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="MENUBAR.ITEM.EDIT.UNDO" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="MENUBAR.ITEM.EDIT.REDO" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="MENUBAR.ITEM.EDIT.SELECT" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="MENUBAR.ITEM.EDIT.ERASE" xml:space="preserve">
+    <value>Erase</value>
+  </data>
+  <data name="MENUBAR.ITEM.EDIT.CLEANALL" xml:space="preserve">
+    <value>Clean All</value>
+  </data>
+  <data name="MENUBAR.ITEM.DRAW.LINE" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="MENUBAR.ITEM.DRAW.CIRCLE" xml:space="preserve">
+    <value>Circle</value>
+  </data>
+  <data name="MENUBAR.ITEM.DRAW.ARC" xml:space="preserve">
+    <value>Arc</value>
+  </data>
+  <data name="MENUBAR.ITEM.DRAW.POLYLINE" xml:space="preserve">
+    <value>Polyline</value>
+  </data>
+  <data name="MENUBAR.ITEM.HELP.ABOUT" xml:space="preserve">
+    <value>About</value>
+  </data>
+
+  <!-- ===== MainWindow ===== -->
+  <data name="WINDOW.TITLE" xml:space="preserve">
+    <value>NormalCAD</value>
+  </data>
+  <data name="SIDEBAR.TOOLTIP.PROPERTIES" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="SIDEBAR.TOOLTIP.LAYERS" xml:space="preserve">
+    <value>Layers</value>
+  </data>
+</root>

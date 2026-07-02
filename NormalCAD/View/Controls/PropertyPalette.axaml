@@ -3,7 +3,7 @@
              x:Class="NormalCAD.View.Controls.PropertyPalette">
   <ScrollViewer Padding="10">
     <StackPanel Spacing="10">
-      <TextBlock Name="TxtPropsTitle" Text="No selection"
+      <TextBlock Name="TxtPropsTitle"
                  Foreground="{DynamicResource Theme.Text}"
                  FontSize="12" FontWeight="Bold"/>
       <Grid Name="PropsGrid">

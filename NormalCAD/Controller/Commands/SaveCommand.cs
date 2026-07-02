@@ -9,9 +9,9 @@ namespace NormalCAD.Controller.Commands
     {
         private static string MsgSaved => CommandResources.Get("SAVE.MSG.SAVED");
         private static string MsgError => CommandResources.Get("SAVE.MSG.ERROR");
-        private static string DialogTitle => CommandResources.Get("SAVE.PROMPT.DIALOGTITLE");
-        private static string FileTypeDwg => CommandResources.Get("SAVE.PROMPT.FILETYPE_DWG");
-        private static string FileTypeDxf => CommandResources.Get("SAVE.PROMPT.FILETYPE_DXF");
+        private static string DialogTitle => DialogResources.Get("FILEDIALOG.TITLE.SAVE");
+        private static string FileTypeDwg => DialogResources.Get("FILEDIALOG.FILETYPE.DWG");
+        private static string FileTypeDxf => DialogResources.Get("FILEDIALOG.FILETYPE.DXF");
 
         public string Name => "_.SAVE";
         public string LocalName => CommandResources.Get("SAVE.LOCALNAME");

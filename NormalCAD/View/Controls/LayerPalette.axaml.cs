@@ -5,11 +5,14 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 
 namespace NormalCAD.View.Controls
 {
     public partial class LayerPalette : UserControl
     {
+        private static string PlaceholderNewLayer => PanelResources.Get("LAYERPALETTE.PLACEHOLDER.NEWLAYER");
+
         private Controller.CadController? _controller;
 
         public Controller.CadController? Controller
@@ -44,6 +47,10 @@ namespace NormalCAD.View.Controls
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+
+            var txtNewLayerName = this.FindControl<TextBox>("TxtNewLayerName");
+            if (txtNewLayerName != null)
+                txtNewLayerName.PlaceholderText = PlaceholderNewLayer;
         }
 
         private void OnDatabaseChanged()

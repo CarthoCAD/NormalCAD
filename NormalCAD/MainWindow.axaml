@@ -5,7 +5,6 @@
         xmlns:controls="clr-namespace:NormalCAD.View.Controls"
         mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
         x:Class="NormalCAD.MainWindow"
-        Title="NormalCAD v0.1"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="35"
         WindowDecorations="Full"
@@ -65,7 +64,7 @@
                 BorderBrush="{DynamicResource Theme.Border}"
                 BorderThickness="1,0,0,0">
           <StackPanel Orientation="Vertical" Spacing="10" Margin="0,10">
-            <Button Name="BtnTabProps" ToolTip.Tip="Properties"
+            <Button Name="BtnTabProps"
                     Width="30" Height="30" Background="Transparent"
                     BorderThickness="0" CornerRadius="4"
                     HorizontalAlignment="Center">
@@ -73,7 +72,7 @@
                         Foreground="{DynamicResource Theme.Text}"
                         Width="16" Height="16"/>
             </Button>
-            <Button Name="BtnTabLayers" ToolTip.Tip="Layers"
+            <Button Name="BtnTabLayers"
                     Width="30" Height="30" Background="Transparent"
                     BorderThickness="0" CornerRadius="4"
                     HorizontalAlignment="Center">
