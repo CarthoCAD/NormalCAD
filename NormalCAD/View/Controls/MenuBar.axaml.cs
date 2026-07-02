@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using NormalCAD.Resources;
 
 namespace NormalCAD.View.Controls;
 
@@ -23,41 +24,63 @@ public partial class MenuBar : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
+    private static string MenuBase => PanelResources.Get("MENUBAR.MENU.BASE");
+    private static string MenuFile => PanelResources.Get("MENUBAR.MENU.FILE");
+    private static string MenuEdit => PanelResources.Get("MENUBAR.MENU.EDIT");
+    private static string MenuDraw => PanelResources.Get("MENUBAR.MENU.DRAW");
+    private static string MenuHelp => PanelResources.Get("MENUBAR.MENU.HELP");
+    private static string ItemBaseOptions => PanelResources.Get("MENUBAR.ITEM.BASE.OPTIONS");
+    private static string ItemBaseChangeTheme => PanelResources.Get("MENUBAR.ITEM.BASE.CHANGETHEME");
+    private static string ItemFileOpen => PanelResources.Get("MENUBAR.ITEM.FILE.OPEN");
+    private static string ItemFileSave => PanelResources.Get("MENUBAR.ITEM.FILE.SAVE");
+    private static string ItemFileSaveAs => PanelResources.Get("MENUBAR.ITEM.FILE.SAVEAS");
+    private static string ItemFileExit => PanelResources.Get("MENUBAR.ITEM.FILE.EXIT");
+    private static string ItemEditUndo => PanelResources.Get("MENUBAR.ITEM.EDIT.UNDO");
+    private static string ItemEditRedo => PanelResources.Get("MENUBAR.ITEM.EDIT.REDO");
+    private static string ItemEditSelect => PanelResources.Get("MENUBAR.ITEM.EDIT.SELECT");
+    private static string ItemEditErase => PanelResources.Get("MENUBAR.ITEM.EDIT.ERASE");
+    private static string ItemEditCleanAll => PanelResources.Get("MENUBAR.ITEM.EDIT.CLEANALL");
+    private static string ItemDrawLine => PanelResources.Get("MENUBAR.ITEM.DRAW.LINE");
+    private static string ItemDrawCircle => PanelResources.Get("MENUBAR.ITEM.DRAW.CIRCLE");
+    private static string ItemDrawArc => PanelResources.Get("MENUBAR.ITEM.DRAW.ARC");
+    private static string ItemDrawPolyline => PanelResources.Get("MENUBAR.ITEM.DRAW.POLYLINE");
+    private static string ItemHelpAbout => PanelResources.Get("MENUBAR.ITEM.HELP.ABOUT");
+
     private static List<MenuEntry> GetMenuStructure() =>
     [
-        new("Base", null, "avares://NormalCAD/Assets/normalcad.ico",
+        new(MenuBase, null, "avares://NormalCAD/Assets/normalcad.ico",
         [
-            new("Options", "OPTIONS", null),
+            new(ItemBaseOptions, "_.OPTIONS", null),
             new(null, null, null),
-            new("Change Theme", "THEME", null)
+            new(ItemBaseChangeTheme, "_.THEME", null)
         ]),
-        new("File", null, null,
+        new(MenuFile, null, null,
         [
-            new("Open...", "OPEN", null),
-            new("Save", "SAVE", null),
-            new("Save As...", "SAVEAS", null),
+            new(ItemFileOpen, "_.OPEN", null),
+            new(ItemFileSave, "_.SAVE", null),
+            new(ItemFileSaveAs, "_.SAVEAS", null),
             new(null, null, null),
-            new("Exit", "QUIT", null)
+            new(ItemFileExit, "_.QUIT", null)
         ]),
-        new("Edit", null, null,
+        new(MenuEdit, null, null,
         [
-            new("Undo", "UNDO", null),
-            new("Redo", "REDO", null),
+            new(ItemEditUndo, "_.UNDO", null),
+            new(ItemEditRedo, "_.REDO", null),
             new(null, null, null),
-            new("Select", "SELECT", null),
-            new("Erase", "ERASE", null),
-            new("Clean All", "CLEANALL", null)
+            new(ItemEditSelect, "_.SELECT", null),
+            new(ItemEditErase, "_.ERASE", null),
+            new(ItemEditCleanAll, "_.CLEANALL", null)
         ]),
-        new("Draw", null, null,
+        new(MenuDraw, null, null,
         [
-            new("Line", "LINE", null),
-            new("Circle", "CIRCLE", null),
-            new("Arc", "ARC", null),
-            new("Polyline", "PLINE", null)
+            new(ItemDrawLine, "_.LINE", null),
+            new(ItemDrawCircle, "_.CIRCLE", null),
+            new(ItemDrawArc, "_.ARC", null),
+            new(ItemDrawPolyline, "_.PLINE", null)
         ]),
-        new("Help", null, null,
+        new(MenuHelp, null, null,
         [
-            new("About", "ABOUT", null)
+            new(ItemHelpAbout, "_.ABOUT", null)
         ])
     ];
 

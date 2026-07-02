@@ -4,11 +4,16 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using NormalCAD.Resources;
 
 namespace NormalCAD.View.Controls
 {
     public partial class BottomBar : UserControl
     {
+        private static string ModelButtonText => PanelResources.Get("BOTTOMBAR.BUTTON.MODEL");
+        private static string CmdLabelText => PanelResources.Get("BOTTOMBAR.LABEL.CMD");
+        private static string CommandPlaceholder => PanelResources.Get("BOTTOMBAR.PLACEHOLDER.COMMAND");
+        private static string NotImplementedMsg => PanelResources.Get("BOTTOMBAR.MSG.NOTIMPLEMENTED");
         private Controller.CadController? _controller;
         private TextBox? _txtPrompt;
         private TextBlock? _txtPromptPrefix;
@@ -69,8 +74,15 @@ namespace NormalCAD.View.Controls
             var btnModel = this.FindControl<Button>("BtnModel");
             if (btnModel != null)
             {
+                btnModel.Content = ModelButtonText;
                 btnModel.Click += OnBtnModelClick;
             }
+
+            if (_txtPrompt != null)
+                _txtPrompt.PlaceholderText = CommandPlaceholder;
+
+            if (_txtPromptPrefix != null)
+                _txtPromptPrefix.Text = CmdLabelText;
         }
 
         private async void OnTxtPromptKeyDown(object? sender, KeyEventArgs e)
@@ -140,7 +152,7 @@ namespace NormalCAD.View.Controls
         }
         private void OnBtnModelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            _controller?.InputManager.SetPromptMessage("Tool not implemented yet");
+            _controller?.InputManager.SetPromptMessage(NotImplementedMsg);
         }
 
         public void ShowFloatingPrompt(string message, int autoHideMs = 3000)

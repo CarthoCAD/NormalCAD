@@ -24,7 +24,7 @@ A interseção e distância são delegadas às primitivas geométricas (`Curve3d
 
 ---
 
-## Funcionalidades (v0.1)
+## Funcionalidades
 
 ### 🖊️ Ferramentas de Desenho
 
@@ -113,6 +113,13 @@ NormalCAD.sln
 │   ├── NormalCAD.csproj          (Referencia NormalCAD.Core)
 │   ├── Host/                    # Implementação do host
 │   │   └── ApplicationHost.cs   # IApplicationHost, cria documentos
+│   ├── Resources/               # Recursos de localização (.resx)
+│   │   ├── Commands.resx        # Prompts, mensagens, keywords, nomes e aliases de comando
+│   │   ├── Panels.resx          # Strings de UI de painéis e controles (paletas, menus, barras)
+│   │   ├── Dialogs.resx         # Títulos de diálogo, filtros, mensagens de erro, strings de sistema
+│   │   ├── CommandResources.cs  # Helper ResourceManager para strings de comando
+│   │   ├── PanelResources.cs    # Helper ResourceManager para strings de painel
+│   │   └── DialogResources.cs   # Helper ResourceManager para strings de diálogo
 │   ├── Controller/              # Lógica de comandos e orquestração
 │   │   ├── CadController.cs     # Orquestrador central (inicializa Application, gerencia Document)
 │   │   ├── CmdManager.cs        # Descoberta, registro e despacho de comandos
@@ -219,7 +226,7 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Open | `OPEN` | — |
 | Save | `SAVE` | — |
 | Save As | `SAVEAS` | — |
-| Toggle Theme | `THEME` | `TEMA`, `TH` |
+| Toggle Theme | `THEME` | `TH` |
 | Quit | `QUIT` | `EXIT`, `Q` |
 
 ---

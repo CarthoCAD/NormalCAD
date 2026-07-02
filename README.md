@@ -24,7 +24,7 @@ Intersection and distance are delegated to geometric primitives (`Curve3d` → `
 
 ---
 
-## Features (v0.1)
+## Features
 
 ### Drawing Tools
 
@@ -113,6 +113,13 @@ NormalCAD.sln
 │   ├── NormalCAD.csproj          (References NormalCAD.Core)
 │   ├── Host/                    # Host implementation
 │   │   └── ApplicationHost.cs   # IApplicationHost, creates documents
+│   ├── Resources/               # Localization resources (.resx)
+│   │   ├── Commands.resx        # Command prompts, messages, keywords, names, aliases
+│   │   ├── Panels.resx          # Panel and control UI strings (palettes, menus, bars)
+│   │   ├── Dialogs.resx         # Dialog titles, filters, error messages, system strings
+│   │   ├── CommandResources.cs  # ResourceManager helper for command strings
+│   │   ├── PanelResources.cs    # ResourceManager helper for panel strings
+│   │   └── DialogResources.cs   # ResourceManager helper for dialog strings
 │   ├── Controller/              # Command logic and orchestration
 │   │   ├── CadController.cs     # Central orchestrator (initializes Application, manages Document)
 │   │   ├── CmdManager.cs        # Command discovery, registration and dispatch
@@ -219,7 +226,7 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Open | `OPEN` | — |
 | Save | `SAVE` | — |
 | Save As | `SAVEAS` | — |
-| Toggle Theme | `THEME` | `TEMA`, `TH` |
+| Toggle Theme | `THEME` | `TH` |
 | Quit | `QUIT` | `EXIT`, `Q` |
 
 ---

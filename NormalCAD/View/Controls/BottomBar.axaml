@@ -5,7 +5,7 @@
   <Border Background="{DynamicResource Theme.BottomBarBg}" BorderBrush="{DynamicResource Theme.Border}" BorderThickness="0,1,0,0" Height="32">
     <Grid ColumnDefinitions="Auto,*,Auto" Margin="10,0">
       <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Width="320">
-        <Button Name="BtnModel" Content="Model" HorizontalAlignment="Left" FontSize="12" Padding="8,2" />
+        <Button Name="BtnModel" HorizontalAlignment="Left" FontSize="12" Padding="8,2" />
       </StackPanel>
       <Border Grid.Column="1"
         Name="CmdBorder"
@@ -15,17 +15,15 @@
         Margin="10,3"
         Padding="6,0">
         <Grid ColumnDefinitions="Auto,*">
-          <TextBlock Grid.Column="0"
-                    Name="TxtPromptPrefix"
-                    Text="CMD:"
-                    Foreground="{DynamicResource Theme.TextSec}"
-                    FontSize="12"
-                    VerticalAlignment="Center"
-                    Margin="0,0,4,0"/>
+            <TextBlock Grid.Column="0"
+                      Name="TxtPromptPrefix"
+                      Foreground="{DynamicResource Theme.TextSec}"
+                      FontSize="12"
+                      VerticalAlignment="Center"
+                      Margin="0,0,4,0"/>
           <TextBox Grid.Column="1"
                   Name="TxtPrompt"
                   BorderThickness="0"
-                  PlaceholderText="Type a command..."
                   Background="Transparent"
                   Foreground="{DynamicResource Theme.Text}"
                   Padding="4,2"

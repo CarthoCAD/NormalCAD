@@ -133,18 +133,6 @@
   <data name="OPEN.LOCALNAME" xml:space="preserve">
     <value>OPEN</value>
   </data>
-  <data name="OPEN.PROMPT.DIALOGTITLE" xml:space="preserve">
-    <value>Open Drawing</value>
-  </data>
-  <data name="OPEN.PROMPT.FILETYPE_GROUP" xml:space="preserve">
-    <value>Drawing Files</value>
-  </data>
-  <data name="OPEN.PROMPT.FILETYPE_DWG" xml:space="preserve">
-    <value>AutoCAD DWG</value>
-  </data>
-  <data name="OPEN.PROMPT.FILETYPE_DXF" xml:space="preserve">
-    <value>AutoCAD DXF</value>
-  </data>
   <data name="OPEN.MSG.LOADED" xml:space="preserve">
     <value>Drawing loaded: {0}</value>
   </data>
@@ -155,15 +143,6 @@
   <!-- ===== SAVE ===== -->
   <data name="SAVE.LOCALNAME" xml:space="preserve">
     <value>SAVE</value>
-  </data>
-  <data name="SAVE.PROMPT.DIALOGTITLE" xml:space="preserve">
-    <value>Save Drawing</value>
-  </data>
-  <data name="SAVE.PROMPT.FILETYPE_DWG" xml:space="preserve">
-    <value>AutoCAD DWG</value>
-  </data>
-  <data name="SAVE.PROMPT.FILETYPE_DXF" xml:space="preserve">
-    <value>AutoCAD DXF</value>
   </data>
   <data name="SAVE.MSG.SAVED" xml:space="preserve">
     <value>Drawing saved: {0}</value>

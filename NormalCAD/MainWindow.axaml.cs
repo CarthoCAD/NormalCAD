@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
 using NormalCAD.Controller;
+using NormalCAD.Resources;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD
@@ -27,6 +28,10 @@ namespace NormalCAD
         public MainWindow()
         {
             InitializeComponent();
+
+            Title = PanelResources.Get("WINDOW.TITLE");
+            BtnTabProps.SetValue(ToolTip.TipProperty, PanelResources.Get("SIDEBAR.TOOLTIP.PROPERTIES"));
+            BtnTabLayers.SetValue(ToolTip.TipProperty, PanelResources.Get("SIDEBAR.TOOLTIP.LAYERS"));
 
             _controller = new CadController(Viewport);
 
