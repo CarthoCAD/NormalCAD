@@ -1,14 +1,19 @@
 using Avalonia;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Commands
 {
     public class ToggleThemeCommand : ICadCommand
     {
+        private static string MsgLight => CommandResources.Get("THEME.MSG.LIGHT");
+        private static string MsgDark => CommandResources.Get("THEME.MSG.DARK");
+        private static string MsgChanged => CommandResources.Get("THEME.MSG.CHANGED");
+
         public string Name => "_.THEME";
-        public string LocalName => "THEME";
-        public string Alias => "TEMA,TH";
+        public string LocalName => CommandResources.Get("THEME.LOCALNAME");
+        public string Alias => CommandResources.Get("THEME.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)
@@ -21,7 +26,8 @@ namespace NormalCAD.Controller.Commands
             controller.Viewport.IsLightTheme = isLight;
             controller.Viewport.InvalidateVisual();
 
-            controller.InputManager.SetPromptMessage($"Theme changed to {(isLight ? "Light" : "Dark")}.");
+            var themeName = isLight ? MsgLight : MsgDark;
+            controller.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));
 
             controller.SetCommand(new BaseCommand());
         }

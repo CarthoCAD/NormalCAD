@@ -2,6 +2,7 @@ using System;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
@@ -14,8 +15,8 @@ namespace NormalCAD.Controller.Commands
         private double _startAngle;
 
         public string Name => "_.ARC";
-        public string LocalName => "ARC";
-        public string Alias => "A";
+        public string LocalName => CommandResources.Get("ARC.LOCALNAME");
+        public string Alias => CommandResources.Get("ARC.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)

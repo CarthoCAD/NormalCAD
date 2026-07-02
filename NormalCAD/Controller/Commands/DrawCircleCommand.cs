@@ -1,6 +1,7 @@
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 using System;
 using NormalCAD.View.Controls;
 
@@ -8,14 +9,20 @@ namespace NormalCAD.Controller.Commands
 {
     public class DrawCircleCommand : ICadCommand
     {
+        private static string PromptCenterPoint => CommandResources.Get("CIRCLE.PROMPT.CENTERPOINT");
+        private static string PromptRadius => CommandResources.Get("CIRCLE.PROMPT.RADIUS");
+        private static string PromptDiameter => CommandResources.Get("CIRCLE.PROMPT.DIAMETER");
+        private static string KeyDiameter => CommandResources.Get("CIRCLE.KEY.DIAMETER");
+        private static string KeyRadius => CommandResources.Get("CIRCLE.KEY.RADIUS");
+
         private CadController? _controller;
         private Point3d? _center;
         private bool _isDiameter;
         private Point3d _lastWorldPoint;
 
         public string Name => "_.CIRCLE";
-        public string LocalName => "CIRCLE";
-        public string Alias => "C,CI";
+        public string LocalName => CommandResources.Get("CIRCLE.LOCALNAME");
+        public string Alias => CommandResources.Get("CIRCLE.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)
@@ -25,7 +32,7 @@ namespace NormalCAD.Controller.Commands
             _center = null;
             _isDiameter = false;
 
-            _controller.InputManager.SetCurrentPrompt(LocalName, "Specify center point for circle ");
+            _controller.InputManager.SetCurrentPrompt(LocalName, PromptCenterPoint);
         }
 
         public void Deactivate()
@@ -42,17 +49,17 @@ namespace NormalCAD.Controller.Commands
         {
             if (_controller == null || !_center.HasValue) return;
 
-            if (keyword == "Diameter")
+            if (keyword == KeyDiameter)
             {
                 _isDiameter = true;
-                _controller.InputManager.SetCurrentPrompt(LocalName, "Specify diameter of circle ",
-                    new[] { "Radius" }, OnKeyword);
+                _controller.InputManager.SetCurrentPrompt(LocalName, PromptDiameter,
+                    new[] { KeyRadius }, OnKeyword);
             }
-            else if (keyword == "Radius")
+            else if (keyword == KeyRadius)
             {
                 _isDiameter = false;
-                _controller.InputManager.SetCurrentPrompt(LocalName, "Specify radius of circle ",
-                    new[] { "Diameter" }, OnKeyword);
+                _controller.InputManager.SetCurrentPrompt(LocalName, PromptRadius,
+                    new[] { KeyDiameter }, OnKeyword);
             }
 
             UpdatePreview();
@@ -67,8 +74,8 @@ namespace NormalCAD.Controller.Commands
             {
                 _center = worldPt;
 
-                _controller.InputManager.SetCurrentPrompt(LocalName, "Specify radius of circle ",
-                    new[] { "Diameter" }, OnKeyword);
+                _controller.InputManager.SetCurrentPrompt(LocalName, PromptRadius,
+                    new[] { KeyDiameter }, OnKeyword);
             }
             else
             {
