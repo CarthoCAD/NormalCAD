@@ -2,20 +2,26 @@ using System.Collections.Generic;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
 {
     public class DrawPolylineCommand : ICadCommand
     {
+        private static string PromptFirstPoint => CommandResources.Get("PLINE.PROMPT.FIRSTPOINT");
+        private static string PromptNextPoint => CommandResources.Get("PLINE.PROMPT.NEXTPOINT");
+        private static string KeyUndo => CommandResources.Get("PLINE.KEY.UNDO");
+        private static string KeyClose => CommandResources.Get("PLINE.KEY.CLOSE");
+
         private CadController? _controller;
         private readonly List<Point2d> _vertices = new();
         private double _elevation;
         private Point3d _lastWorldPoint;
 
         public string Name => "_.PLINE";
-        public string LocalName => "PLINE";
-        public string Alias => "PL";
+        public string LocalName => CommandResources.Get("PLINE.LOCALNAME");
+        public string Alias => CommandResources.Get("PLINE.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)
@@ -46,17 +52,17 @@ namespace NormalCAD.Controller.Commands
 
             if (_vertices.Count == 0)
             {
-                _controller.InputManager.SetCurrentPrompt(name, "Specify start point");
+                _controller.InputManager.SetCurrentPrompt(name, PromptFirstPoint);
             }
             else if (_vertices.Count == 1)
             {
-                _controller.InputManager.SetCurrentPrompt(name, "Specify next point",
-                    new[] { "Undo" }, OnKeyword);
+                _controller.InputManager.SetCurrentPrompt(name, PromptNextPoint,
+                    new[] { KeyUndo }, OnKeyword);
             }
             else
             {
-                _controller.InputManager.SetCurrentPrompt(name, "Specify next point",
-                    new[] { "Undo", "Close" }, OnKeyword);
+                _controller.InputManager.SetCurrentPrompt(name, PromptNextPoint,
+                    new[] { KeyUndo, KeyClose }, OnKeyword);
             }
         }
 
@@ -64,11 +70,11 @@ namespace NormalCAD.Controller.Commands
         {
             if (_controller == null) return;
 
-            if (keyword == "Close" && _vertices.Count >= 2)
+            if (keyword == KeyClose && _vertices.Count >= 2)
             {
                 CommitPolyline(closed: true);
             }
-            else if (keyword == "Undo" && _vertices.Count > 0)
+            else if (keyword == KeyUndo && _vertices.Count > 0)
             {
                 _vertices.RemoveAt(_vertices.Count - 1);
                 UpdatePrompt();

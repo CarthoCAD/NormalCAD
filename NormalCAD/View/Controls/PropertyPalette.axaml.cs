@@ -9,11 +9,19 @@ using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 
 namespace NormalCAD.View.Controls
 {
     public partial class PropertyPalette : UserControl
     {
+        private static string NoSelectionText => PanelResources.Get("PROPERTYPALETTE.MSG.NOSELECTION");
+        private static string SelectedFormat => PanelResources.Get("PROPERTYPALETTE.MSG.SELECTED");
+        private static string UnknownObjectText => PanelResources.Get("PROPERTYPALETTE.MSG.UNKNOWN");
+        private static string CategoryFallback => PanelResources.Get("PROPERTYPALETTE.CATEGORY.FALLBACK");
+        private static string BooleanYes => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.YES");
+        private static string BooleanNo => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.NO");
+
         private Controller.CadController? _controller;
         private ObjectId _selectedId = ObjectId.Null;
 
@@ -91,7 +99,7 @@ namespace NormalCAD.View.Controls
 
             if (selectedIds.Count == 0)
             {
-                _txtPropsTitle.Text = "No selection";
+                _txtPropsTitle.Text = NoSelectionText;
                 _selectedId = ObjectId.Null;
                 return;
             }
@@ -109,13 +117,13 @@ namespace NormalCAD.View.Controls
             if (entity == null)
             {
                 _txtPropsTitle.Text = selectedIds.Count > 1
-                    ? $"{selectedIds.Count} selected"
-                    : "Unknown object";
+                    ? string.Format(SelectedFormat, selectedIds.Count)
+                    : UnknownObjectText;
                 return;
             }
 
             _txtPropsTitle.Text = selectedIds.Count > 1
-                ? $"{selectedIds.Count} selected"
+                ? string.Format(SelectedFormat, selectedIds.Count)
                 : entity.GetType().Name;
 
             BuildPropertyGrid(entity);
@@ -143,7 +151,7 @@ namespace NormalCAD.View.Controls
                 {
                     currentCategory = prop.Category;
                     _propsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-                    AddCategoryHeader(currentCategory ?? "Properties", rowIndex);
+                    AddCategoryHeader(currentCategory ?? CategoryFallback, rowIndex);
                     rowIndex++;
                 }
 
@@ -246,9 +254,9 @@ namespace NormalCAD.View.Controls
 
             if (prop.PropertyType == typeof(bool))
             {
-                cb.Items.Add("Yes");
-                cb.Items.Add("No");
-                cb.SelectedItem = (bool)value ? "Yes" : "No";
+                cb.Items.Add(BooleanYes);
+                cb.Items.Add(BooleanNo);
+                cb.SelectedItem = (bool)value ? BooleanYes : BooleanNo;
             }
             else
             {
@@ -292,7 +300,7 @@ namespace NormalCAD.View.Controls
             {
                 if (p.PropertyType == typeof(bool))
                 {
-                    p.SetValue(entity, name == "Yes");
+                    p.SetValue(entity, name == BooleanYes);
                 }
                 else
                 {

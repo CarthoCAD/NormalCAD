@@ -1,14 +1,15 @@
 using Avalonia.Input;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Commands
 {
     public class EraseCommand : ICadCommand
     {
         public string Name => "_.ERASE";
-        public string LocalName => "ERASE";
-        public string Alias => "E";
+        public string LocalName => CommandResources.Get("ERASE.LOCALNAME");
+        public string Alias => CommandResources.Get("ERASE.ALIAS");
         public bool IsInternal => false;
 
         public void Activate(CadController controller)

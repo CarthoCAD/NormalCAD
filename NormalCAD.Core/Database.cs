@@ -19,32 +19,32 @@ namespace NormalCAD.Core.DatabaseServices
 
         public Database()
         {
-            // O próprio banco de dados se registra
+            // The database registers itself
             this.ObjectId = new ObjectId(1, this);
             _objects[this.ObjectId] = this;
             _nextIdValue = 2;
 
             TransactionManager = new TransactionManager(this);
 
-            // Inicializa as tabelas de símbolos básicas
+            // Initialize basic symbol tables
             var blockTable = new BlockTable(this);
             BlockTableId = blockTable.ObjectId;
 
             var layerTable = new LayerTable(this);
             LayerTableId = layerTable.ObjectId;
 
-            // Cria os registros padrão das tabelas
+            // Create default table records
             var modelSpace = new BlockTableRecord(BlockTableRecord.ModelSpace);
             blockTable.Add(modelSpace);
 
             var paperSpace = new BlockTableRecord(BlockTableRecord.PaperSpace);
             blockTable.Add(paperSpace);
 
-            // Cria a camada padrão "0"
+            // Create default layer "0"
             var layerZero = new LayerTableRecord("0", EntityColor.White);
             layerTable.Add(layerZero);
 
-            // Inicializa a tabela de viewports com o viewport *Active
+            // Initialize viewport table with *Active viewport
             var viewportTable = new ViewportTable(this);
             ViewportTableId = viewportTable.ObjectId;
 

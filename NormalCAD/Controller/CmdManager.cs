@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NormalCAD.Controller.Commands;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller
 {
     public class CmdManager
     {
+        private static string MsgCannotCallDirectly => CommandResources.Get("CMD.MSG.CANNOT_CALL_DIRECTLY");
+        private static string MsgEcho => CommandResources.Get("CMD.MSG.ECHO");
+        private static string MsgUnknownCommand => CommandResources.Get("CMD.MSG.UNKNOWN_COMMAND");
+
         private readonly CadController _controller;
         private readonly Dictionary<string, ICadCommand> _commands = [];
 
@@ -58,16 +63,16 @@ namespace NormalCAD.Controller
             {
                 if (cmd.IsInternal)
                 {
-                    _controller.InputManager.SetPromptMessage($"Command '{input}' cannot be called directly.");
+                    _controller.InputManager.SetPromptMessage(string.Format(MsgCannotCallDirectly, input));
                     return;
                 }
 
-                _controller.InputManager.SetPromptMessage($"command: {cmd.LocalName}");
+                _controller.InputManager.SetPromptMessage(string.Format(MsgEcho, cmd.LocalName));
                 _controller.SetCommand(cmd);
             }
             else
             {
-                _controller.InputManager.SetPromptMessage($"Unknown command '{input}'. Press F1 for help.");
+                _controller.InputManager.SetPromptMessage(string.Format(MsgUnknownCommand, input));
             }
 
             await Task.CompletedTask;

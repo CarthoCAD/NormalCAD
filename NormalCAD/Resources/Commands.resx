@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== CMD (BaseCommand + Command System Infrastructure) ===== -->
+  <data name="CMD.LOCALNAME" xml:space="preserve">
+    <value>CMD</value>
+  </data>
+  <data name="CMD.PROMPT.DEFAULT" xml:space="preserve">
+    <value>CMD</value>
+  </data>
+  <data name="CMD.PROMPT.OPPOSITECORNER" xml:space="preserve">
+    <value>Specify opposite corner</value>
+  </data>
+  <data name="CMD.MSG.FOUND" xml:space="preserve">
+    <value>1 found, {0} total</value>
+  </data>
+  <data name="CMD.MSG.REMOVED" xml:space="preserve">
+    <value>1 removed, {0} total</value>
+  </data>
+  <data name="CMD.MSG.FOUND_N" xml:space="preserve">
+    <value>{0} found, {1} total</value>
+  </data>
+  <data name="CMD.MSG.REMOVED_N" xml:space="preserve">
+    <value>{0} removed, {1} total</value>
+  </data>
+  <data name="CMD.MSG.ECHO" xml:space="preserve">
+    <value>command: {0}</value>
+  </data>
+  <data name="CMD.MSG.CANNOT_CALL_DIRECTLY" xml:space="preserve">
+    <value>Command '{0}' cannot be called directly.</value>
+  </data>
+  <data name="CMD.MSG.UNKNOWN_COMMAND" xml:space="preserve">
+    <value>Unknown command '{0}'. Press F1 for help.</value>
+  </data>
+  <data name="CMD.MSG.AMBIGUOUS_KEYWORD" xml:space="preserve">
+    <value>Ambiguous keyword.</value>
+  </data>
+  <data name="CMD.MSG.KEYWORD_REQUIRED" xml:space="preserve">
+    <value>Option keyword required.</value>
+  </data>
+
+  <!-- ===== LINE ===== -->
+  <data name="LINE.LOCALNAME" xml:space="preserve">
+    <value>LINE</value>
+  </data>
+  <data name="LINE.ALIAS" xml:space="preserve">
+    <value>L</value>
+  </data>
+
+  <!-- ===== CIRCLE ===== -->
+  <data name="CIRCLE.LOCALNAME" xml:space="preserve">
+    <value>CIRCLE</value>
+  </data>
+  <data name="CIRCLE.ALIAS" xml:space="preserve">
+    <value>C,CI</value>
+  </data>
+  <data name="CIRCLE.PROMPT.CENTERPOINT" xml:space="preserve">
+    <value>Specify center point for circle </value>
+  </data>
+  <data name="CIRCLE.PROMPT.RADIUS" xml:space="preserve">
+    <value>Specify radius of circle </value>
+  </data>
+  <data name="CIRCLE.PROMPT.DIAMETER" xml:space="preserve">
+    <value>Specify diameter of circle </value>
+  </data>
+  <data name="CIRCLE.KEY.DIAMETER" xml:space="preserve">
+    <value>Diameter</value>
+  </data>
+  <data name="CIRCLE.KEY.RADIUS" xml:space="preserve">
+    <value>Radius</value>
+  </data>
+
+  <!-- ===== ARC ===== -->
+  <data name="ARC.LOCALNAME" xml:space="preserve">
+    <value>ARC</value>
+  </data>
+  <data name="ARC.ALIAS" xml:space="preserve">
+    <value>A</value>
+  </data>
+
+  <!-- ===== PLINE ===== -->
+  <data name="PLINE.LOCALNAME" xml:space="preserve">
+    <value>PLINE</value>
+  </data>
+  <data name="PLINE.ALIAS" xml:space="preserve">
+    <value>PL</value>
+  </data>
+  <data name="PLINE.PROMPT.FIRSTPOINT" xml:space="preserve">
+    <value>Specify start point</value>
+  </data>
+  <data name="PLINE.PROMPT.NEXTPOINT" xml:space="preserve">
+    <value>Specify next point</value>
+  </data>
+  <data name="PLINE.KEY.UNDO" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="PLINE.KEY.CLOSE" xml:space="preserve">
+    <value>Close</value>
+  </data>
+
+  <!-- ===== ERASE ===== -->
+  <data name="ERASE.LOCALNAME" xml:space="preserve">
+    <value>ERASE</value>
+  </data>
+  <data name="ERASE.ALIAS" xml:space="preserve">
+    <value>E</value>
+  </data>
+
+  <!-- ===== CLEANALL ===== -->
+  <data name="CLEANALL.LOCALNAME" xml:space="preserve">
+    <value>CLEANALL</value>
+  </data>
+  <data name="CLEANALL.ALIAS" xml:space="preserve">
+    <value>CLA</value>
+  </data>
+  <data name="CLEANALL.MSG.CLEARED" xml:space="preserve">
+    <value>Drawing cleared successfully.</value>
+  </data>
+
+  <!-- ===== OPEN ===== -->
+  <data name="OPEN.LOCALNAME" xml:space="preserve">
+    <value>OPEN</value>
+  </data>
+  <data name="OPEN.MSG.LOADED" xml:space="preserve">
+    <value>Drawing loaded: {0}</value>
+  </data>
+  <data name="OPEN.MSG.ERROR" xml:space="preserve">
+    <value>Error opening: {0}</value>
+  </data>
+
+  <!-- ===== SAVE ===== -->
+  <data name="SAVE.LOCALNAME" xml:space="preserve">
+    <value>SAVE</value>
+  </data>
+  <data name="SAVE.MSG.SAVED" xml:space="preserve">
+    <value>Drawing saved: {0}</value>
+  </data>
+  <data name="SAVE.MSG.ERROR" xml:space="preserve">
+    <value>Error saving: {0}</value>
+  </data>
+
+  <!-- ===== SAVEAS ===== -->
+  <data name="SAVEAS.LOCALNAME" xml:space="preserve">
+    <value>SAVEAS</value>
+  </data>
+
+  <!-- ===== QUIT ===== -->
+  <data name="QUIT.LOCALNAME" xml:space="preserve">
+    <value>QUIT</value>
+  </data>
+  <data name="QUIT.ALIAS" xml:space="preserve">
+    <value>EXIT,Q</value>
+  </data>
+
+  <!-- ===== THEME ===== -->
+  <data name="THEME.LOCALNAME" xml:space="preserve">
+    <value>THEME</value>
+  </data>
+  <data name="THEME.ALIAS" xml:space="preserve">
+    <value>TH</value>
+  </data>
+  <data name="THEME.MSG.LIGHT" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="THEME.MSG.DARK" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="THEME.MSG.CHANGED" xml:space="preserve">
+    <value>Theme changed to {0}.</value>
+  </data>
+</root>

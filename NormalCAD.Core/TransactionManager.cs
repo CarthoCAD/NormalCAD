@@ -33,7 +33,7 @@ namespace NormalCAD.Core.DatabaseServices
             get
             {
                 if (_transactions.Count == 0)
-                    throw new InvalidOperationException("Nenhuma transação ativa no momento.");
+                    throw new InvalidOperationException("No active transaction at this time.");
                 return _transactions.Peek();
             }
         }

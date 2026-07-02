@@ -11,7 +11,7 @@
         </Style>
     </UserControl.Styles>
 
-    <!-- BARRA DE MENU CLASSICA -->
+    <!-- CLASSIC MENU BAR -->
     <Grid   Height="35" 
             Background="{DynamicResource Theme.TopBarBg}"
             ColumnDefinitions="Auto, *, Auto"

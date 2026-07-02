@@ -1,5 +1,4 @@
 using System;
-using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.Geometry
 {
@@ -36,7 +35,7 @@ namespace NormalCAD.Core.Geometry
             var sin = Math.Sin(angleRadians);
             var m = Identity;
 
-            // Rotação em Z (2D)
+            // Rotation about Z (2D)
             m._m[0, 0] = cos;
             m._m[0, 1] = -sin;
             m._m[0, 3] = center.X * (1 - cos) + center.Y * sin;

@@ -3,10 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:NormalCAD.View.Controls"
-        xmlns:local="clr-namespace:NormalCAD"
         mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
         x:Class="NormalCAD.MainWindow"
-        Title="NormalCAD v0.1"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="35"
         WindowDecorations="Full"
@@ -28,22 +26,22 @@
     <!-- MENUBAR -->
     <controls:MenuBar Name="MenuBar" DockPanel.Dock="Top" />
 
-    <!-- BARRA DE STATUS INFERIOR -->
+    <!-- BOTTOM STATUS BAR -->
     <controls:BottomBar Name="BottomBar" DockPanel.Dock="Bottom" />
 
     <!-- VIEWPORT + SIDEBAR OVERLAY -->
     <Grid>
-      <!-- VIEWPORT (preenche toda a area) -->
+      <!-- VIEWPORT (fills entire area) -->
       <controls:CadViewport Name="Viewport" />
 
-      <!-- SIDEBAR OVERLAY (sobrepoe o viewport, alinhado a direita) -->
+      <!-- SIDEBAR OVERLAY (overlays viewport, right-aligned) -->
       <Grid Name="SidebarGrid" HorizontalAlignment="Right" ZIndex="10">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="40" />
         </Grid.ColumnDefinitions>
 
-        <!-- Gaveta de Conteudo -->
+        <!-- Content Drawer -->
         <Border Grid.Column="0" Name="DrawerPanel" Width="0"
                 Background="{DynamicResource Theme.PanelBg}"
                 BorderBrush="{DynamicResource Theme.Border}"
@@ -53,20 +51,20 @@
               <ColumnDefinition Width="4" />
               <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <!-- Grip de redimensionamento (borda esquerda) -->
+            <!-- Resize Grip (left border) -->
             <Border Grid.Column="0" Name="DrawerGrip"
                     Background="Transparent" Cursor="SizeWestEast" />
             <ContentControl Grid.Column="1" Name="DrawerContent" />
           </Grid>
         </Border>
 
-        <!-- Barra de Botoes Verticais (sempre visivel) -->
+        <!-- Vertical Button Bar (always visible) -->
         <Border Grid.Column="1" Width="40"
                 Background="{DynamicResource Theme.TopBarBg}"
                 BorderBrush="{DynamicResource Theme.Border}"
                 BorderThickness="1,0,0,0">
           <StackPanel Orientation="Vertical" Spacing="10" Margin="0,10">
-            <Button Name="BtnTabProps" ToolTip.Tip="Propriedades"
+            <Button Name="BtnTabProps"
                     Width="30" Height="30" Background="Transparent"
                     BorderThickness="0" CornerRadius="4"
                     HorizontalAlignment="Center">
@@ -74,7 +72,7 @@
                         Foreground="{DynamicResource Theme.Text}"
                         Width="16" Height="16"/>
             </Button>
-            <Button Name="BtnTabLayers" ToolTip.Tip="Camadas"
+            <Button Name="BtnTabLayers"
                     Width="30" Height="30" Background="Transparent"
                     BorderThickness="0" CornerRadius="4"
                     HorizontalAlignment="Center">
