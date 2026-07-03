@@ -1,49 +1,58 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text;
+using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
 {
     public abstract class Entity : DBObject
     {
-        [Category("General")]
-        [DisplayName("Layer")]
-        public string Layer { get; set; } = "0";
+        private string _layerFallback = "0";
 
-        
         public ObjectId LayerId { get; set; }
 
-        [Category("General")]
-        [DisplayName("Color")]
-        [ReadOnly(true)]
+        public string Layer
+        {
+            get
+            {
+                if (!LayerId.IsNull)
+                {
+                    var db = Database ?? Application.DocumentManager.MdiActiveDocument?.Database;
+                    if (db != null && db.TryGetObject(LayerId, out var obj) && obj is LayerTableRecord ltr)
+                        return ltr.Name;
+                }
+                return _layerFallback;
+            }
+            set
+            {
+                _layerFallback = value;
+                var db = Database ?? Application.DocumentManager.MdiActiveDocument?.Database;
+                if (db != null && db.TryGetObject(db.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
+                {
+                    var id = lt[value];
+                    if (!id.IsNull) LayerId = id;
+                }
+            }
+        }
+
         public EntityColor Color { get; set; } = EntityColor.ByLayer;
 
-        [Category("General")]
-        [DisplayName("Linetype")]
         public string Linetype { get; set; } = "ByLayer";
 
         
         public ObjectId LinetypeId { get; set; }
 
-        [Category("General")]
-        [DisplayName("Lineweight")]
         public LineWeight LineWeight { get; set; } = LineWeight.ByLayer;
 
-        [Category("General")]
-        [DisplayName("Linetype Scale")]
         public double LinetypeScale { get; set; } = 1.0;
 
-        [Category("General")]
-        [DisplayName("Transparency")]
         public Transparency Transparency { get; set; } = Transparency.ByLayer;
 
-        [Category("General")]
-        [DisplayName("Visible")]
         public bool Visible { get; set; } = true;
 
         
+        public double Thickness { get; set; }
         public ObjectId BlockId { get; set; }
 
         
@@ -65,6 +74,7 @@ namespace NormalCAD.Core.DatabaseServices
             target.LinetypeScale = this.LinetypeScale;
             target.Transparency = this.Transparency;
             target.Visible = this.Visible;
+            target.Thickness = this.Thickness;
             target.BlockId = this.BlockId;
             target.IsErased = this.IsErased;
         }

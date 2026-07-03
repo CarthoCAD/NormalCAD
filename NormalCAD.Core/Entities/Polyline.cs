@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using NormalCAD.Core.Geometry;
 
@@ -11,27 +10,14 @@ namespace NormalCAD.Core.DatabaseServices
         private readonly List<Point2d> _vertices = new();
         private bool _closed;
 
-        [Category("Geometry")]
-        [DisplayName("Elevation")]
         public double Elevation { get; set; }
 
-        [Category("Geometry")]
-        [DisplayName("Vertices")]
-        [ReadOnly(true)]
         public int NumberOfVertices => _vertices.Count;
 
-        [Category("Geometry")]
-        [DisplayName("Closed")]
         public override bool Closed => _closed;
 
-        [Category("Geometry")]
-        [DisplayName("Length")]
-        [ReadOnly(true)]
         public override double Length => ComputeLength();
 
-        [Category("Geometry")]
-        [DisplayName("Area")]
-        [ReadOnly(true)]
         public override double Area => base.Area;
 
         public Point3d GetPoint3dAt(int index) => _vertices[index].ToPoint3d(Elevation);

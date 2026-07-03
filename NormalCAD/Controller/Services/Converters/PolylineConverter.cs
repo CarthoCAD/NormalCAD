@@ -23,6 +23,7 @@ namespace NormalCAD.Controller.Services.Converters
                 Elevation = source.Elevation
             };
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Thickness = source.Thickness;
             return result;
         }
 
@@ -37,6 +38,7 @@ namespace NormalCAD.Controller.Services.Converters
                 Elevation = source.Elevation
             };
             ApplyEntityPropertiesToNormal(result, source);
+            result.Thickness = source.Thickness;
             return result;
         }
     }

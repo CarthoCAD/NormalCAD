@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Avalonia.Input;
+using NormalCAD.Core;
 using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.EditorInput;
@@ -18,6 +19,7 @@ namespace NormalCAD.Controller
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
         public InputManager InputManager { get; }
+        public EntityPropertyManager EntityPropertyManager { get; }
 
         private ICadCommand? _activeCommand;
         public ICadCommand? ActiveCommand => _activeCommand;
@@ -40,6 +42,7 @@ namespace NormalCAD.Controller
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
+            EntityPropertyManager = new EntityPropertyManager();
 
             document.Database.Changed += OnDatabaseChanged;
 
@@ -58,6 +61,7 @@ namespace NormalCAD.Controller
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
+            EntityPropertyManager = new EntityPropertyManager();
 
             Document.Database.Changed += OnDatabaseChanged;
 

@@ -14,6 +14,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.Radius
             );
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Thickness = source.Thickness;
             return result;
         }
 
@@ -24,6 +25,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.Radius
             );
             ApplyEntityPropertiesToNormal(result, source);
+            result.Thickness = source.Thickness;
             return result;
         }
     }

@@ -8,8 +8,9 @@ namespace NormalCAD.Core.DatabaseServices
     {
         public abstract double Length { get; }
         public virtual bool Closed => false;
-        public abstract Point3d StartPoint { get; }
-        public abstract Point3d EndPoint { get; }
+        public virtual Point3d StartPoint => Point3d.Origin;
+
+        public virtual Point3d EndPoint => Point3d.Origin;
 
         public override IEnumerable<Point3d> GetGripPoints()
         {

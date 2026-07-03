@@ -32,6 +32,10 @@ DrawLine, DrawCircle, DrawArc, and DrawPolyline share near-identical `Activate()
 
 `BlockReference` and its nested sub-entities are not currently being rendered in the viewport, making block insertion functionally invisible. The cause could be in `DrawingService.DrawEntity` (entity type dispatch may not handle `BlockReference`), in `BlockReferenceConverter` (the DWG reader may not be populating sub-entities or the block transform correctly), in `BlockReference.GetGeometricCurve()` or `GeometricExtents` (computing empty bounds that get culled), or in the renderer's coordinate transform chain for nested entities. Needs investigation and fix before any block/insert workflow can be built.
 
+## Undo System (priority: high)
+
+Implement a full undo/redo stack using the AutoCAD command-group model: each interactive command or immediate action registers an `UndoGroup` that wraps the set of database modifications it performs. The `TransactionManager` must track object state snapshots (before/after values for modified properties, or pre-modification clones for structural changes like adding/removing entities) so that undo can restore them. The undo stack is managed per-document by the `Database`, with `Undo()` and `Redo()` methods exposed through the `Editor`. A `NoUndoMarker` flag on commands (already reserved in the planned `CommandFlags`) should suppress undo recording for non-destructive operations like ZOOM, REGEN, or inquiry commands. Depends on the `ICadCommand` refactoring (to add `CommandFlags.NoUndoMarker`) and on the idle state extraction (so `BaseCommand` doesn't interfere with undo group boundaries).
+
 ## Centralize Document and Database Access (priority: medium)
 
 `CadController.Database` and `CadController.Document` are accessed directly from commands, UI controls, services, and converters scattered across the codebase. When active document switching is implemented, any code holding a stale reference to a previous document will operate on the wrong data. All access to the current document and database must route through `Application.DocumentManager.ActiveDocument` so that a document switch automatically redirects every consumer. This affects at least `FileService`, all `ICadCommand` implementations, `PropertyPalette`, `LayerPalette`, `DrawingService`, and `CadViewport`. The `CadController` should become a thin facade that delegates to `DocumentManager.ActiveDocument` rather than holding its own mutable `Document` field.
@@ -39,6 +43,14 @@ DrawLine, DrawCircle, DrawArc, and DrawPolyline share near-identical `Activate()
 ## Cache Brushes and Pens in `DrawingService` (priority: medium)
 
 `DrawingService.DrawEntity` allocates a new `SolidColorBrush` and a new `Pen` for every entity on every frame. With 1000 entities at 60fps, that is approximately 120,000 allocations per second just for rendering brushes and pens, driving significant GC pressure. Cache brushes and pens in a `ConcurrentDictionary` keyed by `(Avalonia.Media.Color, double thickness, DashStyle?)` or similar tuple. Invalidate and clear the cache on theme change (Light ↔ Dark), since theme tokens resolve to different colors.
+
+## DBObject API Compatibility (priority: medium)
+
+The `DBObject` class in `NormalCAD.Core` currently exposes only 7 of the 16 properties and 1 of the 11 methods defined in the AutoCAD .NET `DBObject` base class. The most impactful gap is `UpgradeOpen()` (promote from `ForRead` to `ForWrite` within a transaction) — without it, any code that obtains an object as read-only must re-open it for write access, adding boilerplate and risking stale references. Also missing: `DowngradeOpen()`, `Cancel()`, `HandOverTo(ObjectId)` (transfer ownership, needed for moving entities between block records), `DeepClone(...)` (needed for copy/paste between documents), and state-tracking properties like `IsWriteEnabled`, `IsTransactionResident`, `IsUndoing`, and `IsCancelling`. Implement the critical subset (`UpgradeOpen`, `DowngradeOpen`, `HandOverTo`, `Cancel`, `IsWriteEnabled`) and leave the rest as stubs for future undo/wblock support.
+
+## Implement `LinetypeTable` and `LinetypeTableRecord` (priority: medium)
+
+Currently entity linetypes are stored as plain strings (`"ByLayer"`, `"Continuous"`, etc.) directly on `Entity.Linetype` and resolved ad-hoc in the ACadSharp converter, with no database-side registry. Create `LinetypeTable : SymbolTable<LinetypeTableRecord>` and `LinetypeTableRecord : SymbolTableRecord` in `NormalCAD.Core.DatabaseServices`, following the same pattern as `LayerTable`/`LayerTableRecord`. Each `LinetypeTableRecord` should store the linetype name, description, and a pattern definition (dash lengths, dots, text, shapes) compatible with DXF group codes 49/74/75. The `Database` should own a `LinetypeTable` property (defaulting to a table containing at least "ByLayer", "ByBlock", and "Continuous"), and the `EntityPropertyProvider` should query the linetype table dynamically to populate the `ComboValues` for the Linetype dropdown instead of using a hardcoded list. Depends on the `SymbolTable` base class being already in place.
 
 ## Fix `DispatcherTimer` Leaks (priority: medium)
 

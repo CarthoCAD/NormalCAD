@@ -1,5 +1,5 @@
 using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia;
@@ -8,8 +8,10 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using NormalCAD.Core;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Resources;
+using CorePropDesc = NormalCAD.Core.DatabaseServices.PropertyDescriptor;
 
 namespace NormalCAD.View.Controls
 {
@@ -23,7 +25,8 @@ namespace NormalCAD.View.Controls
         private static string BooleanNo => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.NO");
 
         private Controller.CadController? _controller;
-        private ObjectId _selectedId = ObjectId.Null;
+        private EntityPropertyManager? _propertyManager;
+        private List<ObjectId> _selectedIds = [];
 
         private TextBlock? _txtPropsTitle;
         private Grid? _propsGrid;
@@ -46,6 +49,7 @@ namespace NormalCAD.View.Controls
 
                 if (_controller != null)
                 {
+                    _propertyManager = _controller.EntityPropertyManager;
                     _controller.SelectionChanged += OnSelectionChanged;
                     OnSelectionChanged();
                 }
@@ -92,7 +96,7 @@ namespace NormalCAD.View.Controls
             _propsGrid.Children.Clear();
             _propsGrid.RowDefinitions.Clear();
 
-            if (_controller == null) return;
+            if (_controller == null || _propertyManager == null) return;
 
             var db = _controller.Database;
             var selectedIds = _controller.SelectedEntityIds;
@@ -100,68 +104,68 @@ namespace NormalCAD.View.Controls
             if (selectedIds.Count == 0)
             {
                 _txtPropsTitle.Text = NoSelectionText;
-                _selectedId = ObjectId.Null;
+                _selectedIds = [];
                 return;
             }
 
-            ObjectId id = selectedIds.First();
-            _selectedId = id;
+            _selectedIds = selectedIds.ToList();
 
-            Entity? entity = null;
-            using (var trans = db.TransactionManager.StartTransaction())
+            var entities = new List<Entity>();
+            foreach (var id in selectedIds)
             {
-                var obj = trans.GetObject(id, OpenMode.ForRead);
-                entity = obj as Entity;
+                using (var trans = db.TransactionManager.StartTransaction())
+                {
+                    var obj = trans.GetObject(id, OpenMode.ForRead);
+                    if (obj is Entity entity)
+                        entities.Add(entity);
+                }
             }
 
-            if (entity == null)
+            if (entities.Count == 0)
             {
-                _txtPropsTitle.Text = selectedIds.Count > 1
-                    ? string.Format(SelectedFormat, selectedIds.Count)
-                    : UnknownObjectText;
+                _txtPropsTitle.Text = UnknownObjectText;
                 return;
             }
 
-            _txtPropsTitle.Text = selectedIds.Count > 1
-                ? string.Format(SelectedFormat, selectedIds.Count)
-                : entity.GetType().Name;
+            _txtPropsTitle.Text = entities.Count > 1
+                ? string.Format(SelectedFormat, entities.Count)
+                : entities[0].GetType().Name;
 
-            BuildPropertyGrid(entity);
+            var descriptors = entities.Count == 1
+                ? _propertyManager.GetProperties(entities[0])
+                : _propertyManager.GetMergedProperties(entities);
+
+            BuildPropertyGrid(descriptors);
             _propsGrid.InvalidateVisual();
             InvalidateVisual();
         }
 
-        private void BuildPropertyGrid(Entity entity)
+        private void BuildPropertyGrid(IReadOnlyList<CorePropDesc> descriptors)
         {
             if (_propsGrid == null) return;
 
-            var props = TypeDescriptor.GetProperties(entity);
-            var browsableProps = props.Cast<PropertyDescriptor>()
-                .Where(p => p.Attributes.OfType<System.ComponentModel.CategoryAttribute>().Any()
-                         || p.Attributes.OfType<System.ComponentModel.DisplayNameAttribute>().Any())
-                .OrderBy(p => p.Category)
-                .ThenBy(p => p.DisplayName);
+            var ordered = descriptors.OrderBy(d => d.Category).ThenBy(d => d.Order);
 
             string? currentCategory = null;
             int rowIndex = 0;
 
-            foreach (var prop in browsableProps)
+            foreach (var desc in ordered)
             {
-                if (prop.Category != currentCategory)
+                if (desc.Category != currentCategory)
                 {
-                    currentCategory = prop.Category;
+                    currentCategory = desc.Category;
                     _propsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                     AddCategoryHeader(currentCategory ?? CategoryFallback, rowIndex);
                     rowIndex++;
                 }
 
                 _propsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-                object value = prop.GetValue(entity) ?? "";
-                bool isReadOnly = prop.IsReadOnly;
+                object value = desc.GetValue() ?? "";
+                bool isReadOnly = desc.IsReadOnly || desc.TrySetValue == null;
 
                 var label = new TextBlock
                 {
-                    Text = prop.DisplayName,
+                    Text = desc.DisplayName,
                     FontSize = 11,
                     Foreground = _labelBrush,
                     Margin = new Avalonia.Thickness(0, 2, 4, 2),
@@ -170,9 +174,9 @@ namespace NormalCAD.View.Controls
                 Grid.SetColumn(label, 0);
                 Grid.SetRow(label, rowIndex);
 
-                Control editor = prop.PropertyType.IsEnum || prop.PropertyType == typeof(bool)
-                    ? CreateComboEditor(prop, value, isReadOnly)
-                    : CreateTextEditor(prop, value, isReadOnly);
+                Control editor = desc.PropertyType.IsEnum || desc.PropertyType == typeof(bool) || desc.ComboValues is not null
+                    ? CreateComboEditor(desc, value, isReadOnly)
+                    : CreateTextEditor(desc, value, isReadOnly);
 
                 Grid.SetColumn(editor, 1);
                 Grid.SetRow(editor, rowIndex);
@@ -210,7 +214,7 @@ namespace NormalCAD.View.Controls
             _propsGrid.Children.Add(border);
         }
 
-        private Control CreateTextEditor(PropertyDescriptor prop, object value, bool readOnly)
+        private Control CreateTextEditor(CorePropDesc desc, object value, bool readOnly)
         {
             var tb = new TextBox
             {
@@ -227,7 +231,7 @@ namespace NormalCAD.View.Controls
                 FontSize = 11,
                 Height = 26,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Tag = prop
+                Tag = desc
             };
 
             if (!readOnly)
@@ -236,7 +240,7 @@ namespace NormalCAD.View.Controls
             return tb;
         }
 
-        private Control CreateComboEditor(PropertyDescriptor prop, object value, bool readOnly)
+        private Control CreateComboEditor(CorePropDesc desc, object value, bool readOnly)
         {
             var cb = new ComboBox
             {
@@ -249,18 +253,24 @@ namespace NormalCAD.View.Controls
                 Padding = new Avalonia.Thickness(4, 2),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Tag = prop
+                Tag = desc
             };
 
-            if (prop.PropertyType == typeof(bool))
+            if (desc.PropertyType == typeof(bool))
             {
                 cb.Items.Add(BooleanYes);
                 cb.Items.Add(BooleanNo);
                 cb.SelectedItem = (bool)value ? BooleanYes : BooleanNo;
             }
+            else if (desc.ComboValues is not null)
+            {
+                foreach (var name in desc.ComboValues)
+                    cb.Items.Add(name);
+                cb.SelectedItem = value.ToString();
+            }
             else
             {
-                foreach (var name in Enum.GetNames(prop.PropertyType))
+                foreach (var name in Enum.GetNames(desc.PropertyType))
                     cb.Items.Add(name);
                 cb.SelectedItem = value.ToString();
             }
@@ -274,63 +284,61 @@ namespace NormalCAD.View.Controls
         private void OnTextEditorKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
             if (e.Key != Avalonia.Input.Key.Enter) return;
-            if (sender is not TextBox tb || tb.Tag is not PropertyDescriptor prop) return;
+            if (sender is not TextBox tb || tb.Tag is not CorePropDesc desc) return;
+            if (desc.TrySetValue == null) return;
 
-            ApplyPropertyChange((entity, p) =>
+            if (desc.PropertyType == typeof(double))
             {
-                if (p.PropertyType == typeof(double))
-                {
-                    if (double.TryParse(tb.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
-                        p.SetValue(entity, d);
-                }
-                else if (p.PropertyType == typeof(string))
-                {
-                    p.SetValue(entity, tb.Text);
-                }
-            }, prop);
+                if (double.TryParse(tb.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
+                    ApplyAndCommit(desc, d);
+            }
+            else if (desc.PropertyType == typeof(int))
+            {
+                if (int.TryParse(tb.Text, out int i))
+                    ApplyAndCommit(desc, i);
+            }
+            else
+            {
+                ApplyAndCommit(desc, tb.Text);
+            }
             e.Handled = true;
         }
 
         private void OnComboEditorChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (sender is not ComboBox cb || cb.Tag is not PropertyDescriptor prop) return;
-            if (cb.SelectedItem is not string name) return;
+            if (sender is not ComboBox cb || cb.Tag is not CorePropDesc desc) return;
+            if (cb.SelectedItem is not string name || desc.TrySetValue == null) return;
 
-            ApplyPropertyChange((entity, p) =>
-            {
-                if (p.PropertyType == typeof(bool))
-                {
-                    p.SetValue(entity, name == BooleanYes);
-                }
-                else
-                {
-                    var enumValue = Enum.Parse(p.PropertyType, name);
-                    p.SetValue(entity, enumValue);
-                }
-            }, prop);
+            object? value = desc.PropertyType == typeof(bool)
+                ? name == BooleanYes
+                : Enum.Parse(desc.PropertyType, name);
+
+            ApplyAndCommit(desc, value);
         }
 
-        private void ApplyPropertyChange(Action<Entity, PropertyDescriptor> setter, PropertyDescriptor prop)
+        private void ApplyAndCommit(CorePropDesc desc, object? value)
         {
-            if (_controller == null || _selectedId.IsNull) return;
+            if (_controller == null) return;
 
             var db = _controller.Database;
             try
             {
                 using (var trans = db.TransactionManager.StartTransaction())
                 {
-                    var obj = trans.GetObject(_selectedId, OpenMode.ForWrite);
-                    if (obj is Entity entity)
+                    if (desc.TrySetValue!(value))
                     {
-                        setter(entity, prop);
                         trans.Commit();
                         _controller.Viewport?.InvalidateVisual();
+                        OnSelectionChanged();
+                    }
+                    else
+                    {
+                        _controller.InputManager.SetPromptMessage($"Invalid value for {desc.DisplayName}.");
                     }
                 }
             }
             catch
             {
-                // Entity might have been deleted; refresh to clear stale state
                 OnSelectionChanged();
             }
         }

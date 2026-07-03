@@ -1,30 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
 {
     public class Circle : Curve
     {
-        [Category("Geometry")]
-        [DisplayName("Center X")]
         public double CenterX
         {
             get => Center.X;
             set => Center = new Point3d(value, Center.Y, Center.Z);
         }
 
-        [Category("Geometry")]
-        [DisplayName("Center Y")]
         public double CenterY
         {
             get => Center.Y;
             set => Center = new Point3d(Center.X, value, Center.Z);
         }
 
-        [Category("Geometry")]
-        [DisplayName("Radius")]
         public double Radius { get; set; }
 
         
@@ -36,14 +29,8 @@ namespace NormalCAD.Core.DatabaseServices
         
         public override Point3d EndPoint => StartPoint;
 
-        [Category("Geometry")]
-        [DisplayName("Length")]
-        [ReadOnly(true)]
         public override double Length => 2 * Math.PI * Radius;
 
-        [Category("Geometry")]
-        [DisplayName("Closed")]
-        [ReadOnly(true)]
         public override bool Closed => true;
 
         public override Extents3d GeometricExtents => new Extents3d(
