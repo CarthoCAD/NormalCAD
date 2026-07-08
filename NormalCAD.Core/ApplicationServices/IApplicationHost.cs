@@ -1,6 +1,4 @@
-using NormalCAD.Core.ApplicationServices;
-
-namespace NormalCAD.Core
+namespace NormalCAD.Core.ApplicationServices
 {
     internal interface IApplicationHost
     {

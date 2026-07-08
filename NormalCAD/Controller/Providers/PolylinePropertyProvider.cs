@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Controller.Providers
 {
     public class PolylinePropertyProvider : IEntityPropertyProvider
     {

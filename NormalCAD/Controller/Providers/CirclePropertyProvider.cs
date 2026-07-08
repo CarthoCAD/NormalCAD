@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Controller.Providers
 {
     public class CirclePropertyProvider : IEntityPropertyProvider
     {

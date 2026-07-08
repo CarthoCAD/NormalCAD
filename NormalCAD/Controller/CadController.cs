@@ -9,6 +9,7 @@ using NormalCAD.Core.Geometry;
 using NormalCAD.Host;
 using NormalCAD.View.Controls;
 using NormalCAD.Controller.Commands;
+using NormalCAD.Controller.Providers;
 
 namespace NormalCAD.Controller
 {

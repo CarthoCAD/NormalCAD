@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using NormalCAD.Core;
 using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Controller.Providers
 {
     public class EntityPropertyProvider : IEntityPropertyProvider
     {

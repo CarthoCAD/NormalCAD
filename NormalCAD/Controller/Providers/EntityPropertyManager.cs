@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NormalCAD.Core.DatabaseServices;
 
-namespace NormalCAD.Core
+namespace NormalCAD.Controller.Providers
 {
     public class EntityPropertyManager
     {

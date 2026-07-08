@@ -1,6 +1,6 @@
 using System;
 
-namespace NormalCAD.Core.DatabaseServices
+namespace NormalCAD.Controller.Providers
 {
     public class PropertyDescriptor
     {

@@ -10,8 +10,9 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using NormalCAD.Core;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Controller.Providers;
 using NormalCAD.Resources;
-using CorePropDesc = NormalCAD.Core.DatabaseServices.PropertyDescriptor;
+using CorePropDesc = NormalCAD.Controller.Providers.PropertyDescriptor;
 
 namespace NormalCAD.View.Controls
 {
