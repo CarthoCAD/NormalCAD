@@ -24,6 +24,8 @@ namespace NormalCAD.Core.DatabaseServices
 
         public double EndAngle { get; set; }
 
+        public double Thickness { get; set; }
+
         
         public Point3d Center { get; set; }
 
@@ -57,7 +59,7 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Entity Clone()
         {
-            var clone = new Arc(Center, Radius, StartAngle, EndAngle);
+            var clone = new Arc(Center, Radius, StartAngle, EndAngle) { Thickness = Thickness };
             CopyEntityPropertiesTo(clone);
             return clone;
         }

@@ -9,6 +9,8 @@ namespace NormalCAD.Core.DatabaseServices
         public new Point3d StartPoint { get; set; }
         public new Point3d EndPoint { get; set; }
 
+        public double Thickness { get; set; }
+
         public Vector3d Delta => EndPoint - StartPoint;
 
         public double Angle => Math.Atan2(Delta.Y, Delta.X);
@@ -35,7 +37,7 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Entity Clone()
         {
-            var clone = new Line(StartPoint, EndPoint);
+            var clone = new Line(StartPoint, EndPoint) { Thickness = Thickness };
             CopyEntityPropertiesTo(clone);
             return clone;
         }

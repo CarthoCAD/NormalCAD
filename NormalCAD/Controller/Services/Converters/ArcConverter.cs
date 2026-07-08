@@ -17,6 +17,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.EndAngle * Math.PI / 180.0
             );
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Thickness = source.Thickness;
             return result;
         }
 
@@ -29,6 +30,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.EndAngle * 180.0 / Math.PI
             );
             ApplyEntityPropertiesToNormal(result, source);
+            result.Thickness = source.Thickness;
             return result;
         }
     }

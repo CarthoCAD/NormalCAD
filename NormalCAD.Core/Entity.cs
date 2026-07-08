@@ -52,7 +52,6 @@ namespace NormalCAD.Core.DatabaseServices
         public bool Visible { get; set; } = true;
 
         
-        public double Thickness { get; set; }
         public ObjectId BlockId { get; set; }
 
         
@@ -74,7 +73,6 @@ namespace NormalCAD.Core.DatabaseServices
             target.LinetypeScale = this.LinetypeScale;
             target.Transparency = this.Transparency;
             target.Visible = this.Visible;
-            target.Thickness = this.Thickness;
             target.BlockId = this.BlockId;
             target.IsErased = this.IsErased;
         }

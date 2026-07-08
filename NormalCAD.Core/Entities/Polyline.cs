@@ -12,6 +12,8 @@ namespace NormalCAD.Core.DatabaseServices
 
         public double Elevation { get; set; }
 
+        public double Thickness { get; set; }
+
         public int NumberOfVertices => _vertices.Count;
 
         public override bool Closed => _closed;
@@ -67,7 +69,7 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Entity Clone()
         {
-            var clone = new Polyline(_vertices, Closed) { Elevation = Elevation };
+            var clone = new Polyline(_vertices, Closed) { Elevation = Elevation, Thickness = Thickness };
             CopyEntityPropertiesTo(clone);
             return clone;
         }

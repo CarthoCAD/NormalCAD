@@ -24,6 +24,8 @@ namespace NormalCAD.Core.DatabaseServices
 
         public Vector3d Normal { get; set; } = Vector3d.ZAxis;
 
+        public double Thickness { get; set; }
+
         
         public override Point3d StartPoint => new Point3d(Center.X + Radius, Center.Y, Center.Z);
 
@@ -55,7 +57,7 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Entity Clone()
         {
-            var clone = new Circle(Center, Normal, Radius);
+            var clone = new Circle(Center, Normal, Radius) { Thickness = Thickness };
             CopyEntityPropertiesTo(clone);
             return clone;
         }
