@@ -22,7 +22,7 @@ namespace NormalCAD.Controller.Services.Converters
             var result = new Insert(blockRecord)
             {
                 InsertPoint = new XYZ(source.Position.X, source.Position.Y, source.Position.Z),
-                Rotation = source.Rotation * System.Math.PI / 180.0,
+                Rotation = source.Rotation,
                 XScale = source.ScaleFactors.X,
                 YScale = source.ScaleFactors.Y,
                 ZScale = source.ScaleFactors.Z
@@ -39,7 +39,7 @@ namespace NormalCAD.Controller.Services.Converters
             var result = new BlockReference
             {
                 Position = new Point3d(source.InsertPoint.X, source.InsertPoint.Y, source.InsertPoint.Z),
-                Rotation = source.Rotation * 180.0 / System.Math.PI,
+                Rotation = source.Rotation,
                 ScaleFactors = new Vector3d(source.XScale, source.YScale, source.ZScale),
                 BlockName = blockName
             };

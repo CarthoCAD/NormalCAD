@@ -32,19 +32,7 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public virtual double Area
-        {
-            get
-            {
-                if (!Closed) return 0;
-                var curve = GetGeometricCurve();
-                if (curve is CompositeCurve3d comp)
-                    return comp.ComputeEnclosedArea();
-                if (curve is CircularArc3d arc && arc.IsFullCircle)
-                    return Math.PI * arc.Radius * arc.Radius;
-                return 0;
-            }
-        }
+        public abstract double Area { get; }
 
         public virtual Point3d GetPointAtDist(double distance)
         {

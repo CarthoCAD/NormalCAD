@@ -1,4 +1,3 @@
-using System;
 using ACadSharp;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
@@ -13,10 +12,11 @@ namespace NormalCAD.Controller.Services.Converters
             var result = new ACadSharp.Entities.Arc(
                 new XYZ(source.Center.X, source.Center.Y, source.Center.Z),
                 source.Radius,
-                source.StartAngle * Math.PI / 180.0,
-                source.EndAngle * Math.PI / 180.0
+                source.StartAngle,
+                source.EndAngle
             );
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Normal = new XYZ(source.Normal.X, source.Normal.Y, source.Normal.Z);
             result.Thickness = source.Thickness;
             return result;
         }
@@ -25,9 +25,10 @@ namespace NormalCAD.Controller.Services.Converters
         {
             var result = new Arc(
                 new Point3d(source.Center.X, source.Center.Y, source.Center.Z),
+                new Vector3d(source.Normal.X, source.Normal.Y, source.Normal.Z),
                 source.Radius,
-                source.StartAngle * 180.0 / Math.PI,
-                source.EndAngle * 180.0 / Math.PI
+                source.StartAngle,
+                source.EndAngle
             );
             ApplyEntityPropertiesToNormal(result, source);
             result.Thickness = source.Thickness;

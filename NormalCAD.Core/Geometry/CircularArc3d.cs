@@ -6,30 +6,28 @@ namespace NormalCAD.Core.Geometry
     {
         public Point3d Center { get; }
         public double Radius { get; }
-        public double StartAngleDeg { get; }
-        public double EndAngleDeg { get; }
+        public double StartAngle { get; }
+        public double EndAngle { get; }
 
-        public double StartAngleRad => StartAngleDeg * Math.PI / 180.0;
-        public double EndAngleRad => EndAngleDeg * Math.PI / 180.0;
-        public double SweepAngleRad => EndAngleRad - StartAngleRad;
+        public double SweepAngle => EndAngle - StartAngle;
 
-        public override Point3d StartPoint => PointAtAngle(StartAngleDeg);
-        public override Point3d EndPoint => PointAtAngle(EndAngleDeg);
-        public override double Length => Radius * Math.Abs(SweepAngleRad);
+        public override Point3d StartPoint => PointAtAngle(StartAngle);
+        public override Point3d EndPoint => PointAtAngle(EndAngle);
+        public override double Length => Radius * Math.Abs(SweepAngle);
 
-        public CircularArc3d(Point3d center, double radius, double startAngleDeg, double endAngleDeg)
+        public CircularArc3d(Point3d center, double radius, double startAngle, double endAngle)
         {
             Center = center;
             Radius = radius;
-            StartAngleDeg = startAngleDeg;
-            EndAngleDeg = endAngleDeg;
+            StartAngle = startAngle;
+            EndAngle = endAngle;
         }
 
         public static CircularArc3d FullCircle(Point3d center, double radius)
-            => new CircularArc3d(center, radius, 0, 360);
+            => new CircularArc3d(center, radius, 0, 2 * Math.PI);
 
-        public bool IsFullCircle => Math.Abs(StartAngleDeg - EndAngleDeg) >= 360 ||
-                                    Math.Abs(Math.Abs(StartAngleDeg - EndAngleDeg) % 360) < 1e-9;
+        public bool IsFullCircle => Math.Abs(SweepAngle) >= 2 * Math.PI ||
+                                    Math.Abs(Math.Abs(SweepAngle) % (2 * Math.PI)) < 1e-9;
 
         public bool IsPointOnArc(Point3d pt)
         {
@@ -40,50 +38,47 @@ namespace NormalCAD.Core.Geometry
             if (IsFullCircle)
                 return true;
 
-            double angle = Math.Atan2(pt.Y - Center.Y, pt.X - Center.X) * 180.0 / Math.PI;
-            if (angle < 0) angle += 360;
+            double angle = Math.Atan2(pt.Y - Center.Y, pt.X - Center.X);
+            if (angle < 0) angle += 2 * Math.PI;
             return IsAngleOnArc(angle);
         }
 
-        private bool IsAngleOnArc(double angleDeg)
+        private bool IsAngleOnArc(double angle)
         {
-            double sa = StartAngleDeg % 360;
-            double ea = EndAngleDeg % 360;
-            if (sa < 0) sa += 360;
-            if (ea < 0) ea += 360;
+            double sa = StartAngle % (2 * Math.PI);
+            double ea = EndAngle % (2 * Math.PI);
+            if (sa < 0) sa += 2 * Math.PI;
+            if (ea < 0) ea += 2 * Math.PI;
 
             if (sa <= ea)
-                return angleDeg >= sa - 1e-9 && angleDeg <= ea + 1e-9;
+                return angle >= sa - 1e-9 && angle <= ea + 1e-9;
             else
-                return angleDeg >= sa - 1e-9 || angleDeg <= ea + 1e-9;
+                return angle >= sa - 1e-9 || angle <= ea + 1e-9;
         }
 
-        public Point3d PointAtAngle(double angleDeg)
+        public Point3d PointAtAngle(double angle)
         {
-            double rad = angleDeg * Math.PI / 180.0;
             return new Point3d(
-                Center.X + Radius * Math.Cos(rad),
-                Center.Y + Radius * Math.Sin(rad),
+                Center.X + Radius * Math.Cos(angle),
+                Center.Y + Radius * Math.Sin(angle),
                 Center.Z);
         }
 
         public override Point3d GetPointAtDist(double distance)
         {
             double len = Length;
-            if (len < 1e-12) return PointAtAngle(StartAngleDeg);
+            if (len < 1e-12) return PointAtAngle(StartAngle);
             double t = distance / len;
-            double angleRad = StartAngleRad + t * SweepAngleRad;
-            double angleDeg = angleRad * 180.0 / Math.PI;
-            return PointAtAngle(angleDeg);
+            double angle = StartAngle + t * SweepAngle;
+            return PointAtAngle(angle);
         }
 
         public override double GetDistAtPoint(Point3d point)
         {
-            double angleRad = Math.Atan2(point.Y - Center.Y, point.X - Center.X);
-            double angleDeg = angleRad * 180.0 / Math.PI;
+            double angle = Math.Atan2(point.Y - Center.Y, point.X - Center.X);
 
-            double distFromStart = (angleDeg - StartAngleDeg) * Math.PI / 180.0 * Radius;
-            if (SweepAngleRad < 0)
+            double distFromStart = (angle - StartAngle) * Radius;
+            if (SweepAngle < 0)
                 distFromStart = -distFromStart;
             if (distFromStart < 0)
                 distFromStart += Length;
@@ -124,7 +119,7 @@ namespace NormalCAD.Core.Geometry
 
         public override double GetAreaContribution()
         {
-            double Δθ = SweepAngleRad;
+            double Δθ = SweepAngle;
             double cx = Center.X, cy = Center.Y;
             double x1 = StartPoint.X, y1 = StartPoint.Y;
             double x2 = EndPoint.X, y2 = EndPoint.Y;
@@ -138,7 +133,7 @@ namespace NormalCAD.Core.Geometry
             double dy = pt.X - Center.X;
             double len = Math.Sqrt(dx * dx + dy * dy);
             if (len < 1e-12) return new Vector3d(0, 0, 0);
-            double sign = SweepAngleRad >= 0 ? 1 : -1;
+            double sign = SweepAngle >= 0 ? 1 : -1;
             return new Vector3d(sign * dx / len, sign * dy / len, 0);
         }
 

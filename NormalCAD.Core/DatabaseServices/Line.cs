@@ -17,6 +17,8 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override double Length => StartPoint.DistanceTo(EndPoint);
 
+        public override double Area => 0;
+
         public override bool Closed => false;
 
         

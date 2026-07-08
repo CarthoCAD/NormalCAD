@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
@@ -11,57 +10,12 @@ namespace NormalCAD.Core.DatabaseServices
         private double _rotation;
         private Vector3d _scaleFactors;
 
-        [Category("Geometry")]
-        [DisplayName("Position X")]
-        public double PositionX
-        {
-            get => _position.X;
-            set { _position = new Point3d(value, _position.Y, _position.Z); UpdateBlockTransform(); }
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Position Y")]
-        public double PositionY
-        {
-            get => _position.Y;
-            set { _position = new Point3d(_position.X, value, _position.Z); UpdateBlockTransform(); }
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Rotation")]
         public double Rotation
         {
             get => _rotation;
             set { _rotation = value; UpdateBlockTransform(); }
         }
 
-        [Category("Geometry")]
-        [DisplayName("Scale X")]
-        public double ScaleX
-        {
-            get => _scaleFactors.X;
-            set { SetScaleFactor(value, _scaleFactors.Y, _scaleFactors.Z); }
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Scale Y")]
-        public double ScaleY
-        {
-            get => _scaleFactors.Y;
-            set { SetScaleFactor(_scaleFactors.X, value, _scaleFactors.Z); }
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Scale Z")]
-        public double ScaleZ
-        {
-            get => _scaleFactors.Z;
-            set { SetScaleFactor(_scaleFactors.X, _scaleFactors.Y, value); }
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Block Name")]
-        [ReadOnly(true)]
         public string BlockName { get; set; } = string.Empty;
 
         
@@ -111,14 +65,14 @@ namespace NormalCAD.Core.DatabaseServices
         private void UpdateBlockTransform()
         {
             var translation = Matrix3d.Translation(new Vector3d(_position.X, _position.Y, _position.Z));
-            var rotationMatrix = Matrix3d.Rotation(_rotation * Math.PI / 180.0, new Vector3d(0, 0, 1), Point3d.Origin);
+            var rotationMatrix = Matrix3d.Rotation(_rotation, new Vector3d(0, 0, 1), Point3d.Origin);
             var scaleMatrix = Matrix3d.Scaling(1.0, Point3d.Origin);
 
             _blockTransform = translation;
 
             // Apply rotation at insertion point
-            var cos = Math.Cos(_rotation * Math.PI / 180.0);
-            var sin = Math.Sin(_rotation * Math.PI / 180.0);
+            var cos = Math.Cos(_rotation);
+            var sin = Math.Sin(_rotation);
 
             _blockTransform = new Matrix3d();
             _blockTransform[0, 0] = cos * _scaleFactors.X;

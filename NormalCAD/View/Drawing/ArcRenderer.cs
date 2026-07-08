@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Media;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Utilities;
 
 namespace NormalCAD.View.Drawing
 {
@@ -14,7 +15,9 @@ namespace NormalCAD.View.Drawing
             if (entity is not Arc arc) return;
             var center = worldToScreen(arc.Center);
             var radius = arc.Radius * zoom;
-            var arcGeom = CreateArcGeometry(center, radius, arc.StartAngle, arc.EndAngle);
+            var arcGeom = CreateArcGeometry(center, radius,
+                AngleConverter.ToDegrees(arc.StartAngle),
+                AngleConverter.ToDegrees(arc.EndAngle));
             context.DrawGeometry(null, pen, arcGeom);
         }
 

@@ -10,6 +10,12 @@ namespace NormalCAD.Core.Geometry
 
         public IReadOnlyList<Curve3d> Segments => _segments;
 
+        public void AddSegment(Curve3d segment)
+        {
+            _segments.Add(segment);
+            _accumLengths = null;
+        }
+
         public override Point3d StartPoint => _segments.Count > 0 ? _segments[0].StartPoint : Point3d.Origin;
         public override Point3d EndPoint => _segments.Count > 0 ? _segments[_segments.Count - 1].EndPoint : Point3d.Origin;
         public override double Length => EnsureAccumLengths().Length > 0 ? _accumLengths![_accumLengths.Length - 1] : 0;

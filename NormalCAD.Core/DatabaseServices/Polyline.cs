@@ -20,7 +20,21 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override double Length => ComputeLength();
 
-        public override double Area => base.Area;
+        public override double Area
+        {
+            get
+            {
+                if (_vertices.Count < 3) return 0;
+
+                var curve = GetGeometricCurve();
+                if (curve is not CompositeCurve3d comp) return 0;
+
+                if (!Closed && EndPoint.DistanceTo(StartPoint) > 1e-9)
+                    comp.AddSegment(new LineSegment3d(EndPoint, StartPoint));
+
+                return comp.ComputeEnclosedArea();
+            }
+        }
 
         public Point3d GetPoint3dAt(int index) => _vertices[index].ToPoint3d(Elevation);
 

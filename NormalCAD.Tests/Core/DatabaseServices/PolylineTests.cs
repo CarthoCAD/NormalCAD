@@ -39,7 +39,7 @@ namespace NormalCAD.Tests.Core.DatabaseServices
         }
 
         [Fact]
-        public void Area_OpenPolyline_ReturnsZero()
+        public void Area_OpenPolyline_ComputesWithImplicitClosure()
         {
             var poly = new Polyline(
                 new[]
@@ -50,7 +50,7 @@ namespace NormalCAD.Tests.Core.DatabaseServices
                 },
                 closed: false);
 
-            Assert.Equal(0, poly.Area, 1e-9);
+            Assert.Equal(50, poly.Area, 1e-9);
         }
 
         [Fact]
