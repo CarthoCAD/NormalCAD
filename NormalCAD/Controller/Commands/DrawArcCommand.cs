@@ -74,7 +74,7 @@ namespace NormalCAD.Controller.Commands
             {
                 double r = _center.Value.DistanceTo(worldPt);
                 var previewCenter = _center.Value;
-                _controller.Viewport.ActiveCommandPreview = new Circle(previewCenter, r)
+                _controller.Viewport.ActiveCommandPreview = new Circle(previewCenter, Vector3d.ZAxis, r)
                 {
                     Layer = _controller.ActiveLayer,
                     Color = _controller.ActiveColor

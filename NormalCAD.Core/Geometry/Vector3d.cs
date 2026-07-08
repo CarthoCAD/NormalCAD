@@ -17,6 +17,10 @@ namespace NormalCAD.Core.Geometry
 
         public double Length => Math.Sqrt(X * X + Y * Y + Z * Z);
 
+        public static Vector3d XAxis => new Vector3d(1, 0, 0);
+        public static Vector3d YAxis => new Vector3d(0, 1, 0);
+        public static Vector3d ZAxis => new Vector3d(0, 0, 1);
+
         public Vector3d Normalize()
         {
             double len = Length;

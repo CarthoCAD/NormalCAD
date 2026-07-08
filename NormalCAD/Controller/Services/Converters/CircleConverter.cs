@@ -14,6 +14,7 @@ namespace NormalCAD.Controller.Services.Converters
                 source.Radius
             );
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Normal = new XYZ(source.Normal.X, source.Normal.Y, source.Normal.Z);
             result.Thickness = source.Thickness;
             return result;
         }
@@ -22,6 +23,7 @@ namespace NormalCAD.Controller.Services.Converters
         {
             var result = new Circle(
                 new Point3d(source.Center.X, source.Center.Y, source.Center.Z),
+                new Vector3d(source.Normal.X, source.Normal.Y, source.Normal.Z),
                 source.Radius
             );
             ApplyEntityPropertiesToNormal(result, source);
