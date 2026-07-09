@@ -7,16 +7,42 @@ namespace NormalCAD.Core.DatabaseServices
 {
     public class Polyline : Curve
     {
-        private readonly List<Point2d> _vertices = new();
+        private struct Vertex
+        {
+            public Point2d Position;
+            public double StartWidth;
+            public double EndWidth;
+
+            // Bulge defines the arc curvature of the segment that starts at this
+            // vertex (0 = straight line). It is stored and round-tripped to/from
+            // CAD files, but does NOT yet affect rendering, area/length
+            // computation, snapping, osnap points or any other geometry logic —
+            // every segment is still treated as a straight line for now.
+            public double Bulge;
+        }
+
+        private readonly List<Vertex> _vertices = new();
         private bool _closed;
 
         public double Elevation { get; set; }
 
         public double Thickness { get; set; }
 
+        public Vector3d Normal { get; set; } = Vector3d.ZAxis;
+
+        public double ConstantWidth { get; set; }
+
         public int NumberOfVertices => _vertices.Count;
 
-        public override bool Closed => _closed;
+        public bool HasBulges => _vertices.Any(v => v.Bulge != 0.0);
+
+        public bool HasWidth => _vertices.Any(v => v.StartWidth != 0.0 || v.EndWidth != 0.0);
+
+        public override bool Closed
+        {
+            get => _closed;
+            set => _closed = value;
+        }
 
         public override double Length => ComputeLength();
 
@@ -36,18 +62,10 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public Point3d GetPoint3dAt(int index) => _vertices[index].ToPoint3d(Elevation);
-
-        public void AddVertexAt(int index, Point2d pt) => _vertices.Insert(index, pt);
-
-        public void RemoveVertexAt(int index) => _vertices.RemoveAt(index);
-
         public override Point3d StartPoint =>
-            _vertices.Count > 0 ? _vertices[0].ToPoint3d(Elevation) : Point3d.Origin;
+            _vertices.Count > 0 ? _vertices[0].Position.ToPoint3d(Elevation) : Point3d.Origin;
         public override Point3d EndPoint =>
-            _vertices.Count > 0 ? _vertices[_vertices.Count - 1].ToPoint3d(Elevation) : Point3d.Origin;
-
-        public void SetClosed(bool value) => _closed = value;
+            _vertices.Count > 0 ? _vertices[_vertices.Count - 1].Position.ToPoint3d(Elevation) : Point3d.Origin;
 
         public override Extents3d GeometricExtents
         {
@@ -56,14 +74,14 @@ namespace NormalCAD.Core.DatabaseServices
                 if (_vertices.Count == 0)
                     return new Extents3d();
 
-                double minX = _vertices[0].X, minY = _vertices[0].Y;
-                double maxX = _vertices[0].X, maxY = _vertices[0].Y;
+                double minX = _vertices[0].Position.X, minY = _vertices[0].Position.Y;
+                double maxX = _vertices[0].Position.X, maxY = _vertices[0].Position.Y;
                 foreach (var v in _vertices)
                 {
-                    if (v.X < minX) minX = v.X;
-                    if (v.Y < minY) minY = v.Y;
-                    if (v.X > maxX) maxX = v.X;
-                    if (v.Y > maxY) maxY = v.Y;
+                    if (v.Position.X < minX) minX = v.Position.X;
+                    if (v.Position.Y < minY) minY = v.Position.Y;
+                    if (v.Position.X > maxX) maxX = v.Position.X;
+                    if (v.Position.Y > maxY) maxY = v.Position.Y;
                 }
                 return new Extents3d(
                     new Point3d(minX, minY, Elevation),
@@ -75,15 +93,87 @@ namespace NormalCAD.Core.DatabaseServices
         {
         }
 
-        public Polyline(IEnumerable<Point2d> vertices, bool closed = false)
+        public Polyline(int expectedVertices)
         {
-            _vertices.AddRange(vertices);
-            _closed = closed;
+            _vertices.Capacity = expectedVertices;
+        }
+
+        public void AddVertexAt(int index, Point2d pt, double bulge, double startWidth, double endWidth)
+        {
+            _vertices.Insert(index, new Vertex
+            {
+                Position = pt,
+                Bulge = bulge,
+                StartWidth = startWidth,
+                EndWidth = endWidth
+            });
+        }
+
+        public void RemoveVertexAt(int index) => _vertices.RemoveAt(index);
+
+        public Point2d GetPoint2dAt(int index) => _vertices[index].Position;
+
+        public Point3d GetPoint3dAt(int index) => _vertices[index].Position.ToPoint3d(Elevation);
+
+        public void SetPointAt(int index, Point2d pt)
+        {
+            var v = _vertices[index];
+            v.Position = pt;
+            _vertices[index] = v;
+        }
+
+        public double GetStartWidthAt(int index) => _vertices[index].StartWidth;
+
+        public void SetStartWidthAt(int index, double width)
+        {
+            var v = _vertices[index];
+            v.StartWidth = width;
+            _vertices[index] = v;
+        }
+
+        public double GetEndWidthAt(int index) => _vertices[index].EndWidth;
+
+        public void SetEndWidthAt(int index, double width)
+        {
+            var v = _vertices[index];
+            v.EndWidth = width;
+            _vertices[index] = v;
+        }
+
+        public void GetWidthsAt(int index, out double startWidth, out double endWidth)
+        {
+            startWidth = _vertices[index].StartWidth;
+            endWidth = _vertices[index].EndWidth;
+        }
+
+        public void SetWidthsAt(int index, double startWidth, double endWidth)
+        {
+            var v = _vertices[index];
+            v.StartWidth = startWidth;
+            v.EndWidth = endWidth;
+            _vertices[index] = v;
+        }
+
+        public double GetBulgeAt(int index) => _vertices[index].Bulge;
+
+        public void SetBulgeAt(int index, double bulge)
+        {
+            var v = _vertices[index];
+            v.Bulge = bulge;
+            _vertices[index] = v;
         }
 
         public override Entity Clone()
         {
-            var clone = new Polyline(_vertices, Closed) { Elevation = Elevation, Thickness = Thickness };
+            var clone = new Polyline(_vertices.Count)
+            {
+                Elevation = Elevation,
+                Thickness = Thickness,
+                Normal = Normal,
+                ConstantWidth = ConstantWidth,
+                Closed = Closed
+            };
+            clone._vertices.AddRange(_vertices);
             CopyEntityPropertiesTo(clone);
             return clone;
         }
@@ -92,8 +182,10 @@ namespace NormalCAD.Core.DatabaseServices
         {
             for (int i = 0; i < _vertices.Count; i++)
             {
-                var pt3d = transform.TransformPoint(_vertices[i].ToPoint3d(Elevation));
-                _vertices[i] = Point2d.FromPoint3d(pt3d);
+                var v = _vertices[i];
+                var pt3d = transform.TransformPoint(v.Position.ToPoint3d(Elevation));
+                v.Position = Point2d.FromPoint3d(pt3d);
+                _vertices[i] = v;
             }
             Elevation = transform.TransformPoint(new Point3d(0, 0, Elevation)).Z;
         }
@@ -102,13 +194,13 @@ namespace NormalCAD.Core.DatabaseServices
         {
             for (int i = 0; i < _vertices.Count; i++)
             {
-                yield return (_vertices[i].ToPoint3d(Elevation), SnapType.Endpoint);
+                yield return (_vertices[i].Position.ToPoint3d(Elevation), SnapType.Endpoint);
 
                 if (i < _vertices.Count - 1)
                 {
                     var mid = new Point2d(
-                        (_vertices[i].X + _vertices[i + 1].X) / 2,
-                        (_vertices[i].Y + _vertices[i + 1].Y) / 2);
+                        (_vertices[i].Position.X + _vertices[i + 1].Position.X) / 2,
+                        (_vertices[i].Position.Y + _vertices[i + 1].Position.Y) / 2);
                     yield return (mid.ToPoint3d(Elevation), SnapType.Midpoint);
                 }
             }
@@ -116,8 +208,8 @@ namespace NormalCAD.Core.DatabaseServices
             if (Closed && _vertices.Count > 1)
             {
                 var mid = new Point2d(
-                    (_vertices[_vertices.Count - 1].X + _vertices[0].X) / 2,
-                    (_vertices[_vertices.Count - 1].Y + _vertices[0].Y) / 2);
+                    (_vertices[_vertices.Count - 1].Position.X + _vertices[0].Position.X) / 2,
+                    (_vertices[_vertices.Count - 1].Position.Y + _vertices[0].Position.Y) / 2);
                 yield return (mid.ToPoint3d(Elevation), SnapType.Midpoint);
             }
         }
@@ -125,21 +217,23 @@ namespace NormalCAD.Core.DatabaseServices
         public override IEnumerable<Point3d> GetGripPoints()
         {
             for (int i = 0; i < _vertices.Count; i++)
-                yield return _vertices[i].ToPoint3d(Elevation);
+                yield return _vertices[i].Position.ToPoint3d(Elevation);
         }
 
         public override void MoveGripPointsAt(Point3dCollection grips, Vector3d offset)
         {
             for (int i = 0; i < grips.Count && i < _vertices.Count; i++)
             {
-                _vertices[i] = Point2d.FromPoint3d(grips[i] + offset);
+                var v = _vertices[i];
+                v.Position = Point2d.FromPoint3d(grips[i] + offset);
+                _vertices[i] = v;
             }
         }
 
         public override IEnumerable<Point3d> GetStretchPoints()
         {
             for (int i = 0; i < _vertices.Count; i++)
-                yield return _vertices[i].ToPoint3d(Elevation);
+                yield return _vertices[i].Position.ToPoint3d(Elevation);
         }
 
         public override void MoveStretchPointsAt(Point3dCollection stretches, Vector3d offset)
@@ -148,9 +242,11 @@ namespace NormalCAD.Core.DatabaseServices
             {
                 for (int i = 0; i < _vertices.Count; i++)
                 {
-                    if (_vertices[i].ToPoint3d(Elevation).DistanceTo(pt) < 1e-9)
+                    if (_vertices[i].Position.ToPoint3d(Elevation).DistanceTo(pt) < 1e-9)
                     {
-                        _vertices[i] = Point2d.FromPoint3d(pt + offset);
+                        var v = _vertices[i];
+                        v.Position = Point2d.FromPoint3d(pt + offset);
+                        _vertices[i] = v;
                         break;
                     }
                 }
@@ -165,8 +261,8 @@ namespace NormalCAD.Core.DatabaseServices
             {
                 int j = (i + 1) % _vertices.Count;
                 segments[i] = new LineSegment3d(
-                    _vertices[i].ToPoint3d(Elevation),
-                    _vertices[j].ToPoint3d(Elevation));
+                    _vertices[i].Position.ToPoint3d(Elevation),
+                    _vertices[j].Position.ToPoint3d(Elevation));
             }
             return new CompositeCurve3d(segments);
         }
@@ -184,9 +280,9 @@ namespace NormalCAD.Core.DatabaseServices
         {
             double len = 0;
             for (int i = 0; i < _vertices.Count - 1; i++)
-                len += _vertices[i].DistanceTo(_vertices[i + 1]);
+                len += _vertices[i].Position.DistanceTo(_vertices[i + 1].Position);
             if (Closed && _vertices.Count > 1)
-                len += _vertices[_vertices.Count - 1].DistanceTo(_vertices[0]);
+                len += _vertices[_vertices.Count - 1].Position.DistanceTo(_vertices[0].Position);
             return len;
         }
     }

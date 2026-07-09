@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ACadSharp;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
@@ -10,35 +9,50 @@ namespace NormalCAD.Controller.Services.Converters
     {
         public override ACadSharp.Entities.LwPolyline ConvertToAcad(Polyline source, CadDocument cadDoc)
         {
-            var vertices = new List<ACadSharp.Entities.LwPolyline.Vertex>();
-            for (int i = 0; i < source.NumberOfVertices; i++)
-            {
-                var pt3d = source.GetPoint3dAt(i);
-                vertices.Add(new ACadSharp.Entities.LwPolyline.Vertex(new XY(pt3d.X, pt3d.Y)));
-            }
-
-            var result = new ACadSharp.Entities.LwPolyline(vertices)
+            var result = new ACadSharp.Entities.LwPolyline
             {
                 IsClosed = source.Closed,
                 Elevation = source.Elevation
             };
+
+            for (int i = 0; i < source.NumberOfVertices; i++)
+            {
+                var pt = source.GetPoint2dAt(i);
+                source.GetWidthsAt(i, out double startWidth, out double endWidth);
+                result.Vertices.Add(new ACadSharp.Entities.LwPolyline.Vertex(new XY(pt.X, pt.Y))
+                {
+                    StartWidth = startWidth,
+                    EndWidth = endWidth,
+                    Bulge = source.GetBulgeAt(i)
+                });
+            }
+
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Normal = new XYZ(source.Normal.X, source.Normal.Y, source.Normal.Z);
             result.Thickness = source.Thickness;
+            result.ConstantWidth = source.ConstantWidth;
             return result;
         }
 
         public override Polyline ConvertToNormal(ACadSharp.Entities.LwPolyline source)
         {
-            var vertices = new List<Point2d>();
-            foreach (var v in source.Vertices)
-                vertices.Add(new Point2d(v.Location.X, v.Location.Y));
-
-            var result = new Polyline(vertices, source.IsClosed)
+            var result = new Polyline
             {
-                Elevation = source.Elevation
+                Closed = source.IsClosed,
+                Elevation = source.Elevation,
+                Normal = new Vector3d(source.Normal.X, source.Normal.Y, source.Normal.Z),
+                Thickness = source.Thickness,
+                ConstantWidth = source.ConstantWidth
             };
+
+            int i = 0;
+            foreach (var v in source.Vertices)
+            {
+                result.AddVertexAt(i++, new Point2d(v.Location.X, v.Location.Y),
+                    v.Bulge, v.StartWidth, v.EndWidth);
+            }
+
             ApplyEntityPropertiesToNormal(result, source);
-            result.Thickness = source.Thickness;
             return result;
         }
     }

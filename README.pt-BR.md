@@ -74,40 +74,44 @@ A interseção e distância são delegadas às primitivas geométricas (`Curve3d
 
 ```bash
 NormalCAD.sln
+├── docs/                        # Documentação de toda a solution
+│   ├── Backlog.md              # Backlog priorizado
+│   ├── CONTRIBUTING.md         # Convenção de commits e workflow
+│   └── AddingNewEntities.md    # Guia passo a passo para adicionar uma nova entidade
+│
 ├── NormalCAD.Core/              # Class Library — Modelo de dados (zero dependências)
 │   ├── NormalCAD.Core.csproj
 │   ├── ApplicationServices/     # Application, Document, DocumentCollection, DocumentLock
 │   │   ├── Application.cs       # Facade estático (singleton), Application.Host
 │   │   ├── Document.cs          # Database + Editor + LockDocument()
 │   │   ├── DocumentCollection.cs # MdiActiveDocument
-│   │   └── DocumentLock.cs      # IDisposable, Monitor.Enter/Exit
-│   ├── DatabaseServices/        # Tipos auxiliares de banco
+│   │   ├── DocumentLock.cs      # IDisposable, Monitor.Enter/Exit
+│   │   └── IApplicationHost.cs  # Interface internal de inicialização do host
+│   ├── DatabaseServices/        # Database, entidades e tipos auxiliares
+│   │   ├── Entity.cs            # Base de todas as entidades (Layer, Color, Linetype, LineWeight, etc.)
+│   │   ├── Curve.cs             # Base de entidades curvas (Length, Area, GetPointAtDist, etc.)
+│   │   ├── Line.cs, Circle.cs, Arc.cs, Polyline.cs
+│   │   ├── BlockReference.cs    # Inserção de bloco (Position, Rotation, ScaleFactors)
+│   │   ├── DBObject.cs          # Base de todos os objetos do banco
+│   │   ├── Database.cs, ObjectId.cs, Transaction.cs, TransactionManager.cs
+│   │   ├── BlockTable.cs, BlockTableRecord.cs
+│   │   ├── LayerTable.cs, LayerTableRecord.cs
+│   │   ├── ViewportTable.cs, ViewportTableRecord.cs
+│   │   ├── SymbolTable.cs, SymbolTableRecord.cs
+│   │   ├── EntityColor.cs, SnapType.cs, OpenMode.cs, Culture.cs
 │   │   ├── Intersect.cs         # Enum Intersect (OnBothOperands, ExtendThis, ExtendArgument, ExtendBoth)
 │   │   ├── LineWeight.cs        # Enum LineWeight (ByLayer, ByBlock, Default, W0..W211)
 │   │   └── Transparency.cs      # Struct Transparency (ByLayer / alpha 0-255)
 │   ├── EditorInput/             # Editor, PromptPointResult, PromptPointOptions, PromptStatus
 │   │   ├── Editor.cs            # GetPoint(string), GetPoint(PromptPointOptions) — casca temporária
 │   │   └── PromptResult.cs      # PromptStatus (OK/Cancel/Keyword/Error)
-│   ├── Entities/                # Entidades concretas
-│   │   ├── Line.cs, Circle.cs, Arc.cs, Polyline.cs
-│   │   └── BlockReference.cs    # Inserção de bloco (Position, Rotation, ScaleFactors)
 │   ├── Geometry/                # Primitivas geométricas e matemática
 │   │   ├── Point2d.cs, Point3d.cs, Vector3d.cs, Matrix3d.cs, Extents3d.cs, Point3dCollection.cs
 │   │   ├── Curve3d.cs           # Classe abstrata — base para curvas geométricas
 │   │   ├── LineSegment3d.cs     # Segmento de reta (P0→P1)
-│   │   ├── CircularArc3d.cs     # Arco circular / círculo completo
+│   │   ├── CircularArc3d.cs     # Arco circular / círculo completo (ângulos em radianos)
 │   │   └── CompositeCurve3d.cs  # Curva composta (itera segmentos)
-│   ├── Spatial/                 # RTree (índice espacial R*-tree)
-│   ├── DBObject.cs              # Base de todos os objetos do banco
-│   ├── Entity.cs                # Base de todas as entidades (Layer, Color, Linetype, LineWeight, etc.)
-│   ├── Curve.cs                 # Base de entidades curvas (Length, GetPointAtDist, GetClosestPointTo, etc.)
-│   ├── Database.cs, ObjectId.cs, Transaction.cs, TransactionManager.cs
-│   ├── BlockTable.cs, BlockTableRecord.cs
-│   ├── LayerTable.cs, LayerTableRecord.cs
-│   ├── ViewportTable.cs, ViewportTableRecord.cs
-│   ├── SymbolTable.cs, SymbolTableRecord.cs
-│   ├── EntityColor.cs, SnapType.cs, OpenMode.cs, Culture.cs
-│   └── IApplicationHost.cs      # Interface internal de inicialização do host
+│   └── Spatial/                 # RTree (índice espacial R*-tree)
 │
 ├── NormalCAD/                   # WinExe — Aplicação (Avalonia UI + comandos)
 │   ├── NormalCAD.csproj          (Referencia NormalCAD.Core)
@@ -124,8 +128,14 @@ NormalCAD.sln
 │   │   ├── CadController.cs     # Orquestrador central (inicializa Application, gerencia Document)
 │   │   ├── CmdManager.cs        # Descoberta, registro e despacho de comandos
 │   │   ├── InputManager.cs      # Input + prompt keywords + prefix matching
-│   │   ├── Commands/            # ICadCommand implementations
+│   │   ├── Commands/            # Implementações de ICadCommand
+│   │   ├── Providers/           # Provedores de propriedade de entidade (metadados do PropertyPalette)
+│   │   │   ├── IEntityPropertyProvider.cs, EntityPropertyManager.cs
+│   │   │   ├── PropertyDescriptor.cs, EntityPropertyProvider.cs
+│   │   │   ├── Line/Circle/Arc/PolylinePropertyProvider.cs
+│   │   │   └── LineWeightFormatter.cs
 │   │   └── Services/Converters/ # Conversores NormalCAD ↔ ACadSharp
+│   ├── Utilities/              # Helpers transversais (AngleConverter, etc.)
 │   ├── View/                    # Interface Avalonia
 │   │   ├── Controls/            # CadViewport, BottomBar, MenuBar, paletas
 │   │   └── Drawing/             # Renderers (Line, Circle, Arc, Polyline)
@@ -239,7 +249,7 @@ O projeto utiliza o **Trunk-Based Flow**:
 - `feat/*` — Novas funcionalidades.
 - `fix/*` — Correções de bugs.
 
-Veja [CONTRIBUTING.md](CONTRIBUTING.md) para convenção de commits e workflow detalhado.
+Veja [CONTRIBUTING.md](docs/CONTRIBUTING.md) para convenção de commits e workflow detalhado.
 
 ---
 

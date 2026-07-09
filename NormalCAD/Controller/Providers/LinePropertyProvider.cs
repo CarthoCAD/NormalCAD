@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
@@ -11,34 +10,105 @@ namespace NormalCAD.Controller.Providers
         {
             if (entity is not Line line) yield break;
 
-            yield return Prop("Geometry", "Start X", typeof(double), 101,
-                () => line.StartPoint.X,
-                v => { line.StartPoint = new Point3d((double)v!, line.StartPoint.Y, line.StartPoint.Z); return true; }, false);
-            yield return Prop("Geometry", "Start Y", typeof(double), 102,
-                () => line.StartPoint.Y,
-                v => { line.StartPoint = new Point3d(line.StartPoint.X, (double)v!, line.StartPoint.Z); return true; }, false);
-            yield return Prop("Geometry", "Start Z", typeof(double), 103,
-                () => line.StartPoint.Z,
-                v => { line.StartPoint = new Point3d(line.StartPoint.X, line.StartPoint.Y, (double)v!); return true; }, false);
-            yield return Prop("Geometry", "End X", typeof(double), 104,
-                () => line.EndPoint.X,
-                v => { line.EndPoint = new Point3d((double)v!, line.EndPoint.Y, line.EndPoint.Z); return true; }, false);
-            yield return Prop("Geometry", "End Y", typeof(double), 105,
-                () => line.EndPoint.Y,
-                v => { line.EndPoint = new Point3d(line.EndPoint.X, (double)v!, line.EndPoint.Z); return true; }, false);
-            yield return Prop("Geometry", "End Z", typeof(double), 106,
-                () => line.EndPoint.Z,
-                v => { line.EndPoint = new Point3d(line.EndPoint.X, line.EndPoint.Y, (double)v!); return true; }, false);
-            yield return Prop("Geometry", "Delta X", typeof(double), 107, () => line.Delta.X, null, true);
-            yield return Prop("Geometry", "Delta Y", typeof(double), 108, () => line.Delta.Y, null, true);
-            yield return Prop("Geometry", "Delta Z", typeof(double), 109, () => line.Delta.Z, null, true);
-            yield return Prop("Geometry", "Length", typeof(double), 110, () => line.Length, null, true);
-            yield return Prop("Geometry", "Angle", typeof(double), 111, () => line.Angle, null, true);
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start X",
+                PropertyType = typeof(double),
+                Order = 101,
+                GetValue = () => line.StartPoint.X,
+                TrySetValue = v => { line.StartPoint = new Point3d((double)v!, line.StartPoint.Y, line.StartPoint.Z); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start Y",
+                PropertyType = typeof(double),
+                Order = 102,
+                GetValue = () => line.StartPoint.Y,
+                TrySetValue = v => { line.StartPoint = new Point3d(line.StartPoint.X, (double)v!, line.StartPoint.Z); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start Z",
+                PropertyType = typeof(double),
+                Order = 103,
+                GetValue = () => line.StartPoint.Z,
+                TrySetValue = v => { line.StartPoint = new Point3d(line.StartPoint.X, line.StartPoint.Y, (double)v!); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End X",
+                PropertyType = typeof(double),
+                Order = 104,
+                GetValue = () => line.EndPoint.X,
+                TrySetValue = v => { line.EndPoint = new Point3d((double)v!, line.EndPoint.Y, line.EndPoint.Z); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End Y",
+                PropertyType = typeof(double),
+                Order = 105,
+                GetValue = () => line.EndPoint.Y,
+                TrySetValue = v => { line.EndPoint = new Point3d(line.EndPoint.X, (double)v!, line.EndPoint.Z); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End Z",
+                PropertyType = typeof(double),
+                Order = 106,
+                GetValue = () => line.EndPoint.Z,
+                TrySetValue = v => { line.EndPoint = new Point3d(line.EndPoint.X, line.EndPoint.Y, (double)v!); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Delta X",
+                PropertyType = typeof(double),
+                Order = 107,
+                GetValue = () => line.Delta.X,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Delta Y",
+                PropertyType = typeof(double),
+                Order = 108,
+                GetValue = () => line.Delta.Y,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Delta Z",
+                PropertyType = typeof(double),
+                Order = 109,
+                GetValue = () => line.Delta.Z,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Length",
+                PropertyType = typeof(double),
+                Order = 110,
+                GetValue = () => line.Length,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Angle",
+                PropertyType = typeof(double),
+                Order = 111,
+                GetValue = () => line.Angle,
+                IsReadOnly = true
+            };
         }
-
-        private static PropertyDescriptor Prop(string cat, string name, Type type, int order,
-            Func<object?> get, Func<object?, bool>? set, bool readOnly) =>
-            new() { Category = cat, DisplayName = name, PropertyType = type, Order = order,
-                     GetValue = get, TrySetValue = set, IsReadOnly = readOnly };
     }
 }

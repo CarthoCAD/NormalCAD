@@ -45,6 +45,9 @@ namespace NormalCAD.Controller.Providers
 
             foreach (var descriptor in firstList)
             {
+                if (descriptor.SingleSelectionOnly)
+                    continue;
+
                 var matches = new List<PropertyDescriptor> { descriptor };
 
                 for (int i = 1; i < lists.Count; i++)

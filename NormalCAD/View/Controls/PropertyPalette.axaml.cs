@@ -4,11 +4,9 @@ using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using NormalCAD.Core;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Controller.Providers;
 using NormalCAD.Resources;
@@ -28,6 +26,10 @@ namespace NormalCAD.View.Controls
         private Controller.CadController? _controller;
         private EntityPropertyManager? _propertyManager;
         private List<ObjectId> _selectedIds = [];
+
+        public bool IsDropDownOpen { get; private set; }
+
+        public event Action? DropDownClosed;
 
         private TextBlock? _txtPropsTitle;
         private Grid? _propsGrid;
@@ -261,7 +263,7 @@ namespace NormalCAD.View.Controls
             {
                 cb.Items.Add(BooleanYes);
                 cb.Items.Add(BooleanNo);
-                cb.SelectedItem = (bool)value ? BooleanYes : BooleanNo;
+                cb.SelectedItem = value is bool b ? (b ? BooleanYes : BooleanNo) : null;
             }
             else if (desc.ComboValues is not null)
             {
@@ -277,7 +279,15 @@ namespace NormalCAD.View.Controls
             }
 
             if (!readOnly)
+            {
                 cb.SelectionChanged += OnComboEditorChanged;
+                cb.DropDownOpened += (_, _) => IsDropDownOpen = true;
+                cb.DropDownClosed += (_, _) =>
+                {
+                    IsDropDownOpen = false;
+                    DropDownClosed?.Invoke();
+                };
+            }
 
             return cb;
         }
@@ -310,9 +320,13 @@ namespace NormalCAD.View.Controls
             if (sender is not ComboBox cb || cb.Tag is not CorePropDesc desc) return;
             if (cb.SelectedItem is not string name || desc.TrySetValue == null) return;
 
-            object? value = desc.PropertyType == typeof(bool)
-                ? name == BooleanYes
-                : Enum.Parse(desc.PropertyType, name);
+            object? value;
+            if (desc.PropertyType == typeof(bool))
+                value = name == BooleanYes;
+            else if (desc.ComboValues is not null)
+                value = name;
+            else
+                value = Enum.Parse(desc.PropertyType, name);
 
             ApplyAndCommit(desc, value);
         }

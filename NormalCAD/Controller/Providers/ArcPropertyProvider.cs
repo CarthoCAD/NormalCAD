@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
@@ -12,40 +11,140 @@ namespace NormalCAD.Controller.Providers
         {
             if (entity is not Arc arc) yield break;
 
-            yield return Prop("Geometry", "Start X", typeof(double), 101, () => arc.StartPoint.X, null, true);
-            yield return Prop("Geometry", "Start Y", typeof(double), 102, () => arc.StartPoint.Y, null, true);
-            yield return Prop("Geometry", "Start Z", typeof(double), 103, () => arc.StartPoint.Z, null, true);
-            yield return Prop("Geometry", "Center X", typeof(double), 104,
-                () => arc.Center.X,
-                v => { arc.Center = new Point3d((double)v!, arc.Center.Y, arc.Center.Z); return true; }, false);
-            yield return Prop("Geometry", "Center Y", typeof(double), 105,
-                () => arc.Center.Y,
-                v => { arc.Center = new Point3d(arc.Center.X, (double)v!, arc.Center.Z); return true; }, false);
-            yield return Prop("Geometry", "Center Z", typeof(double), 106,
-                () => arc.Center.Z,
-                v => { arc.Center = new Point3d(arc.Center.X, arc.Center.Y, (double)v!); return true; }, false);
-            yield return Prop("Geometry", "End X", typeof(double), 107, () => arc.EndPoint.X, null, true);
-            yield return Prop("Geometry", "End Y", typeof(double), 108, () => arc.EndPoint.Y, null, true);
-            yield return Prop("Geometry", "End Z", typeof(double), 109, () => arc.EndPoint.Z, null, true);
-            yield return Prop("Geometry", "Radius", typeof(double), 110,
-                () => arc.Radius, v => { arc.Radius = (double)v!; return true; }, false);
-            yield return Prop("Geometry", "Start angle", typeof(double), 111,
-                () => AngleConverter.ToDegrees(arc.StartAngle),
-                v => { arc.StartAngle = AngleConverter.ToRadians((double)v!); return true; }, false);
-            yield return Prop("Geometry", "End angle", typeof(double), 112,
-                () => AngleConverter.ToDegrees(arc.EndAngle),
-                v => { arc.EndAngle = AngleConverter.ToRadians((double)v!); return true; }, false);
-            yield return Prop("Geometry", "Total angle", typeof(double), 113,
-                () => AngleConverter.ToDegrees(arc.TotalAngle), null, true);
-            yield return Prop("Geometry", "Arc Length", typeof(double), 114,
-                () => arc.Length, null, true);
-            yield return Prop("Geometry", "Area", typeof(double), 115,
-                () => arc.Area, null, true);
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start X",
+                PropertyType = typeof(double),
+                Order = 101,
+                GetValue = () => arc.StartPoint.X,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start Y",
+                PropertyType = typeof(double),
+                Order = 102,
+                GetValue = () => arc.StartPoint.Y,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start Z",
+                PropertyType = typeof(double),
+                Order = 103,
+                GetValue = () => arc.StartPoint.Z,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Center X",
+                PropertyType = typeof(double),
+                Order = 104,
+                GetValue = () => arc.Center.X,
+                TrySetValue = v => { arc.Center = new Point3d((double)v!, arc.Center.Y, arc.Center.Z); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Center Y",
+                PropertyType = typeof(double), Order = 105,
+                GetValue = () => arc.Center.Y,
+                TrySetValue = v => { arc.Center = new Point3d(arc.Center.X, (double)v!, arc.Center.Z); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Center Z",
+                PropertyType = typeof(double),
+                Order = 106,
+                GetValue = () => arc.Center.Z,
+                TrySetValue = v => { arc.Center = new Point3d(arc.Center.X, arc.Center.Y, (double)v!); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End X",
+                PropertyType = typeof(double),
+                Order = 107,
+                GetValue = () => arc.EndPoint.X,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End Y",
+                PropertyType = typeof(double),
+                Order = 108,
+                GetValue = () => arc.EndPoint.Y,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End Z",
+                PropertyType = typeof(double),
+                Order = 109,
+                GetValue = () => arc.EndPoint.Z,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Radius",
+                PropertyType = typeof(double),
+                Order = 110,
+                GetValue = () => arc.Radius,
+                TrySetValue = v => { arc.Radius = (double)v!; return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Start angle",
+                PropertyType = typeof(double),
+                Order = 111,
+                GetValue = () => AngleConverter.ToDegrees(arc.StartAngle),
+                TrySetValue = v => { arc.StartAngle = AngleConverter.ToRadians((double)v!); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "End angle",
+                PropertyType = typeof(double),
+                Order = 112,
+                GetValue = () => AngleConverter.ToDegrees(arc.EndAngle),
+                TrySetValue = v => { arc.EndAngle = AngleConverter.ToRadians((double)v!); return true; }
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Total angle",
+                PropertyType = typeof(double),
+                Order = 113,
+                GetValue = () => AngleConverter.ToDegrees(arc.TotalAngle),
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Arc Length",
+                PropertyType = typeof(double),
+                Order = 114,
+                GetValue = () => arc.Length,
+                IsReadOnly = true
+            };
+            yield return new PropertyDescriptor
+            {
+                Category = "Geometry",
+                DisplayName = "Area",
+                PropertyType = typeof(double),
+                Order = 115,
+                GetValue = () => arc.Area,
+                IsReadOnly = true
+            };
         }
-
-        private static PropertyDescriptor Prop(string cat, string name, Type type, int order,
-            Func<object?> get, Func<object?, bool>? set, bool readOnly) =>
-            new() { Category = cat, DisplayName = name, PropertyType = type, Order = order,
-                     GetValue = get, TrySetValue = set, IsReadOnly = readOnly };
     }
 }

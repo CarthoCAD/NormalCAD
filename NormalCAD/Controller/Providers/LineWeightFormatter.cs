@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using NormalCAD.Core.DatabaseServices;
 
 namespace NormalCAD.Controller.Providers
@@ -29,7 +30,7 @@ namespace NormalCAD.Controller.Providers
                 LineWeight.ByLayer => "ByLayer",
                 LineWeight.ByBlock => "ByBlock",
                 LineWeight.Default => "Default",
-                _ => $"{(int)lw / 100.0:F2} mm"
+                _ => string.Format(CultureInfo.InvariantCulture, "{0:F2} mm", (int)lw / 100.0)
             };
         }
 
@@ -47,7 +48,7 @@ namespace NormalCAD.Controller.Providers
             { lw = LineWeight.Default; return true; }
 
             s = s.Replace("mm", "").Trim();
-            if (double.TryParse(s, out double mm))
+            if (double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double mm))
             {
                 int value = (int)Math.Round(mm * 100);
                 if (Enum.IsDefined(typeof(LineWeight), value))

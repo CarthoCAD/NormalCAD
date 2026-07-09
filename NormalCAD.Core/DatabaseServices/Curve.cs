@@ -7,7 +7,7 @@ namespace NormalCAD.Core.DatabaseServices
     public abstract class Curve : Entity
     {
         public abstract double Length { get; }
-        public virtual bool Closed => false;
+        public virtual bool Closed { get; set; }
         public virtual Point3d StartPoint => Point3d.Origin;
 
         public virtual Point3d EndPoint => Point3d.Origin;

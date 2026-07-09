@@ -252,10 +252,11 @@ namespace NormalCAD.Controller.Commands
             var br = viewport.ScreenToWorld(screenRect.BottomRight);
             var bl = viewport.ScreenToWorld(screenRect.BottomLeft);
 
-            var rectPoly = new Polyline(
-                new[] { Point2d.FromPoint3d(tl), Point2d.FromPoint3d(tr),
-                        Point2d.FromPoint3d(br), Point2d.FromPoint3d(bl) },
-                closed: true);
+            var rectPoly = new Polyline(4) { Closed = true };
+            rectPoly.AddVertexAt(0, Point2d.FromPoint3d(tl), 0.0, 0.0, 0.0);
+            rectPoly.AddVertexAt(1, Point2d.FromPoint3d(tr), 0.0, 0.0, 0.0);
+            rectPoly.AddVertexAt(2, Point2d.FromPoint3d(br), 0.0, 0.0, 0.0);
+            rectPoly.AddVertexAt(3, Point2d.FromPoint3d(bl), 0.0, 0.0, 0.0);
 
             var points = new Point3dCollection();
             ent.IntersectWith(rectPoly, Intersect.OnBothOperands, points);

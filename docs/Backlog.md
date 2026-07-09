@@ -1,9 +1,5 @@
 # Backlog
 
-## Entity Property Manager (Renderer-Style) (priority: high)
-
-Currently entity properties displayed in the `PropertyPalette` are exposed via `[Category]` and `[DisplayName]` attributes directly on Core entity classes (`Entity.cs`, `Line.cs`, `Circle.cs`, etc.), coupling the Core domain model to `System.ComponentModel` UI metadata. Refactor to follow the same pattern used by entity renderers: introduce a common interface `IEntityPropertyProvider` implemented by a dedicated provider class per entity type (`LinePropertyProvider`, `CirclePropertyProvider`, `ArcPropertyProvider`, etc.), and an `EntityPropertyManager` that discovers and registers providers at startup, then delegates property enumeration to the correct provider when the selection changes. All `[Category]` / `[DisplayName]` attributes and the `TypeDescriptor` reflection logic currently in `PropertyPalette.axaml.cs` should move into the Core assembly alongside the providers, leaving entity class definitions completely UI-agnostic. This is blocking for adding new entity types — without it, every new entity pollutes its Core definition with presentation metadata.
-
 ## Create `EntityProperties.resx` (priority: high)
 
 Create `NormalCAD\Resources\EntityProperties.resx` with all entity property display names and category labels currently defined as `[DisplayName]` and `[Category]` attribute strings in `NormalCAD.Core`: General category properties (`"Layer"`, `"Color"`, `"Linetype"`, `"Lineweight"`, `"Linetype Scale"`, `"Transparency"`, `"Visible"`), Geometry category properties for each entity type (`"Start X"`, `"Start Y"`, `"Start Z"`, `"End X"`, `"End Y"`, `"End Z"`, `"Length"`, `"Radius"`, `"Center X"`, `"Center Y"`, `"Start Angle"`, `"End Angle"`, `"Elevation"`, `"Vertices"`, `"Area"`, `"Closed"`), and the category headers themselves (`"General"`, `"Geometry"`). Use key format `<Entity>.<Category>.<Property>` (e.g., `LINE.GEOMETRY.STARTX`, `CIRCLE.GEOMETRY.RADIUS`, `ENTITY.GENERAL.LAYER`). This resource will be consumed by the `EntityPropertyManager` and its providers (not by entity classes directly), so the Core assembly remains free of presentation concerns. Depends on the Entity Property Manager implementation so providers have a resource-backed string source to query instead of hardcoded attributes.
@@ -28,9 +24,16 @@ Replace direct event handling (`OnPointerPressed`, `OnPointerMoved`, `OnKeyDown`
 
 DrawLine, DrawCircle, DrawArc, and DrawPolyline share near-identical `Activate()` and `Deactivate()` boilerplate: cursor state transitions (`PickCross` → `Crosshair` and back), `ActiveCommandPreview` teardown, keyword cleanup, and repeating the same pattern of checking `_controller == null`. Extract an abstract `DrawingCommandBase : ICadCommand` that handles cursor state management, preview clearing on deactivate, keyword reset, and standardized prompt setup via `InputManager`. Circle and Polyline already use the prompt/keyword system; Line and Arc were written before that system existed and currently show no prompts at all — they should be upgraded to use it through the base class so all drawing commands follow a consistent interactive pattern. This eliminates ~30 duplicated lines per command and ensures every future drawing command (Rectangle, Ellipse, Spline, etc.) inherits correct behavior automatically.
 
-## Fix `BlockReference` Rendering (priority: high)
+## Complete `BlockReference` Entity Pipeline (priority: high)
 
-`BlockReference` and its nested sub-entities are not currently being rendered in the viewport, making block insertion functionally invisible. The cause could be in `DrawingService.DrawEntity` (entity type dispatch may not handle `BlockReference`), in `BlockReferenceConverter` (the DWG reader may not be populating sub-entities or the block transform correctly), in `BlockReference.GetGeometricCurve()` or `GeometricExtents` (computing empty bounds that get culled), or in the renderer's coordinate transform chain for nested entities. Needs investigation and fix before any block/insert workflow can be built.
+`BlockReference` exists in `NormalCAD.Core` but is not yet a fully selectable, drawable entity — it must be wired through the complete entity pipeline (see `AddingNewEntities.md` for the full step-by-step). Currently `BlockReference` and its nested sub-entities are not rendered in the viewport, making block insertion functionally invisible. Deliver every stage of the pipeline for this entity:
+
+- **Renderer** — add a `BlockReferenceRenderer : IEntityRenderer` and register it in `DrawingService`, transforming and drawing each nested sub-entity through the block transform. Investigate the current failure: the cause could be in `DrawingService.DrawEntity` (entity type dispatch may not handle `BlockReference`), in `BlockReference.GetGeometricCurve()` / `GeometricExtents` (computing empty bounds that get culled), or in the renderer's coordinate transform chain for nested entities.
+- **Provider** — add a `BlockReferencePropertyProvider : IEntityPropertyProvider` and register it in `EntityPropertyManager`, exposing the AutoCAD INSERT palette properties (Position X/Y/Z, Scale X/Y/Z, Rotation, Block Name, etc.).
+- **Converter** — verify/fix `BlockReferenceConverter` so the DWG/DXF reader correctly populates sub-entities and the block transform on round-trip.
+- **Draw command** — implement the `INSERT` command (`InsertCommand : ICadCommand`) that lets the user pick a block, place it interactively (with live preview), and set rotation/scale, following the same interactive pattern as the other drawing commands.
+
+This is the first end-to-end exercise of the "add a new entity" pipeline against an already-modeled Core entity, so it doubles as validation of `AddingNewEntities.md`.
 
 ## Undo System (priority: high)
 
@@ -51,6 +54,17 @@ The `DBObject` class in `NormalCAD.Core` currently exposes only 7 of the 16 prop
 ## Implement `LinetypeTable` and `LinetypeTableRecord` (priority: medium)
 
 Currently entity linetypes are stored as plain strings (`"ByLayer"`, `"Continuous"`, etc.) directly on `Entity.Linetype` and resolved ad-hoc in the ACadSharp converter, with no database-side registry. Create `LinetypeTable : SymbolTable<LinetypeTableRecord>` and `LinetypeTableRecord : SymbolTableRecord` in `NormalCAD.Core.DatabaseServices`, following the same pattern as `LayerTable`/`LayerTableRecord`. Each `LinetypeTableRecord` should store the linetype name, description, and a pattern definition (dash lengths, dots, text, shapes) compatible with DXF group codes 49/74/75. The `Database` should own a `LinetypeTable` property (defaulting to a table containing at least "ByLayer", "ByBlock", and "Continuous"), and the `EntityPropertyProvider` should query the linetype table dynamically to populate the `ComboValues` for the Linetype dropdown instead of using a hardcoded list. Depends on the `SymbolTable` base class being already in place.
+
+## Full `Polyline` Bulge and Width Support (priority: medium)
+
+The `Polyline` entity already stores per-vertex `Bulge`, `StartWidth`, and `EndWidth` in its internal vertex struct (round-tripped through `PolylineConverter`), but these values currently have no effect on geometry or rendering — every segment is treated as a straight, zero-width line. Extend the whole pipeline so bulge and width are fully honored:
+
+- **Geometry** — when a vertex has a non-zero bulge, `GetGeometricCurve()` must emit a `CircularArc3d` for that segment (deriving center, radius, and start/end angles from the bulge value) instead of a `LineSegment3d`, so length, area, closest-point, intersection, and osnap all follow the true arc. Midpoint osnap and grip/stretch behavior should account for the arc.
+- **Renderer** — `PolylineRenderer` must draw arc segments for bulged vertices and render segment widths (tapered/constant thickness ribbons) instead of hairlines, honoring `ConstantWidth` and per-vertex `StartWidth`/`EndWidth`.
+- **Extents** — `GeometricExtents` must include the arc bulge of each segment, not just the vertex positions, so bounds are not under-computed.
+- Remove the "does NOT yet affect …" caveat comment from the `Vertex` struct once these paths are implemented.
+
+The provider palette fields for bulge/width already exist, so this item is purely about making the stored data drive geometry and rendering.
 
 ## Fix `DispatcherTimer` Leaks (priority: medium)
 

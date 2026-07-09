@@ -12,5 +12,6 @@ namespace NormalCAD.Controller.Providers
         public Func<object?> GetValue { get; init; } = () => null;
         public Func<object?, bool>? TrySetValue { get; init; }
         public string[]? ComboValues { get; init; }
+        public bool SingleSelectionOnly { get; init; }
     }
 }
