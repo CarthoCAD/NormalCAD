@@ -1,34 +1,30 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
 {
     public class Circle : Curve
     {
-        [Category("Geometry")]
-        [DisplayName("Center X")]
-        public double CenterX
-        {
-            get => Center.X;
-            set => Center = new Point3d(value, Center.Y, Center.Z);
-        }
+        public Point3d Center { get; set; }
 
-        [Category("Geometry")]
-        [DisplayName("Center Y")]
-        public double CenterY
-        {
-            get => Center.Y;
-            set => Center = new Point3d(Center.X, value, Center.Z);
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Radius")]
         public double Radius { get; set; }
 
-        
-        public Point3d Center { get; set; }
+        public double Diameter
+        {
+            get => Radius * 2.0;
+            set => Radius = value / 2.0;
+        }
+
+        public double Circumference
+        {
+            get => 2 * Math.PI * Radius;
+            set => Radius = value / (2 * Math.PI);
+        }
+
+        public Vector3d Normal { get; set; } = Vector3d.ZAxis;
+
+        public double Thickness { get; set; }
 
         
         public override Point3d StartPoint => new Point3d(Center.X + Radius, Center.Y, Center.Z);
@@ -36,14 +32,10 @@ namespace NormalCAD.Core.DatabaseServices
         
         public override Point3d EndPoint => StartPoint;
 
-        [Category("Geometry")]
-        [DisplayName("Length")]
-        [ReadOnly(true)]
         public override double Length => 2 * Math.PI * Radius;
 
-        [Category("Geometry")]
-        [DisplayName("Closed")]
-        [ReadOnly(true)]
+        public override double Area => Math.PI * Radius * Radius;
+
         public override bool Closed => true;
 
         public override Extents3d GeometricExtents => new Extents3d(
@@ -56,15 +48,16 @@ namespace NormalCAD.Core.DatabaseServices
             Radius = 1.0;
         }
 
-        public Circle(Point3d center, double radius)
+        public Circle(Point3d center, Vector3d normal, double radius)
         {
             Center = center;
+            Normal = normal;
             Radius = radius;
         }
 
         public override Entity Clone()
         {
-            var clone = new Circle(Center, Radius);
+            var clone = new Circle(Center, Normal, Radius) { Thickness = Thickness };
             CopyEntityPropertiesTo(clone);
             return clone;
         }

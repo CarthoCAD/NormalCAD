@@ -16,21 +16,21 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void Length_HalfCircle_ReturnsPiR()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 180);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI);
             Assert.Equal(5 * Math.PI, arc.Length, 1e-9);
         }
 
         [Fact]
         public void Length_QuarterCircle_ReturnsHalfPiR()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 90);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI / 2);
             Assert.Equal(2.5 * Math.PI, arc.Length, 1e-9);
         }
 
         [Fact]
         public void GetPointAtDist_Start_ReturnsStartPoint()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 180);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI);
             var pt = arc.GetPointAtDist(0);
             Assert.Equal(5, pt.X, 1e-9);
             Assert.Equal(0, pt.Y, 1e-9);
@@ -39,7 +39,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void GetPointAtDist_End_ReturnsEndPoint()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 180);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI);
             var pt = arc.GetPointAtDist(5 * Math.PI);
             Assert.Equal(-5, pt.X, 1e-9);
             Assert.Equal(0, pt.Y, 1e-6);
@@ -48,7 +48,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void GetPointAtDist_Middle_Returns90DegPoint()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 180);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI);
             var pt = arc.GetPointAtDist(2.5 * Math.PI);
             Assert.Equal(0, pt.X, 1e-6);
             Assert.Equal(5, pt.Y, 1e-6);
@@ -67,7 +67,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void GetClosestPointTo_OutsideArc_ReturnsEndpoint()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 90);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI / 2);
             var pt = new Point3d(15, 0, 0);
             var closest = arc.GetClosestPointTo(pt);
             Assert.Equal(5, closest.X, 1e-9);
@@ -93,7 +93,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void IsPointOnArc_LimitedArc_InsideRange_ReturnsTrue()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 90);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI / 2);
             var pt = new Point3d(3, 4, 0);
             Assert.True(arc.IsPointOnArc(pt));
         }
@@ -101,7 +101,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void IsPointOnArc_LimitedArc_OutsideRange_ReturnsFalse()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 90);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI / 2);
             var pt = new Point3d(-5, 0, 0);
             Assert.False(arc.IsPointOnArc(pt));
         }
@@ -117,7 +117,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void GetAreaContribution_HalfCircle_ReturnsHalfCircleArea()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, 180);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 0, Math.PI);
             double contrib = arc.GetAreaContribution();
             Assert.Equal(12.5 * Math.PI, contrib, 1e-9);
         }
@@ -125,7 +125,7 @@ namespace NormalCAD.Tests.Core.Geometry
         [Fact]
         public void GetAreaContribution_NegativeSweep_ReturnsNegativeArea()
         {
-            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, 180, 0);
+            var arc = new CircularArc3d(new Point3d(0, 0, 0), 5, Math.PI, 0);
             double contrib = arc.GetAreaContribution();
             Assert.True(contrib < 0);
         }

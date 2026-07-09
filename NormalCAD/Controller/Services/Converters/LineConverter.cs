@@ -14,6 +14,7 @@ namespace NormalCAD.Controller.Services.Converters
                 new XYZ(source.EndPoint.X, source.EndPoint.Y, source.EndPoint.Z)
             );
             ApplyEntityPropertiesToAcad(result, source, cadDoc);
+            result.Thickness = source.Thickness;
             return result;
         }
 
@@ -24,6 +25,7 @@ namespace NormalCAD.Controller.Services.Converters
                 new Point3d(source.EndPoint.X, source.EndPoint.Y, source.EndPoint.Z)
             );
             ApplyEntityPropertiesToNormal(result, source);
+            result.Thickness = source.Thickness;
             return result;
         }
     }

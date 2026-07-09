@@ -38,6 +38,8 @@ namespace NormalCAD
             _propertyPalette = new PropertyPalette { Controller = _controller };
             _layerPalette = new LayerPalette { Controller = _controller };
 
+            _propertyPalette.DropDownClosed += OnPropertyDropDownClosed;
+
             MenuBar.Controller = _controller;
             BottomBar.Controller = _controller;
 
@@ -124,12 +126,21 @@ namespace NormalCAD
 
         private void OnSidebarPointerExited(object? sender, PointerEventArgs e)
         {
+            StartAutohideTimer();
+        }
+
+        private void StartAutohideTimer()
+        {
             _autohideTimer?.Stop();
             _autohideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(AutohideDelayMs) };
             _autohideTimer.Tick += (s, args) =>
             {
-                CollapseDrawer();
                 _autohideTimer?.Stop();
+
+                if (_propertyPalette.IsDropDownOpen)
+                    return;
+
+                CollapseDrawer();
             };
             _autohideTimer.Start();
         }
@@ -137,6 +148,14 @@ namespace NormalCAD
         private void OnSidebarPointerEntered(object? sender, PointerEventArgs e)
         {
             _autohideTimer?.Stop();
+        }
+
+        private void OnPropertyDropDownClosed()
+        {
+            if (SidebarGrid.IsPointerOver)
+                return;
+
+            StartAutohideTimer();
         }
 
         protected override void OnKeyDown(KeyEventArgs e)

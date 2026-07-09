@@ -48,13 +48,13 @@ namespace NormalCAD.Controller.Commands
             {
                 _radius = _center.Value.DistanceTo(worldPt);
                 if (_radius < 1e-6) return;
-                _startAngle = Math.Atan2(worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X) * 180.0 / Math.PI;
-                if (_startAngle < 0) _startAngle += 360;
+                _startAngle = Math.Atan2(worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X);
+                if (_startAngle < 0) _startAngle += 2 * Math.PI;
             }
             else
             {
-                double endAngle = Math.Atan2(worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X) * 180.0 / Math.PI;
-                if (endAngle < 0) endAngle += 360;
+                double endAngle = Math.Atan2(worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X);
+                if (endAngle < 0) endAngle += 2 * Math.PI;
 
                 var arc = new Arc(_center.Value, _radius, _startAngle, endAngle)
                 {
@@ -74,7 +74,7 @@ namespace NormalCAD.Controller.Commands
             {
                 double r = _center.Value.DistanceTo(worldPt);
                 var previewCenter = _center.Value;
-                _controller.Viewport.ActiveCommandPreview = new Circle(previewCenter, r)
+                _controller.Viewport.ActiveCommandPreview = new Circle(previewCenter, Vector3d.ZAxis, r)
                 {
                     Layer = _controller.ActiveLayer,
                     Color = _controller.ActiveColor
@@ -82,8 +82,8 @@ namespace NormalCAD.Controller.Commands
             }
             else
             {
-                double endAngle = Math.Atan2(worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X) * 180.0 / Math.PI;
-                if (endAngle < 0) endAngle += 360;
+                double endAngle = Math.Atan2(worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X);
+                if (endAngle < 0) endAngle += 2 * Math.PI;
                 _controller.Viewport.ActiveCommandPreview = new Arc(_center.Value, _radius, _startAngle, endAngle)
                 {
                     Layer = _controller.ActiveLayer,

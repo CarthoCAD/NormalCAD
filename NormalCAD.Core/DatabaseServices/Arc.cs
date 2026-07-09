@@ -1,57 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
 {
     public class Arc : Curve
     {
-        [Category("Geometry")]
-        [DisplayName("Center X")]
-        public double CenterX
-        {
-            get => Center.X;
-            set => Center = new Point3d(value, Center.Y, Center.Z);
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Center Y")]
-        public double CenterY
-        {
-            get => Center.Y;
-            set => Center = new Point3d(Center.X, value, Center.Z);
-        }
-
-        [Category("Geometry")]
-        [DisplayName("Radius")]
-        public double Radius { get; set; }
-
-        [Category("Geometry")]
-        [DisplayName("Start Angle")]
-        public double StartAngle { get; set; }
-
-        [Category("Geometry")]
-        [DisplayName("End Angle")]
-        public double EndAngle { get; set; }
-
-        
         public Point3d Center { get; set; }
 
-        
+        public double Radius { get; set; }
+
+        public double StartAngle { get; set; }
+
+        public double EndAngle { get; set; }
+
+        public double TotalAngle
+        {
+            get
+            {
+                double sweep = EndAngle - StartAngle;
+                sweep %= 2 * Math.PI;
+                if (sweep < 0) sweep += 2 * Math.PI;
+                return sweep;
+            }
+        }
+
+        public Vector3d Normal { get; set; } = Vector3d.ZAxis;
+
+        public double Thickness { get; set; }
+
         public override Point3d StartPoint => PointAtAngle(StartAngle);
 
-        
         public override Point3d EndPoint => PointAtAngle(EndAngle);
 
-        [Category("Geometry")]
-        [DisplayName("Length")]
-        [ReadOnly(true)]
-        public override double Length => Radius * Math.Abs(EndAngle - StartAngle) * Math.PI / 180.0;
+        public override double Length => Radius * TotalAngle;
 
-        [Category("Geometry")]
-        [DisplayName("Closed")]
-        [ReadOnly(true)]
+        public override double Area => 0.5 * Radius * Radius * (TotalAngle - Math.Sin(TotalAngle));
+
         public override bool Closed => false;
 
         public override Extents3d GeometricExtents => ComputeExtents();
@@ -61,7 +46,7 @@ namespace NormalCAD.Core.DatabaseServices
             Center = Point3d.Origin;
             Radius = 1.0;
             StartAngle = 0.0;
-            EndAngle = 180.0;
+            EndAngle = Math.PI;
         }
 
         public Arc(Point3d center, double radius, double startAngle, double endAngle)
@@ -72,9 +57,18 @@ namespace NormalCAD.Core.DatabaseServices
             EndAngle = endAngle;
         }
 
+        public Arc(Point3d center, Vector3d normal, double radius, double startAngle, double endAngle)
+        {
+            Center = center;
+            Normal = normal;
+            Radius = radius;
+            StartAngle = startAngle;
+            EndAngle = endAngle;
+        }
+
         public override Entity Clone()
         {
-            var clone = new Arc(Center, Radius, StartAngle, EndAngle);
+            var clone = new Arc(Center, Normal, Radius, StartAngle, EndAngle) { Thickness = Thickness };
             CopyEntityPropertiesTo(clone);
             return clone;
         }
@@ -90,7 +84,7 @@ namespace NormalCAD.Core.DatabaseServices
             yield return (Center, SnapType.Center);
             yield return (PointAtAngle(StartAngle), SnapType.Endpoint);
             yield return (PointAtAngle(EndAngle), SnapType.Endpoint);
-            double midAngle = (StartAngle + EndAngle) / 2.0;
+            double midAngle = StartAngle + TotalAngle / 2.0;
             yield return (PointAtAngle(midAngle), SnapType.Midpoint);
         }
 
@@ -99,7 +93,7 @@ namespace NormalCAD.Core.DatabaseServices
             yield return Center;
             yield return PointAtAngle(StartAngle);
             yield return PointAtAngle(EndAngle);
-            yield return PointAtAngle((StartAngle + EndAngle) / 2.0);
+            yield return PointAtAngle(StartAngle + TotalAngle / 2.0);
         }
 
         public override void MoveGripPointsAt(Point3dCollection grips, Vector3d offset)
@@ -143,19 +137,18 @@ namespace NormalCAD.Core.DatabaseServices
             System.Diagnostics.Debug.WriteLine($"Length: {Length:F4}");
         }
 
-        private Point3d PointAtAngle(double angleDeg)
+        private Point3d PointAtAngle(double angleRad)
         {
-            double rad = angleDeg * Math.PI / 180.0;
             return new Point3d(
-                Center.X + Radius * Math.Cos(rad),
-                Center.Y + Radius * Math.Sin(rad),
+                Center.X + Radius * Math.Cos(angleRad),
+                Center.Y + Radius * Math.Sin(angleRad),
                 Center.Z);
         }
 
         private Extents3d ComputeExtents()
         {
-            double start = StartAngle, end = EndAngle;
-            if (end < start) end += 360;
+            double start = StartAngle;
+            double sweep = TotalAngle;
 
             double minX = double.MaxValue, minY = double.MaxValue;
             double maxX = double.MinValue, maxY = double.MinValue;
@@ -163,7 +156,7 @@ namespace NormalCAD.Core.DatabaseServices
             int samples = 32;
             for (int i = 0; i <= samples; i++)
             {
-                double a = start + (end - start) * i / samples;
+                double a = start + sweep * i / samples;
                 var pt = PointAtAngle(a);
                 minX = Math.Min(minX, pt.X); maxX = Math.Max(maxX, pt.X);
                 minY = Math.Min(minY, pt.Y); maxY = Math.Max(maxY, pt.Y);

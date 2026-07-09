@@ -7,9 +7,10 @@ namespace NormalCAD.Core.DatabaseServices
     public abstract class Curve : Entity
     {
         public abstract double Length { get; }
-        public virtual bool Closed => false;
-        public abstract Point3d StartPoint { get; }
-        public abstract Point3d EndPoint { get; }
+        public virtual bool Closed { get; set; }
+        public virtual Point3d StartPoint => Point3d.Origin;
+
+        public virtual Point3d EndPoint => Point3d.Origin;
 
         public override IEnumerable<Point3d> GetGripPoints()
         {
@@ -31,19 +32,7 @@ namespace NormalCAD.Core.DatabaseServices
             }
         }
 
-        public virtual double Area
-        {
-            get
-            {
-                if (!Closed) return 0;
-                var curve = GetGeometricCurve();
-                if (curve is CompositeCurve3d comp)
-                    return comp.ComputeEnclosedArea();
-                if (curve is CircularArc3d arc && arc.IsFullCircle)
-                    return Math.PI * arc.Radius * arc.Radius;
-                return 0;
-            }
-        }
+        public abstract double Area { get; }
 
         public virtual Point3d GetPointAtDist(double distance)
         {

@@ -1,3 +1,5 @@
+using System;
+
 namespace NormalCAD.Core.DatabaseServices
 {
     public enum LineWeight

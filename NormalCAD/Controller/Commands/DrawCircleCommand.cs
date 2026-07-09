@@ -84,7 +84,7 @@ namespace NormalCAD.Controller.Commands
 
                 if (radius > 1e-6)
                 {
-                    var circle = new Circle(_center.Value, radius)
+                    var circle = new Circle(_center.Value, Vector3d.ZAxis, radius)
                     {
                         Layer = _controller.ActiveLayer,
                         Color = _controller.ActiveColor
@@ -111,7 +111,7 @@ namespace NormalCAD.Controller.Commands
 
             if (radius > 1e-6)
             {
-                _controller.Viewport.ActiveCommandPreview = new Circle(_center.Value, radius)
+                _controller.Viewport.ActiveCommandPreview = new Circle(_center.Value, Vector3d.ZAxis, radius)
                 {
                     Layer = _controller.ActiveLayer,
                     Color = _controller.ActiveColor
