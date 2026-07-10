@@ -8,65 +8,55 @@
 
 O **NormalCAD** é um protótipo de aplicação de desenho técnico (CAD) 2D de código aberto. Seu objetivo é demonstrar como construir um sistema CAD funcional usando tecnologias .NET modernas e abertas, sem depender de bibliotecas proprietárias como o SDK do AutoCAD.
 
-A arquitetura interna do banco de dados do desenho foi modelada com base na **API .NET do AutoCAD** (ObjectARX/Managed), utilizando os mesmos conceitos de `Database`, `ObjectId`, `Transaction`, `BlockTable`, `LayerTable`, `ViewportTable` e entidades (`Entity`), tornando o projeto familiar para desenvolvedores da área de AEC (Arquitetura, Engenharia e Construção). A estrutura de namespaces também espelha a API do AutoCAD: `NormalCAD.Core.ApplicationServices`, `NormalCAD.Core.DatabaseServices`, `NormalCAD.Core.EditorInput` e `NormalCAD.Core.Geometry`.
-
-### API da Entidade
-
-A classe `Entity` implementa as propriedades e métodos da API .NET do AutoCAD:
-
-**Propriedades:** `Layer`, `LayerId`, `Color`, `Linetype`, `LinetypeId`, `LineWeight`, `LinetypeScale`, `Transparency`, `Visible`, `BlockId`, `BlockTransform`, `Bounds`, `GeometricExtents`
-
-**Métodos:** `Clone()`, `GetTransformedCopy()`, `IntersectWith()`, `GetDistanceTo()`, `GetGripPoints()`, `MoveGripPointsAt()`, `GetStretchPoints()`, `MoveStretchPointsAt()`, `GetOsnapPoints()`, `Highlight()` / `Unhighlight()`, `Erase()`, `Draw()`, `List()`, `SetDatabaseDefaults()`
-
-A classe `Curve` adiciona: `Length`, `Closed`, `Area`, `StartPoint`, `EndPoint`, `GetPointAtDist()`, `GetDistAtPoint()`, `GetClosestPointTo()`, `GetFirstDerivative()`, `GetPointAtParameter()`, `GetParameterAtPoint()`
-
-A interseção e distância são delegadas às primitivas geométricas (`Curve3d` → `LineSegment3d` / `CircularArc3d` / `CompositeCurve3d`) via `GetGeometricCurve()`.
+A arquitetura interna foi modelada com base na **API .NET do AutoCAD** (ObjectARX/Managed), utilizando os mesmos conceitos de `Database`, `ObjectId`, `Transaction`, `BlockTable`, `LayerTable`, `ViewportTable` e entidades (`Entity`, `Curve`), tornando o projeto familiar para desenvolvedores da área de AEC (Arquitetura, Engenharia e Construção). Veja [ARCHITECTURE.md](docs/ARCHITECTURE.md) para a referência completa da API de entidades, mapeamento de namespaces e estrutura do projeto.
 
 ---
 
 ## Funcionalidades
 
-### 🖊️ Ferramentas de Desenho
+### Ferramentas de Desenho
 
-- **Linha** — Desenho em cadeia (o final de uma linha é o início da próxima), com preview dinâmico tracejado durante o posicionamento.
-- **Círculo** — Clique no centro, arraste para definir raio. Suporte a alternância `Radius`/`Diameter` via keyword no prompt.
-- **Arco** — Clique no centro, arraste para definir raio + ângulo inicial, clique para ângulo final. Preview dinâmico.
-- **Polilinha** — Cliques sucessivos adicionam vértices; `Enter`/`Espaço` finaliza aberta. Keywords `Undo` (remove último vértice) e `Close` (fecha polilinha) no prompt, com prefix matching (ex: digitar "U" para Undo). Preview atualiza automaticamente ao usar keywords.
-- **Seleção** — Clique para adicionar entidades individualmente à seleção; `Shift + Clique` para remover. Arraste da esquerda→direita para Window Select ou direita→esquerda para Crossing Select. Utiliza índice espacial R*-tree para performance em desenhos grandes.
+- **Linha** — Desenho em cadeia com preview dinâmico tracejado durante o posicionamento.
+- **Círculo** — Centro + raio, com alternância `Radius`/`Diameter` via keyword no prompt.
+- **Arco** — Centro + raio + ângulo inicial/final, com preview dinâmico.
+- **Polilinha** — Cliques sucessivos adicionam vértices; keywords `Undo` e `Close` com prefix matching.
+- **Seleção** — Clique para adicionar, `Shift + Clique` para remover. Arraste esquerda→direita para Window Select, direita→esquerda para Crossing Select. Utiliza índice espacial R*-tree para performance em desenhos grandes.
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
-- **Limpar** — Botão para apagar todo o desenho atual.
+- **Limpar** — Apaga todo o desenho atual.
 
-### ⌨️ Linha de Comando Integrada (estilo AutoCAD)
+### Linha de Comando Integrada (estilo AutoCAD)
 
-- **Prompt de Comandos** — `TextBox` na barra inferior: digite o nome ou alias de um comando e pressione `Enter` ou `Espaço` para executá-lo. `Escape` cancela o comando ativo.
-- **Sistema de Keywords** — Comandos podem registrar opções no prompt (ex: `[Undo/Close]`, `[Diameter/Radius]`). O usuário digita a keyword completa ou apenas o prefixo (`U` → Undo). Se houver ambiguidade (duas keywords com o mesmo prefixo), o sistema rejeita e informa. Quando keywords estão ativas, o prompt bloqueia execução de novos comandos.
-- **Prompt Dinâmico** — Formato AutoCAD: `"PLINE Specify next point or [Undo/Close]:"`. Prefixo do prompt (`CMD:`, `CIRCLE:`, etc.) atualiza conforme o comando ativo. Durante seleção por janela, mostra `"CMD Specify opposite corner:"`. Feedback de seleção exibe `"1 found, 3 total"` ou `"2 removed, 1 total"`.
-- **Aliases** — Cada comando registra automaticamente seus aliases (ex: `C` ou `CI` para `CIRCLE`). O `CmdManager` resolve aliases via descoberta por reflection.
+- **Prompt de Comandos** — Digite o nome ou alias de um comando e pressione `Enter`/`Espaço` para executar. `Escape` cancela o comando ativo.
+- **Sistema de Keywords** — Comandos registram opções no prompt (ex: `[Undo/Close]`, `[Diameter/Radius]`). Prefix matching (digite `U` para Undo); prefixos ambíguos são rejeitados.
+- **Prompt Dinâmico** — Formato AutoCAD: `"PLINE Specify next point or [Undo/Close]:"`. Prefixo atualiza conforme o comando ativo. Feedback de seleção: `"1 found, 3 total"`.
+- **Aliases** — Descobertos automaticamente via reflection (ex: `C`/`CI` para `CIRCLE`).
 - **Popup Flutuante** — Mensagens de feedback do sistema aparecem acima da barra de comando com fade-out.
 
-### 🧲 Object Snapping (Atração Magnética)
+### Object Snapping (Atração Magnética)
 
-- **Endpoint** — Extremidades de linhas, arcos e vértices de polilinhas (indicador: **caixa verde**).
-- **Midpoint** — Ponto médio de linhas e segmentos de polilinhas (indicador: **triângulo verde**).
-- **Center** — Centro de círculos e arcos (indicador: **círculo verde**).
+- **Endpoint** — Extremidades de linhas, arcos e vértices de polilinhas (caixa verde).
+- **Midpoint** — Ponto médio de linhas e segmentos de polilinhas (triângulo verde).
+- **Center** — Centro de círculos e arcos (círculo verde).
 
-### 🗺️ Viewport e Navegação
+### Viewport e Navegação
 
 - **Zoom** — Scroll do mouse com foco na posição do cursor.
 - **Pan** — Arrastar com o botão do meio do mouse.
 - **Grade Adaptativa** — Grade cartesiana que se adapta automaticamente ao nível de zoom.
 - **Persistência de Viewport** — Posição da vista salva no registro `*ACTIVE` da `ViewportTable`.
 
-### 📂 Importação / Exportação DXF e DWG
+### Importação / Exportação DXF e DWG
 
-- **Abrir (OPEN)** — Abre arquivos DXF/DWG. Detecta o formato pela extensão e importa linhas, círculos, arcos, polilinhas (`LwPolyline`) e inserções de bloco (`Insert` → `BlockReference`). Cria novo documento via `Application.DocumentManager`.
-- **Salvar (SAVE)** — Salva no caminho atual do documento. Se for um documento novo (sem caminho), comporta-se como SAVEAS.
+- **Abrir (OPEN)** — Abre arquivos DXF/DWG. Detecta o formato pela extensão e importa linhas, círculos, arcos, polilinhas (`LwPolyline`) e inserções de bloco (`Insert` → `BlockReference`).
+- **Salvar (SAVE)** — Salva no caminho atual do documento. Documentos novos (sem caminho) comportam-se como SAVEAS.
 - **Salvar Como (SAVEAS)** — Exporta no formato compatível com AutoCAD, LibreCAD, QCAD (DXF ou DWG conforme extensão escolhida), preservando propriedades de entidade (layer, cor, linetype, lineweight, transparência).
 
-### 🎨 Interface e Temas
+### Interface
 
-- Painel de Propriedades, Gerenciador de Camadas, Barra de Status.
-- Dark Mode / Light Mode dinâmico sem reinicialização.
+- **Painel de Propriedades** — Exibe e edita propriedades das entidades selecionadas. Suporta merge multi-seleção (mostra `*VARIES*` quando valores diferem) e categorias Geometry/Misc específicas por entidade. Labels de categorias e propriedades vêm de arquivos `.resx` preparados para localização.
+- **Gerenciador de Camadas** — Cria e gerencia layers. Entidades herdam propriedades da layer.
+- **Barra de Status** — Exibe coordenadas do cursor em tempo real.
+- **Dark Mode / Light Mode** — Alterna tema em tempo de execução sem reiniciar (comando `THEME`).
 
 ---
 
@@ -74,88 +64,23 @@ A interseção e distância são delegadas às primitivas geométricas (`Curve3d
 
 ```bash
 NormalCAD.sln
-├── docs/                        # Documentação de toda a solution
-│   ├── Backlog.md              # Backlog priorizado
-│   ├── CONTRIBUTING.md         # Convenção de commits e workflow
-│   └── AddingNewEntities.md    # Guia passo a passo para adicionar uma nova entidade
-│
-├── NormalCAD.Core/              # Class Library — Modelo de dados (zero dependências)
-│   ├── NormalCAD.Core.csproj
-│   ├── ApplicationServices/     # Application, Document, DocumentCollection, DocumentLock
-│   │   ├── Application.cs       # Facade estático (singleton), Application.Host
-│   │   ├── Document.cs          # Database + Editor + LockDocument()
-│   │   ├── DocumentCollection.cs # MdiActiveDocument
-│   │   ├── DocumentLock.cs      # IDisposable, Monitor.Enter/Exit
-│   │   └── IApplicationHost.cs  # Interface internal de inicialização do host
-│   ├── DatabaseServices/        # Database, entidades e tipos auxiliares
-│   │   ├── Entity.cs            # Base de todas as entidades (Layer, Color, Linetype, LineWeight, etc.)
-│   │   ├── Curve.cs             # Base de entidades curvas (Length, Area, GetPointAtDist, etc.)
-│   │   ├── Line.cs, Circle.cs, Arc.cs, Polyline.cs
-│   │   ├── BlockReference.cs    # Inserção de bloco (Position, Rotation, ScaleFactors)
-│   │   ├── DBObject.cs          # Base de todos os objetos do banco
-│   │   ├── Database.cs, ObjectId.cs, Transaction.cs, TransactionManager.cs
-│   │   ├── BlockTable.cs, BlockTableRecord.cs
-│   │   ├── LayerTable.cs, LayerTableRecord.cs
-│   │   ├── ViewportTable.cs, ViewportTableRecord.cs
-│   │   ├── SymbolTable.cs, SymbolTableRecord.cs
-│   │   ├── EntityColor.cs, SnapType.cs, OpenMode.cs, Culture.cs
-│   │   ├── Intersect.cs         # Enum Intersect (OnBothOperands, ExtendThis, ExtendArgument, ExtendBoth)
-│   │   ├── LineWeight.cs        # Enum LineWeight (ByLayer, ByBlock, Default, W0..W211)
-│   │   └── Transparency.cs      # Struct Transparency (ByLayer / alpha 0-255)
-│   ├── EditorInput/             # Editor, PromptPointResult, PromptPointOptions, PromptStatus
-│   │   ├── Editor.cs            # GetPoint(string), GetPoint(PromptPointOptions) — casca temporária
-│   │   └── PromptResult.cs      # PromptStatus (OK/Cancel/Keyword/Error)
-│   ├── Geometry/                # Primitivas geométricas e matemática
-│   │   ├── Point2d.cs, Point3d.cs, Vector3d.cs, Matrix3d.cs, Extents3d.cs, Point3dCollection.cs
-│   │   ├── Curve3d.cs           # Classe abstrata — base para curvas geométricas
-│   │   ├── LineSegment3d.cs     # Segmento de reta (P0→P1)
-│   │   ├── CircularArc3d.cs     # Arco circular / círculo completo (ângulos em radianos)
-│   │   └── CompositeCurve3d.cs  # Curva composta (itera segmentos)
-│   └── Spatial/                 # RTree (índice espacial R*-tree)
-│
-├── NormalCAD/                   # WinExe — Aplicação (Avalonia UI + comandos)
-│   ├── NormalCAD.csproj          (Referencia NormalCAD.Core)
-│   ├── Host/                    # Implementação do host
-│   │   └── ApplicationHost.cs   # IApplicationHost, cria documentos
-│   ├── Resources/               # Recursos de localização (.resx)
-│   │   ├── Commands.resx        # Prompts, mensagens, keywords, nomes e aliases de comando
-│   │   ├── Panels.resx          # Strings de UI de painéis e controles (paletas, menus, barras)
-│   │   ├── Dialogs.resx         # Títulos de diálogo, filtros, mensagens de erro, strings de sistema
-│   │   ├── CommandResources.cs  # Helper ResourceManager para strings de comando
-│   │   ├── PanelResources.cs    # Helper ResourceManager para strings de painel
-│   │   └── DialogResources.cs   # Helper ResourceManager para strings de diálogo
-│   ├── Controller/              # Lógica de comandos e orquestração
-│   │   ├── CadController.cs     # Orquestrador central (inicializa Application, gerencia Document)
-│   │   ├── CmdManager.cs        # Descoberta, registro e despacho de comandos
-│   │   ├── InputManager.cs      # Input + prompt keywords + prefix matching
-│   │   ├── Commands/            # Implementações de ICadCommand
-│   │   ├── Providers/           # Provedores de propriedade de entidade (metadados do PropertyPalette)
-│   │   │   ├── IEntityPropertyProvider.cs, EntityPropertyManager.cs
-│   │   │   ├── PropertyDescriptor.cs, EntityPropertyProvider.cs
-│   │   │   ├── Line/Circle/Arc/PolylinePropertyProvider.cs
-│   │   │   └── LineWeightFormatter.cs
-│   │   └── Services/Converters/ # Conversores NormalCAD ↔ ACadSharp
-│   ├── Utilities/              # Helpers transversais (AngleConverter, etc.)
-│   ├── View/                    # Interface Avalonia
-│   │   ├── Controls/            # CadViewport, BottomBar, MenuBar, paletas
-│   │   └── Drawing/             # Renderers (Line, Circle, Arc, Polyline)
-│   ├── MainWindow.axaml, App.axaml, Program.cs
-│   └── Themes/
-│
-└── NormalCAD.Tests/             # Testes unitários (xUnit)
-    ├── NormalCAD.Tests.csproj    (Referencia NormalCAD.Core)
-    └── Core/
-        ├── Geometry/
-        │   ├── LineSegment3dTests.cs
-        │   ├── CircularArc3dTests.cs
-        │   └── CompositeCurve3dTests.cs
-        ├── DatabaseServices/
-        │   └── PolylineTests.cs
-        └── Spatial/
-            └── RTreeTests.cs
+├── docs/                    # Backlog, guia de contribuição, documentação de arquitetura
+├── NormalCAD.Core/          # Class Library — modelo de dados, zero dependências
+│   ├── ApplicationServices/ # Application, Document, DocumentCollection
+│   ├── DatabaseServices/    # Entity, Curve, Line, Circle, Arc, Polyline, Database, Transaction, tabelas
+│   ├── EditorInput/         # Editor e tipos de prompt result
+│   ├── Geometry/            # Point3d, Vector3d, Matrix3d, primitivas Curve3d
+│   └── Spatial/             # Índice espacial R*-tree
+├── NormalCAD/               # Aplicação Avalonia UI
+│   ├── Controller/          # CadController, CmdManager, InputManager, Commands, Providers, Converters
+│   ├── Resources/           # Arquivos .resx de localização e helpers ResourceManager
+│   ├── View/                # Controles de UI (viewport, paletas, menus) e renderers de entidade
+│   ├── Host/                # Implementação do host da aplicação
+│   └── Utilities/           # Helpers transversais (AngleConverter, etc.)
+└── NormalCAD.Tests/         # Testes unitários xUnit (geometria, database, spatial)
 ```
 
-`NormalCAD.Core` é uma **Class Library pura** (sem dependência de UI ou ACadSharp). Isso permite que plugins e extensões referenciem apenas o modelo de dados, espelhando a separação `AcDbMgd.dll` / `AcMgd.dll` do AutoCAD.
+`NormalCAD.Core` é uma **Class Library pura** (sem dependência de UI ou ACadSharp), espelhando a separação `AcDbMgd.dll` / `AcMgd.dll` do AutoCAD. Para a árvore completa arquivo por arquivo, veja [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
@@ -204,40 +129,24 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 
 ## Como Usar
 
-| Ação | Como fazer |
-| --- | --- |
-| **Navegar (Pan)** | Arrastar com o botão do **meio** do mouse |
-| **Zoom** | Scroll do mouse (focado na posição do cursor) |
-| **Desenhar Linha** | Digitar `LINE` / `L` e clicar dois pontos, ou menu Draw → Line |
-| **Desenhar Círculo** | Digitar `CIRCLE` / `C` / `CI` — clique no centro; digite `D` + Enter para Diameter, `R` + Enter para Radius; clique para definir raio/diâmetro |
-| **Desenhar Arco** | Digitar `ARC` / `A` e clicar centro → raio → ângulo final, ou menu Draw → Arc |
-| **Desenhar Polilinha** | Digitar `PLINE` / `PL` e clicar vértices; `Enter` finaliza aberta; keywords: `U` (Undo), `C` (Close via prompt) |
-| **Selecionar** | Clicar na entidade para adicionar à seleção; `Shift + Clique` para remover |
-| **Seleção por Janela** | Arrastar da esquerda → direita (Window) ou direita → esquerda (Crossing) |
-| **Excluir Selecionados** | Tecla `Delete` ou digitar `ERASE` / `E` |
-| **Cancelar / Voltar** | `Escape` (limpa prompt e volta à seleção) ou menu Edit → Select |
-| **Limpar Tudo** | Digitar `CLEANALL` / `CLA` ou menu Edit → Clean All |
-| **Abrir** | Digitar `OPEN` ou menu File → Open... |
-| **Salvar** | Digitar `SAVE` ou menu File → Save |
-| **Salvar Como** | Digitar `SAVEAS` ou menu File → Save As... |
-| **Alternar Tema** | Digitar `THEME` / `TEMA` / `TH` ou menu → Change Theme |
-| **Sair** | Digitar `QUIT` / `EXIT` / `Q` ou menu File → Exit |
-
-### Comandos e Aliases
-
-| Comando | Digite | Aliases |
-| --- | --- | --- |
-| Line | `LINE` | `L` |
-| Circle | `CIRCLE` | `C`, `CI` |
-| Arc | `ARC` | `A` |
-| Polyline | `PLINE` | `PL` |
-| Erase | `ERASE` | `E` |
-| Clean All | `CLEANALL` | `CLA` |
-| Open | `OPEN` | — |
-| Save | `SAVE` | — |
-| Save As | `SAVEAS` | — |
-| Toggle Theme | `THEME` | `TH` |
-| Quit | `QUIT` | `EXIT`, `Q` |
+| Ação | Comando | Aliases | Menu |
+| --- | --- | --- | --- |
+| Desenhar Linha | `LINE` | `L` | Draw → Line |
+| Desenhar Círculo | `CIRCLE` | `C`, `CI` | Draw → Circle |
+| Desenhar Arco | `ARC` | `A` | Draw → Arc |
+| Desenhar Polilinha | `PLINE` | `PL` | Draw → Polyline |
+| Excluir Selecionados | `ERASE` | `E` | Edit → Erase |
+| Limpar Tudo | `CLEANALL` | `CLA` | Edit → Clean All |
+| Abrir Arquivo | `OPEN` | — | File → Open... |
+| Salvar | `SAVE` | — | File → Save |
+| Salvar Como | `SAVEAS` | — | File → Save As... |
+| Alternar Tema | `THEME` | `TH` | Base → Change Theme |
+| Sair | `QUIT` | `EXIT`, `Q` | File → Exit |
+| **Navegar (Pan)** | Arrastar com o botão do meio do mouse | | |
+| **Zoom** | Scroll do mouse (foco na posição do cursor) | | |
+| **Selecionar** | Clique para adicionar, `Shift + Clique` para remover | | |
+| **Seleção por Janela** | Arrastar esquerda→direita (Window) ou direita→esquerda (Crossing) | | |
+| **Cancelar** | `Escape` | | Edit → Select |
 
 ---
 

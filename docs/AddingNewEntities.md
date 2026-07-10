@@ -64,16 +64,20 @@ Draws the entity on the Avalonia canvas.
 
 1. Create `NormalCAD/View/Drawing/<Entity>Renderer.cs` implementing
    `IEntityRenderer`:
+
    ```csharp
    public void Render(DrawingContext context, Entity entity, Pen pen,
                       Func<Point3d, Point> worldToScreen, double zoom)
    ```
+
    Cast `entity` to your concrete type, convert world points to screen points
    with `worldToScreen`, and draw with the supplied `pen`.
 2. Register it in `DrawingService` (constructor):
+
    ```csharp
    Register<MyEntity>(new MyEntityRenderer());
    ```
+
    `DrawingService.DrawEntity` dispatches by `entity.GetType()`, so an
    unregistered type is silently not drawn.
 
@@ -84,24 +88,36 @@ Draws the entity on the Avalonia canvas.
 Feeds the `PropertyPalette`. Property metadata is a UI concern and must **not**
 live in Core.
 
-1. Create `NormalCAD/Controller/Providers/<Entity>PropertyProvider.cs`
-   implementing `IEntityPropertyProvider`:
-   ```csharp
-   public IEnumerable<PropertyDescriptor> GetProperties(Entity entity)
-   ```
-   - Guard with `if (entity is not MyEntity e) yield break;`.
-   - `yield return new PropertyDescriptor { ... }` for each property, matching
-     the order and labels of the AutoCAD properties palette for that entity.
-   - Each descriptor carries `Category`, `DisplayName`, `PropertyType`, `Order`,
-     `GetValue`, optional `TrySetValue` (omit or `null` for read-only),
-     optional `ComboValues`, and `SingleSelectionOnly` (set `true` for
-     properties that make no sense in a multi-selection, e.g. per-vertex data).
-   - Convert units at this boundary (e.g. radians → degrees via
-     `NormalCAD.Utilities.AngleConverter`); Core stays in radians.
-2. Register it in `EntityPropertyManager` (constructor):
+ 1. Create `NormalCAD/Controller/Providers/<Entity>PropertyProvider.cs`
+    implementing `IEntityPropertyProvider`:
+
+    ```csharp
+    public string DisplayName => EntityPropertyResources.Get("<ENTITY>.DISPLAYNAME");
+    public IEnumerable<PropertyDescriptor> GetProperties(Entity entity)
+    ```
+
+    - Guard with `if (entity is not MyEntity e) yield break;`.
+    - `yield return new PropertyDescriptor { ... }` for each property, matching
+      the order and labels of the AutoCAD properties palette for that entity.
+    - Each descriptor carries `Category`, `DisplayName`, `PropertyType`, `Order`,
+      `GetValue`, optional `TrySetValue` (omit or `null` for read-only; avoid
+      setting `IsReadOnly` explicitly — it is computed from `TrySetValue == null`),
+      optional `ComboOptions`, and `SingleSelectionOnly` (set `true` for
+      properties that make no sense in a multi-selection, e.g. per-vertex data).
+    - Convert units at this boundary (e.g. radians → degrees via
+      `NormalCAD.Utilities.AngleConverter`); Core stays in radians.
+ 2. Add a `<ENTITY>.DISPLAYNAME` key to `NormalCAD/Resources/EntityProperties.resx`
+    (e.g. `"MyEntity"`).
+ 3. If the entity exposes enum or value-list properties, create an option provider
+    under `NormalCAD/Controller/Providers/` returning `IReadOnlyList<ComboOption>`,
+    add display value keys to `NormalCAD/Resources/ComboOptions.resx`, and set
+    `ComboOptions` on the descriptor instead of `ComboValues`.
+ 4. Register it in `EntityPropertyManager` (constructor):
+
    ```csharp
    Register<MyEntity>(new MyEntityPropertyProvider());
    ```
+
    The manager always prepends the common `EntityPropertyProvider` (General
    category: Color, Layer, Linetype, ...), so only add entity-specific
    (Geometry/Misc) properties here.
@@ -118,6 +134,7 @@ Round-trips the entity to/from ACadSharp for DXF/DWG import/export.
 
 1. Create `NormalCAD/Controller/Services/Converters/<Entity>Converter.cs`
    deriving from `EntityConverter<TNormal, TAcad>`:
+
    ```csharp
    public class MyEntityConverter : EntityConverter<MyEntity, ACadSharp.Entities.MyAcadEntity>
    {
@@ -125,15 +142,18 @@ Round-trips the entity to/from ACadSharp for DXF/DWG import/export.
        public override MyEntity ConvertToNormal(ACadSharp.Entities.MyAcadEntity source) { ... }
    }
    ```
+
    - Call `ApplyEntityPropertiesToAcad` / `ApplyEntityPropertiesToNormal` to
      copy the common properties (layer, color, linetype, lineweight,
      transparency, visibility).
    - Map every entity-specific field (and keep angle units consistent — both
      ACadSharp and Core store angles in radians).
 2. Register it in `ConverterService` (constructor):
+
    ```csharp
    Register(new MyEntityConverter());
    ```
+
    Dispatch is by concrete type in both directions; an unregistered type is
    skipped during import/export.
 
@@ -178,7 +198,10 @@ Core (`NormalCAD.Core`):
 Application (`NormalCAD`):
 
 - [ ] `View/Drawing/<Entity>Renderer.cs` + register in `DrawingService`
-- [ ] `Controller/Providers/<Entity>PropertyProvider.cs` + register in `EntityPropertyManager`
+- [ ] `Controller/Providers/<Entity>PropertyProvider.cs` (with `DisplayName`,
+      `ComboOptions` for enum props, no explicit `IsReadOnly`) + register in `EntityPropertyManager`
+- [ ] `EntityProperties.resx` `<ENTITY>.DISPLAYNAME` key
+- [ ] `ComboOptions.resx` keys for any combo/enum values + `Controller/Providers/<Entity>OptionProvider.cs`
 - [ ] `Controller/Services/Converters/<Entity>Converter.cs` + register in `ConverterService`
 - [ ] `Controller/Commands/<Verb>Command.cs` (auto-discovered) + `Commands.resx` strings
 - [ ] `MenuBar` entry (evaluate the need, prefer adding one; invoke by invariant `Name`)
