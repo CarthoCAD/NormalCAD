@@ -2,11 +2,25 @@ using System;
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Providers
 {
     public class PolylinePropertyProvider : IEntityPropertyProvider
     {
+        private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
+        private static string CategoryMisc => EntityPropertyResources.Get("CATEGORY.MISC");
+        private static string CurrentVertexLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.CURRENTVERTEX");
+        private static string VertexXLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.VERTEXX");
+        private static string VertexYLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.VERTEXY");
+        private static string StartSegmentWidthLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.STARTSEGMENTWIDTH");
+        private static string EndSegmentWidthLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.ENDSEGMENTWIDTH");
+        private static string GlobalWidthLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.GLOBALWIDTH");
+        private static string ElevationLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.ELEVATION");
+        private static string AreaLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.AREA");
+        private static string LengthLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.LENGTH");
+        private static string ClosedLabel => EntityPropertyResources.Get("POLYLINE.MISC.CLOSED");
+
         private Polyline? _current;
         private int _vertexIndex;
 
@@ -25,8 +39,8 @@ namespace NormalCAD.Controller.Providers
 
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Current Vertex",
+                Category = CategoryGeometry,
+                DisplayName = CurrentVertexLabel,
                 PropertyType = typeof(int),
                 Order = 101,
                 SingleSelectionOnly = true,
@@ -42,8 +56,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Vertex X",
+                Category = CategoryGeometry,
+                DisplayName = VertexXLabel,
                 PropertyType = typeof(double),
                 Order = 102,
                 SingleSelectionOnly = true,
@@ -58,8 +72,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Vertex Y",
+                Category = CategoryGeometry,
+                DisplayName = VertexYLabel,
                 PropertyType = typeof(double),
                 Order = 103,
                 SingleSelectionOnly = true,
@@ -74,8 +88,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start segment width",
+                Category = CategoryGeometry,
+                DisplayName = StartSegmentWidthLabel,
                 PropertyType = typeof(double),
                 Order = 104,
                 SingleSelectionOnly = true,
@@ -89,8 +103,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End segment width",
+                Category = CategoryGeometry,
+                DisplayName = EndSegmentWidthLabel,
                 PropertyType = typeof(double),
                 Order = 105,
                 SingleSelectionOnly = true,
@@ -104,8 +118,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Global width",
+                Category = CategoryGeometry,
+                DisplayName = GlobalWidthLabel,
                 PropertyType = typeof(double),
                 Order = 106,
                 GetValue = () => GetGlobalWidth(polyline),
@@ -119,8 +133,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Elevation",
+                Category = CategoryGeometry,
+                DisplayName = ElevationLabel,
                 PropertyType = typeof(double),
                 Order = 107,
                 GetValue = () => polyline.Elevation,
@@ -128,8 +142,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Area",
+                Category = CategoryGeometry,
+                DisplayName = AreaLabel,
                 PropertyType = typeof(double),
                 Order = 108,
                 GetValue = () => polyline.Area,
@@ -137,16 +151,16 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Length",
+                Category = CategoryGeometry,
+                DisplayName = LengthLabel,
                 PropertyType = typeof(double),
                 Order = 109,
                 GetValue = () => polyline.Length, IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
-                Category = "Misc",
-                DisplayName = "Closed",
+                Category = CategoryMisc,
+                DisplayName = ClosedLabel,
                 PropertyType = typeof(bool),
                 Order = 201,
                 GetValue = () => polyline.Closed,

@@ -1,20 +1,38 @@
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 using NormalCAD.Utilities;
 
 namespace NormalCAD.Controller.Providers
 {
     public class ArcPropertyProvider : IEntityPropertyProvider
     {
+        private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
+        private static string StartXLabel => EntityPropertyResources.Get("ARC.GEOMETRY.STARTX");
+        private static string StartYLabel => EntityPropertyResources.Get("ARC.GEOMETRY.STARTY");
+        private static string StartZLabel => EntityPropertyResources.Get("ARC.GEOMETRY.STARTZ");
+        private static string CenterXLabel => EntityPropertyResources.Get("ARC.GEOMETRY.CENTERX");
+        private static string CenterYLabel => EntityPropertyResources.Get("ARC.GEOMETRY.CENTERY");
+        private static string CenterZLabel => EntityPropertyResources.Get("ARC.GEOMETRY.CENTERZ");
+        private static string EndXLabel => EntityPropertyResources.Get("ARC.GEOMETRY.ENDX");
+        private static string EndYLabel => EntityPropertyResources.Get("ARC.GEOMETRY.ENDY");
+        private static string EndZLabel => EntityPropertyResources.Get("ARC.GEOMETRY.ENDZ");
+        private static string RadiusLabel => EntityPropertyResources.Get("ARC.GEOMETRY.RADIUS");
+        private static string StartAngleLabel => EntityPropertyResources.Get("ARC.GEOMETRY.STARTANGLE");
+        private static string EndAngleLabel => EntityPropertyResources.Get("ARC.GEOMETRY.ENDANGLE");
+        private static string TotalAngleLabel => EntityPropertyResources.Get("ARC.GEOMETRY.TOTALANGLE");
+        private static string ArcLengthLabel => EntityPropertyResources.Get("ARC.GEOMETRY.ARCLENGTH");
+        private static string AreaLabel => EntityPropertyResources.Get("ARC.GEOMETRY.AREA");
+
         public IEnumerable<PropertyDescriptor> GetProperties(Entity entity)
         {
             if (entity is not Arc arc) yield break;
 
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start X",
+                Category = CategoryGeometry,
+                DisplayName = StartXLabel,
                 PropertyType = typeof(double),
                 Order = 101,
                 GetValue = () => arc.StartPoint.X,
@@ -22,8 +40,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start Y",
+                Category = CategoryGeometry,
+                DisplayName = StartYLabel,
                 PropertyType = typeof(double),
                 Order = 102,
                 GetValue = () => arc.StartPoint.Y,
@@ -31,8 +49,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start Z",
+                Category = CategoryGeometry,
+                DisplayName = StartZLabel,
                 PropertyType = typeof(double),
                 Order = 103,
                 GetValue = () => arc.StartPoint.Z,
@@ -40,8 +58,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Center X",
+                Category = CategoryGeometry,
+                DisplayName = CenterXLabel,
                 PropertyType = typeof(double),
                 Order = 104,
                 GetValue = () => arc.Center.X,
@@ -49,16 +67,16 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Center Y",
+                Category = CategoryGeometry,
+                DisplayName = CenterYLabel,
                 PropertyType = typeof(double), Order = 105,
                 GetValue = () => arc.Center.Y,
                 TrySetValue = v => { arc.Center = new Point3d(arc.Center.X, (double)v!, arc.Center.Z); return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Center Z",
+                Category = CategoryGeometry,
+                DisplayName = CenterZLabel,
                 PropertyType = typeof(double),
                 Order = 106,
                 GetValue = () => arc.Center.Z,
@@ -66,8 +84,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End X",
+                Category = CategoryGeometry,
+                DisplayName = EndXLabel,
                 PropertyType = typeof(double),
                 Order = 107,
                 GetValue = () => arc.EndPoint.X,
@@ -75,8 +93,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End Y",
+                Category = CategoryGeometry,
+                DisplayName = EndYLabel,
                 PropertyType = typeof(double),
                 Order = 108,
                 GetValue = () => arc.EndPoint.Y,
@@ -84,8 +102,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End Z",
+                Category = CategoryGeometry,
+                DisplayName = EndZLabel,
                 PropertyType = typeof(double),
                 Order = 109,
                 GetValue = () => arc.EndPoint.Z,
@@ -93,8 +111,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Radius",
+                Category = CategoryGeometry,
+                DisplayName = RadiusLabel,
                 PropertyType = typeof(double),
                 Order = 110,
                 GetValue = () => arc.Radius,
@@ -102,8 +120,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start angle",
+                Category = CategoryGeometry,
+                DisplayName = StartAngleLabel,
                 PropertyType = typeof(double),
                 Order = 111,
                 GetValue = () => AngleConverter.ToDegrees(arc.StartAngle),
@@ -111,8 +129,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End angle",
+                Category = CategoryGeometry,
+                DisplayName = EndAngleLabel,
                 PropertyType = typeof(double),
                 Order = 112,
                 GetValue = () => AngleConverter.ToDegrees(arc.EndAngle),
@@ -120,8 +138,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Total angle",
+                Category = CategoryGeometry,
+                DisplayName = TotalAngleLabel,
                 PropertyType = typeof(double),
                 Order = 113,
                 GetValue = () => AngleConverter.ToDegrees(arc.TotalAngle),
@@ -129,8 +147,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Arc Length",
+                Category = CategoryGeometry,
+                DisplayName = ArcLengthLabel,
                 PropertyType = typeof(double),
                 Order = 114,
                 GetValue = () => arc.Length,
@@ -138,8 +156,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Area",
+                Category = CategoryGeometry,
+                DisplayName = AreaLabel,
                 PropertyType = typeof(double),
                 Order = 115,
                 GetValue = () => arc.Area,

@@ -1,19 +1,33 @@
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Providers
 {
     public class LinePropertyProvider : IEntityPropertyProvider
     {
+        private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
+        private static string StartXLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTX");
+        private static string StartYLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTY");
+        private static string StartZLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTZ");
+        private static string EndXLabel => EntityPropertyResources.Get("LINE.GEOMETRY.ENDX");
+        private static string EndYLabel => EntityPropertyResources.Get("LINE.GEOMETRY.ENDY");
+        private static string EndZLabel => EntityPropertyResources.Get("LINE.GEOMETRY.ENDZ");
+        private static string DeltaXLabel => EntityPropertyResources.Get("LINE.GEOMETRY.DELTAX");
+        private static string DeltaYLabel => EntityPropertyResources.Get("LINE.GEOMETRY.DELTAY");
+        private static string DeltaZLabel => EntityPropertyResources.Get("LINE.GEOMETRY.DELTAZ");
+        private static string LengthLabel => EntityPropertyResources.Get("LINE.GEOMETRY.LENGTH");
+        private static string AngleLabel => EntityPropertyResources.Get("LINE.GEOMETRY.ANGLE");
+
         public IEnumerable<PropertyDescriptor> GetProperties(Entity entity)
         {
             if (entity is not Line line) yield break;
 
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start X",
+                Category = CategoryGeometry,
+                DisplayName = StartXLabel,
                 PropertyType = typeof(double),
                 Order = 101,
                 GetValue = () => line.StartPoint.X,
@@ -21,8 +35,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start Y",
+                Category = CategoryGeometry,
+                DisplayName = StartYLabel,
                 PropertyType = typeof(double),
                 Order = 102,
                 GetValue = () => line.StartPoint.Y,
@@ -30,8 +44,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Start Z",
+                Category = CategoryGeometry,
+                DisplayName = StartZLabel,
                 PropertyType = typeof(double),
                 Order = 103,
                 GetValue = () => line.StartPoint.Z,
@@ -39,8 +53,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End X",
+                Category = CategoryGeometry,
+                DisplayName = EndXLabel,
                 PropertyType = typeof(double),
                 Order = 104,
                 GetValue = () => line.EndPoint.X,
@@ -48,8 +62,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End Y",
+                Category = CategoryGeometry,
+                DisplayName = EndYLabel,
                 PropertyType = typeof(double),
                 Order = 105,
                 GetValue = () => line.EndPoint.Y,
@@ -57,8 +71,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "End Z",
+                Category = CategoryGeometry,
+                DisplayName = EndZLabel,
                 PropertyType = typeof(double),
                 Order = 106,
                 GetValue = () => line.EndPoint.Z,
@@ -66,8 +80,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Delta X",
+                Category = CategoryGeometry,
+                DisplayName = DeltaXLabel,
                 PropertyType = typeof(double),
                 Order = 107,
                 GetValue = () => line.Delta.X,
@@ -75,8 +89,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Delta Y",
+                Category = CategoryGeometry,
+                DisplayName = DeltaYLabel,
                 PropertyType = typeof(double),
                 Order = 108,
                 GetValue = () => line.Delta.Y,
@@ -84,8 +98,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Delta Z",
+                Category = CategoryGeometry,
+                DisplayName = DeltaZLabel,
                 PropertyType = typeof(double),
                 Order = 109,
                 GetValue = () => line.Delta.Z,
@@ -93,8 +107,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Length",
+                Category = CategoryGeometry,
+                DisplayName = LengthLabel,
                 PropertyType = typeof(double),
                 Order = 110,
                 GetValue = () => line.Length,
@@ -102,8 +116,8 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "Geometry",
-                DisplayName = "Angle",
+                Category = CategoryGeometry,
+                DisplayName = AngleLabel,
                 PropertyType = typeof(double),
                 Order = 111,
                 GetValue = () => line.Angle,

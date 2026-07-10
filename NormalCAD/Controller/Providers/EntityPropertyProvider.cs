@@ -3,16 +3,25 @@ using System.Collections.Generic;
 using NormalCAD.Core;
 using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Providers
 {
     public class EntityPropertyProvider : IEntityPropertyProvider
     {
+        private static string CategoryGeneral => EntityPropertyResources.Get("CATEGORY.GENERAL");
+        private static string ColorLabel => EntityPropertyResources.Get("ENTITY.GENERAL.COLOR");
+        private static string LayerLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LAYER");
+        private static string LinetypeLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINETYPE");
+        private static string LinetypeScaleLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINETYPESCALE");
+        private static string LineweightLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINEWEIGHT");
+        private static string TransparencyLabel => EntityPropertyResources.Get("ENTITY.GENERAL.TRANSPARENCY");
+
         public IEnumerable<PropertyDescriptor> GetProperties(Entity entity)
         {
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Color", PropertyType = typeof(string),
+                Category = CategoryGeneral, DisplayName = ColorLabel, PropertyType = typeof(string),
                 Order = 1,
                 GetValue = () => entity.Color.ToString(),
                 TrySetValue = v =>
@@ -25,7 +34,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Layer", PropertyType = typeof(string),
+                Category = CategoryGeneral, DisplayName = LayerLabel, PropertyType = typeof(string),
                 Order = 2, GetValue = () => entity.Layer,
                 TrySetValue = v =>
                 {
@@ -44,20 +53,20 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Linetype", PropertyType = typeof(string),
+                Category = CategoryGeneral, DisplayName = LinetypeLabel, PropertyType = typeof(string),
                 Order = 3, GetValue = () => entity.Linetype,
                 ComboValues = new[] { "ByLayer", "ByBlock", "Continuous" },
                 TrySetValue = v => { entity.Linetype = (string)v!; return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Linetype Scale", PropertyType = typeof(double),
+                Category = CategoryGeneral, DisplayName = LinetypeScaleLabel, PropertyType = typeof(double),
                 Order = 4, GetValue = () => entity.LinetypeScale,
                 TrySetValue = v => { entity.LinetypeScale = (double)v!; return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Lineweight", PropertyType = typeof(LineWeight),
+                Category = CategoryGeneral, DisplayName = LineweightLabel, PropertyType = typeof(LineWeight),
                 Order = 5,
                 ComboValues = LineWeightFormatter.GetValues(),
                 GetValue = () => LineWeightFormatter.Format(entity.LineWeight),
@@ -71,7 +80,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Transparency", PropertyType = typeof(string),
+                Category = CategoryGeneral, DisplayName = TransparencyLabel, PropertyType = typeof(string),
                 Order = 6,
                 GetValue = () => entity.Transparency.ToString(),
                 TrySetValue = v =>

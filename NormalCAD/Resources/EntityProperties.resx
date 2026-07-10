@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== Categories ===== -->
+  <data name="CATEGORY.GENERAL" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="CATEGORY.GEOMETRY" xml:space="preserve">
+    <value>Geometry</value>
+  </data>
+  <data name="CATEGORY.MISC" xml:space="preserve">
+    <value>Misc</value>
+  </data>
+
+  <!-- ===== Entity General ===== -->
+  <data name="ENTITY.GENERAL.COLOR" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="ENTITY.GENERAL.LAYER" xml:space="preserve">
+    <value>Layer</value>
+  </data>
+  <data name="ENTITY.GENERAL.LINETYPE" xml:space="preserve">
+    <value>Linetype</value>
+  </data>
+  <data name="ENTITY.GENERAL.LINETYPESCALE" xml:space="preserve">
+    <value>Linetype Scale</value>
+  </data>
+  <data name="ENTITY.GENERAL.LINEWEIGHT" xml:space="preserve">
+    <value>Lineweight</value>
+  </data>
+  <data name="ENTITY.GENERAL.TRANSPARENCY" xml:space="preserve">
+    <value>Transparency</value>
+  </data>
+  <data name="ENTITY.GENERAL.VISIBLE" xml:space="preserve">
+    <value>Visible</value>
+  </data>
+
+  <!-- ===== LINE Geometry ===== -->
+  <data name="LINE.GEOMETRY.STARTX" xml:space="preserve">
+    <value>Start X</value>
+  </data>
+  <data name="LINE.GEOMETRY.STARTY" xml:space="preserve">
+    <value>Start Y</value>
+  </data>
+  <data name="LINE.GEOMETRY.STARTZ" xml:space="preserve">
+    <value>Start Z</value>
+  </data>
+  <data name="LINE.GEOMETRY.ENDX" xml:space="preserve">
+    <value>End X</value>
+  </data>
+  <data name="LINE.GEOMETRY.ENDY" xml:space="preserve">
+    <value>End Y</value>
+  </data>
+  <data name="LINE.GEOMETRY.ENDZ" xml:space="preserve">
+    <value>End Z</value>
+  </data>
+  <data name="LINE.GEOMETRY.DELTAX" xml:space="preserve">
+    <value>Delta X</value>
+  </data>
+  <data name="LINE.GEOMETRY.DELTAY" xml:space="preserve">
+    <value>Delta Y</value>
+  </data>
+  <data name="LINE.GEOMETRY.DELTAZ" xml:space="preserve">
+    <value>Delta Z</value>
+  </data>
+  <data name="LINE.GEOMETRY.LENGTH" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="LINE.GEOMETRY.ANGLE" xml:space="preserve">
+    <value>Angle</value>
+  </data>
+
+  <!-- ===== CIRCLE Geometry ===== -->
+  <data name="CIRCLE.GEOMETRY.CENTERX" xml:space="preserve">
+    <value>Center X</value>
+  </data>
+  <data name="CIRCLE.GEOMETRY.CENTERY" xml:space="preserve">
+    <value>Center Y</value>
+  </data>
+  <data name="CIRCLE.GEOMETRY.CENTERZ" xml:space="preserve">
+    <value>Center Z</value>
+  </data>
+  <data name="CIRCLE.GEOMETRY.RADIUS" xml:space="preserve">
+    <value>Radius</value>
+  </data>
+  <data name="CIRCLE.GEOMETRY.DIAMETER" xml:space="preserve">
+    <value>Diameter</value>
+  </data>
+  <data name="CIRCLE.GEOMETRY.CIRCUMFERENCE" xml:space="preserve">
+    <value>Circumference</value>
+  </data>
+  <data name="CIRCLE.GEOMETRY.AREA" xml:space="preserve">
+    <value>Area</value>
+  </data>
+
+  <!-- ===== ARC Geometry ===== -->
+  <data name="ARC.GEOMETRY.STARTX" xml:space="preserve">
+    <value>Start X</value>
+  </data>
+  <data name="ARC.GEOMETRY.STARTY" xml:space="preserve">
+    <value>Start Y</value>
+  </data>
+  <data name="ARC.GEOMETRY.STARTZ" xml:space="preserve">
+    <value>Start Z</value>
+  </data>
+  <data name="ARC.GEOMETRY.CENTERX" xml:space="preserve">
+    <value>Center X</value>
+  </data>
+  <data name="ARC.GEOMETRY.CENTERY" xml:space="preserve">
+    <value>Center Y</value>
+  </data>
+  <data name="ARC.GEOMETRY.CENTERZ" xml:space="preserve">
+    <value>Center Z</value>
+  </data>
+  <data name="ARC.GEOMETRY.ENDX" xml:space="preserve">
+    <value>End X</value>
+  </data>
+  <data name="ARC.GEOMETRY.ENDY" xml:space="preserve">
+    <value>End Y</value>
+  </data>
+  <data name="ARC.GEOMETRY.ENDZ" xml:space="preserve">
+    <value>End Z</value>
+  </data>
+  <data name="ARC.GEOMETRY.RADIUS" xml:space="preserve">
+    <value>Radius</value>
+  </data>
+  <data name="ARC.GEOMETRY.STARTANGLE" xml:space="preserve">
+    <value>Start angle</value>
+  </data>
+  <data name="ARC.GEOMETRY.ENDANGLE" xml:space="preserve">
+    <value>End angle</value>
+  </data>
+  <data name="ARC.GEOMETRY.TOTALANGLE" xml:space="preserve">
+    <value>Total angle</value>
+  </data>
+  <data name="ARC.GEOMETRY.ARCLENGTH" xml:space="preserve">
+    <value>Arc Length</value>
+  </data>
+  <data name="ARC.GEOMETRY.AREA" xml:space="preserve">
+    <value>Area</value>
+  </data>
+
+  <!-- ===== POLYLINE Geometry/Misc ===== -->
+  <data name="POLYLINE.GEOMETRY.CURRENTVERTEX" xml:space="preserve">
+    <value>Current Vertex</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.VERTEXX" xml:space="preserve">
+    <value>Vertex X</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.VERTEXY" xml:space="preserve">
+    <value>Vertex Y</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.STARTSEGMENTWIDTH" xml:space="preserve">
+    <value>Start segment width</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.ENDSEGMENTWIDTH" xml:space="preserve">
+    <value>End segment width</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.GLOBALWIDTH" xml:space="preserve">
+    <value>Global width</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.ELEVATION" xml:space="preserve">
+    <value>Elevation</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.AREA" xml:space="preserve">
+    <value>Area</value>
+  </data>
+  <data name="POLYLINE.GEOMETRY.LENGTH" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="POLYLINE.MISC.CLOSED" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+</root>
