@@ -22,6 +22,7 @@ namespace NormalCAD.View.Controls
         private static string CategoryFallback => PanelResources.Get("PROPERTYPALETTE.CATEGORY.FALLBACK");
         private static string BooleanYes => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.YES");
         private static string BooleanNo => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.NO");
+        private static string InvalidValueFormat => PanelResources.Get("PROPERTYPALETTE.MSG.INVALID_VALUE");
 
         private Controller.CadController? _controller;
         private EntityPropertyManager? _propertyManager;
@@ -132,7 +133,7 @@ namespace NormalCAD.View.Controls
 
             _txtPropsTitle.Text = entities.Count > 1
                 ? string.Format(SelectedFormat, entities.Count)
-                : entities[0].GetType().Name;
+                : _propertyManager.GetDisplayName(entities[0].GetType());
 
             var descriptors = entities.Count == 1
                 ? _propertyManager.GetProperties(entities[0])
@@ -164,7 +165,7 @@ namespace NormalCAD.View.Controls
 
                 _propsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
                 object value = desc.GetValue() ?? "";
-                bool isReadOnly = desc.IsReadOnly || desc.TrySetValue == null;
+                bool isReadOnly = desc.IsReadOnly;
 
                 var label = new TextBlock
                 {
@@ -177,7 +178,7 @@ namespace NormalCAD.View.Controls
                 Grid.SetColumn(label, 0);
                 Grid.SetRow(label, rowIndex);
 
-                Control editor = desc.PropertyType.IsEnum || desc.PropertyType == typeof(bool) || desc.ComboValues is not null
+                Control editor = desc.ComboOptions is not null || desc.PropertyType == typeof(bool)
                     ? CreateComboEditor(desc, value, isReadOnly)
                     : CreateTextEditor(desc, value, isReadOnly);
 
@@ -259,23 +260,19 @@ namespace NormalCAD.View.Controls
                 Tag = desc
             };
 
-            if (desc.PropertyType == typeof(bool))
+            if (desc.ComboOptions is not null)
             {
-                cb.Items.Add(BooleanYes);
-                cb.Items.Add(BooleanNo);
-                cb.SelectedItem = value is bool b ? (b ? BooleanYes : BooleanNo) : null;
+                foreach (var opt in desc.ComboOptions)
+                    cb.Items.Add(opt);
+                cb.SelectedItem = desc.ComboOptions.FirstOrDefault(o => Equals(o.Value, desc.GetValue()));
             }
-            else if (desc.ComboValues is not null)
+            else if (desc.PropertyType == typeof(bool))
             {
-                foreach (var name in desc.ComboValues)
-                    cb.Items.Add(name);
-                cb.SelectedItem = value.ToString();
-            }
-            else
-            {
-                foreach (var name in Enum.GetNames(desc.PropertyType))
-                    cb.Items.Add(name);
-                cb.SelectedItem = value.ToString();
+                var trueOpt = new ComboOption(true, BooleanYes);
+                var falseOpt = new ComboOption(false, BooleanNo);
+                cb.Items.Add(trueOpt);
+                cb.Items.Add(falseOpt);
+                cb.SelectedItem = value is bool b ? (b ? trueOpt : falseOpt) : null;
             }
 
             if (!readOnly)
@@ -318,15 +315,18 @@ namespace NormalCAD.View.Controls
         private void OnComboEditorChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (sender is not ComboBox cb || cb.Tag is not CorePropDesc desc) return;
-            if (cb.SelectedItem is not string name || desc.TrySetValue == null) return;
+            if (desc.TrySetValue == null) return;
 
             object? value;
-            if (desc.PropertyType == typeof(bool))
-                value = name == BooleanYes;
-            else if (desc.ComboValues is not null)
-                value = name;
+
+            if (cb.SelectedItem is ComboOption option)
+            {
+                value = option.Value;
+            }
             else
-                value = Enum.Parse(desc.PropertyType, name);
+            {
+                return;
+            }
 
             ApplyAndCommit(desc, value);
         }
@@ -348,7 +348,7 @@ namespace NormalCAD.View.Controls
                     }
                     else
                     {
-                        _controller.InputManager.SetPromptMessage($"Invalid value for {desc.DisplayName}.");
+                        _controller.InputManager.SetPromptMessage(string.Format(InvalidValueFormat, desc.DisplayName));
                     }
                 }
             }

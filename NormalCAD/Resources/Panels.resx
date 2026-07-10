@@ -32,6 +32,12 @@
   <data name="PROPERTYPALETTE.BOOLEAN.NO" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="PROPERTYPALETTE.MSG.INVALID_VALUE" xml:space="preserve">
+    <value>Invalid value for {0}.</value>
+  </data>
+  <data name="PROPERTYPALETTE.VALUE.VARIES" xml:space="preserve">
+    <value>*VARIES*</value>
+  </data>
 
   <!-- ===== LayerPalette ===== -->
   <data name="LAYERPALETTE.PLACEHOLDER.NEWLAYER" xml:space="preserve">

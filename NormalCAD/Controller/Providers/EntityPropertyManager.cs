@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Providers
 {
@@ -9,6 +10,8 @@ namespace NormalCAD.Controller.Providers
     {
         private readonly Dictionary<Type, IEntityPropertyProvider> _providers = new();
         private readonly EntityPropertyProvider _entity = new();
+
+        private static string VariesValue => PanelResources.Get("PROPERTYPALETTE.VALUE.VARIES");
 
         public EntityPropertyManager()
         {
@@ -22,6 +25,9 @@ namespace NormalCAD.Controller.Providers
         {
             _providers[typeof(T)] = provider;
         }
+
+        public string GetDisplayName(Type entityType) =>
+            _providers.TryGetValue(entityType, out var provider) ? provider.DisplayName : entityType.Name;
 
         public IReadOnlyList<PropertyDescriptor> GetProperties(Entity entity)
         {
@@ -71,13 +77,12 @@ namespace NormalCAD.Controller.Providers
                     Category = descriptor.Category,
                     DisplayName = descriptor.DisplayName,
                     PropertyType = descriptor.PropertyType,
-                    IsReadOnly = isReadOnly,
                     Order = descriptor.Order,
-                    ComboValues = descriptor.ComboValues,
+                    ComboOptions = descriptor.ComboOptions,
                     GetValue = () =>
                     {
                         var values = matches.Select(d => d.GetValue()).Distinct().ToList();
-                        return values.Count == 1 ? values[0] : "*VARIES*";
+                        return values.Count == 1 ? values[0] : VariesValue;
                     },
                     TrySetValue = isReadOnly ? null : v =>
                     {

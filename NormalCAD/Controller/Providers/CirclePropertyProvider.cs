@@ -8,6 +8,8 @@ namespace NormalCAD.Controller.Providers
 {
     public class CirclePropertyProvider : IEntityPropertyProvider
     {
+        public string DisplayName => EntityPropertyResources.Get("CIRCLE.DISPLAYNAME");
+
         private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
         private static string CenterXLabel => EntityPropertyResources.Get("CIRCLE.GEOMETRY.CENTERX");
         private static string CenterYLabel => EntityPropertyResources.Get("CIRCLE.GEOMETRY.CENTERY");

@@ -5,6 +5,7 @@ namespace NormalCAD.Controller.Providers
 {
     public interface IEntityPropertyProvider
     {
+        string DisplayName { get; }
         IEnumerable<PropertyDescriptor> GetProperties(Entity entity);
     }
 }

@@ -9,6 +9,8 @@ namespace NormalCAD.Controller.Providers
 {
     public class EntityPropertyProvider : IEntityPropertyProvider
     {
+        public string DisplayName => string.Empty;
+
         private static string CategoryGeneral => EntityPropertyResources.Get("CATEGORY.GENERAL");
         private static string ColorLabel => EntityPropertyResources.Get("ENTITY.GENERAL.COLOR");
         private static string LayerLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LAYER");
@@ -55,7 +57,7 @@ namespace NormalCAD.Controller.Providers
             {
                 Category = CategoryGeneral, DisplayName = LinetypeLabel, PropertyType = typeof(string),
                 Order = 3, GetValue = () => entity.Linetype,
-                ComboValues = new[] { "ByLayer", "ByBlock", "Continuous" },
+                ComboOptions = LinetypeOptionProvider.GetOptions(),
                 TrySetValue = v => { entity.Linetype = (string)v!; return true; }
             };
             yield return new PropertyDescriptor
@@ -68,14 +70,12 @@ namespace NormalCAD.Controller.Providers
             {
                 Category = CategoryGeneral, DisplayName = LineweightLabel, PropertyType = typeof(LineWeight),
                 Order = 5,
-                ComboValues = LineWeightFormatter.GetValues(),
-                GetValue = () => LineWeightFormatter.Format(entity.LineWeight),
+                ComboOptions = LineWeightOptionProvider.GetOptions(),
+                GetValue = () => entity.LineWeight,
                 TrySetValue = v =>
                 {
-                    if (v is not string s) return false;
-                    if (!LineWeightFormatter.TryParse(s, out var lw)) return false;
-                    entity.LineWeight = lw;
-                    return true;
+                    if (v is LineWeight lw) { entity.LineWeight = lw; return true; }
+                    return false;
                 }
             };
             yield return new PropertyDescriptor

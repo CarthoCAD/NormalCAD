@@ -8,6 +8,8 @@ namespace NormalCAD.Controller.Providers
 {
     public class ArcPropertyProvider : IEntityPropertyProvider
     {
+        public string DisplayName => EntityPropertyResources.Get("ARC.DISPLAYNAME");
+
         private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
         private static string StartXLabel => EntityPropertyResources.Get("ARC.GEOMETRY.STARTX");
         private static string StartYLabel => EntityPropertyResources.Get("ARC.GEOMETRY.STARTY");
@@ -36,7 +38,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 101,
                 GetValue = () => arc.StartPoint.X,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -45,7 +46,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 102,
                 GetValue = () => arc.StartPoint.Y,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -54,7 +54,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 103,
                 GetValue = () => arc.StartPoint.Z,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -89,7 +88,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 107,
                 GetValue = () => arc.EndPoint.X,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -98,7 +96,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 108,
                 GetValue = () => arc.EndPoint.Y,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -107,7 +104,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 109,
                 GetValue = () => arc.EndPoint.Z,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -143,7 +139,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 113,
                 GetValue = () => AngleConverter.ToDegrees(arc.TotalAngle),
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -152,7 +147,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 114,
                 GetValue = () => arc.Length,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -161,7 +155,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 115,
                 GetValue = () => arc.Area,
-                IsReadOnly = true
             };
         }
     }

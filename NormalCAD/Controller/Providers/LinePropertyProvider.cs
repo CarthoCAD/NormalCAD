@@ -7,6 +7,8 @@ namespace NormalCAD.Controller.Providers
 {
     public class LinePropertyProvider : IEntityPropertyProvider
     {
+        public string DisplayName => EntityPropertyResources.Get("LINE.DISPLAYNAME");
+
         private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
         private static string StartXLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTX");
         private static string StartYLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTY");
@@ -85,7 +87,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 107,
                 GetValue = () => line.Delta.X,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -94,7 +95,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 108,
                 GetValue = () => line.Delta.Y,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -103,7 +103,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 109,
                 GetValue = () => line.Delta.Z,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -112,7 +111,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 110,
                 GetValue = () => line.Length,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -121,7 +119,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 111,
                 GetValue = () => line.Angle,
-                IsReadOnly = true
             };
         }
     }

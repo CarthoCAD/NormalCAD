@@ -8,6 +8,8 @@ namespace NormalCAD.Controller.Providers
 {
     public class PolylinePropertyProvider : IEntityPropertyProvider
     {
+        public string DisplayName => EntityPropertyResources.Get("POLYLINE.DISPLAYNAME");
+
         private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
         private static string CategoryMisc => EntityPropertyResources.Get("CATEGORY.MISC");
         private static string CurrentVertexLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.CURRENTVERTEX");
@@ -147,7 +149,6 @@ namespace NormalCAD.Controller.Providers
                 PropertyType = typeof(double),
                 Order = 108,
                 GetValue = () => polyline.Area,
-                IsReadOnly = true
             };
             yield return new PropertyDescriptor
             {
@@ -155,7 +156,7 @@ namespace NormalCAD.Controller.Providers
                 DisplayName = LengthLabel,
                 PropertyType = typeof(double),
                 Order = 109,
-                GetValue = () => polyline.Length, IsReadOnly = true
+                GetValue = () => polyline.Length
             };
             yield return new PropertyDescriptor
             {
