@@ -51,6 +51,15 @@ namespace NormalCAD.View.Controls
             var txtNewLayerName = this.FindControl<TextBox>("TxtNewLayerName");
             if (txtNewLayerName != null)
                 txtNewLayerName.PlaceholderText = PlaceholderNewLayer;
+
+            global::NormalCAD.Controller.Services.LanguageService.LanguageChanged += RelocalizeUi;
+        }
+
+        private void RelocalizeUi()
+        {
+            var txtNewLayerName = this.FindControl<TextBox>("TxtNewLayerName");
+            if (txtNewLayerName != null)
+                txtNewLayerName.PlaceholderText = PlaceholderNewLayer;
         }
 
         private void OnDatabaseChanged()

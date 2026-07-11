@@ -83,6 +83,21 @@ namespace NormalCAD.View.Controls
 
             if (_txtPromptPrefix != null)
                 _txtPromptPrefix.Text = CmdLabelText;
+
+            global::NormalCAD.Controller.Services.LanguageService.LanguageChanged += RelocalizeUi;
+        }
+
+        private void RelocalizeUi()
+        {
+            var btnModel = this.FindControl<Button>("BtnModel");
+            if (btnModel != null)
+                btnModel.Content = ModelButtonText;
+
+            if (_txtPrompt != null)
+                _txtPrompt.PlaceholderText = CommandPlaceholder;
+
+            if (_txtPromptPrefix != null)
+                _txtPromptPrefix.Text = _controller?.InputManager.CurrentPrompt ?? CmdLabelText;
         }
 
         private async void OnTxtPromptKeyDown(object? sender, KeyEventArgs e)

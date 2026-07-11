@@ -20,6 +20,7 @@ namespace NormalCAD.Controller
         {
             _controller = cadController;
             DiscoverCommands();
+            Services.LanguageService.LanguageChanged += RebuildIndex;
         }
 
         private void DiscoverCommands()
@@ -76,6 +77,12 @@ namespace NormalCAD.Controller
             }
 
             await Task.CompletedTask;
+        }
+
+        public void RebuildIndex()
+        {
+            _commands.Clear();
+            DiscoverCommands();
         }
     }
 }

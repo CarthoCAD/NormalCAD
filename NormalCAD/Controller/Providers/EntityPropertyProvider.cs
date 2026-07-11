@@ -3,16 +3,26 @@ using System.Collections.Generic;
 using NormalCAD.Core;
 using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Resources;
 
 namespace NormalCAD.Controller.Providers
 {
     public class EntityPropertyProvider : IEntityPropertyProvider
     {
+        public string DisplayName => string.Empty;
+
+        private static string ColorLabel => EntityPropertyResources.Get("ENTITY.GENERAL.COLOR");
+        private static string LayerLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LAYER");
+        private static string LinetypeLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINETYPE");
+        private static string LinetypeScaleLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINETYPESCALE");
+        private static string LineweightLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINEWEIGHT");
+        private static string TransparencyLabel => EntityPropertyResources.Get("ENTITY.GENERAL.TRANSPARENCY");
+
         public IEnumerable<PropertyDescriptor> GetProperties(Entity entity)
         {
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Color", PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = ColorLabel, PropertyType = typeof(string),
                 Order = 1,
                 GetValue = () => entity.Color.ToString(),
                 TrySetValue = v =>
@@ -25,7 +35,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Layer", PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = LayerLabel, PropertyType = typeof(string),
                 Order = 2, GetValue = () => entity.Layer,
                 TrySetValue = v =>
                 {
@@ -44,34 +54,32 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Linetype", PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = LinetypeLabel, PropertyType = typeof(string),
                 Order = 3, GetValue = () => entity.Linetype,
-                ComboValues = new[] { "ByLayer", "ByBlock", "Continuous" },
+                ComboOptions = LinetypeOptionProvider.GetOptions(),
                 TrySetValue = v => { entity.Linetype = (string)v!; return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Linetype Scale", PropertyType = typeof(double),
+                Category = PropertyCategory.General, DisplayName = LinetypeScaleLabel, PropertyType = typeof(double),
                 Order = 4, GetValue = () => entity.LinetypeScale,
                 TrySetValue = v => { entity.LinetypeScale = (double)v!; return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Lineweight", PropertyType = typeof(LineWeight),
+                Category = PropertyCategory.General, DisplayName = LineweightLabel, PropertyType = typeof(LineWeight),
                 Order = 5,
-                ComboValues = LineWeightFormatter.GetValues(),
-                GetValue = () => LineWeightFormatter.Format(entity.LineWeight),
+                ComboOptions = LineWeightOptionProvider.GetOptions(),
+                GetValue = () => entity.LineWeight,
                 TrySetValue = v =>
                 {
-                    if (v is not string s) return false;
-                    if (!LineWeightFormatter.TryParse(s, out var lw)) return false;
-                    entity.LineWeight = lw;
-                    return true;
+                    if (v is LineWeight lw) { entity.LineWeight = lw; return true; }
+                    return false;
                 }
             };
             yield return new PropertyDescriptor
             {
-                Category = "General", DisplayName = "Transparency", PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = TransparencyLabel, PropertyType = typeof(string),
                 Order = 6,
                 GetValue = () => entity.Transparency.ToString(),
                 TrySetValue = v =>

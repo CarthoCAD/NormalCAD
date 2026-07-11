@@ -15,47 +15,47 @@
 
   <!-- ===== PropertyPalette ===== -->
   <data name="PROPERTYPALETTE.MSG.NOSELECTION" xml:space="preserve">
-    <value>No selection</value>
+    <value>Nenhuma seleção</value>
   </data>
   <data name="PROPERTYPALETTE.MSG.SELECTED" xml:space="preserve">
-    <value>{0} selected</value>
+    <value>{0} selecionados</value>
   </data>
   <data name="PROPERTYPALETTE.MSG.UNKNOWN" xml:space="preserve">
-    <value>Unknown object</value>
+    <value>Objeto desconhecido</value>
   </data>
   <data name="PROPERTYPALETTE.CATEGORY.FALLBACK" xml:space="preserve">
-    <value>Properties</value>
+    <value>Propriedades</value>
   </data>
   <data name="PROPERTYPALETTE.BOOLEAN.YES" xml:space="preserve">
-    <value>Yes</value>
+    <value>Sim</value>
   </data>
   <data name="PROPERTYPALETTE.BOOLEAN.NO" xml:space="preserve">
-    <value>No</value>
+    <value>Não</value>
   </data>
   <data name="PROPERTYPALETTE.MSG.INVALID_VALUE" xml:space="preserve">
-    <value>Invalid value for {0}.</value>
+    <value>Valor inválido para {0}.</value>
   </data>
   <data name="PROPERTYPALETTE.VALUE.VARIES" xml:space="preserve">
-    <value>*VARIES*</value>
+    <value>*VARIA*</value>
   </data>
 
   <!-- ===== LayerPalette ===== -->
   <data name="LAYERPALETTE.PLACEHOLDER.NEWLAYER" xml:space="preserve">
-    <value>New Layer...</value>
+    <value>Nova Layer...</value>
   </data>
 
   <!-- ===== BottomBar ===== -->
   <data name="BOTTOMBAR.BUTTON.MODEL" xml:space="preserve">
-    <value>Model</value>
+    <value>Modelo</value>
   </data>
   <data name="BOTTOMBAR.LABEL.CMD" xml:space="preserve">
     <value>CMD:</value>
   </data>
   <data name="BOTTOMBAR.PLACEHOLDER.COMMAND" xml:space="preserve">
-    <value>Type a command...</value>
+    <value>Digite um comando...</value>
   </data>
   <data name="BOTTOMBAR.MSG.NOTIMPLEMENTED" xml:space="preserve">
-    <value>Tool not implemented yet</value>
+    <value>Ferramenta não implementada</value>
   </data>
 
   <!-- ===== MenuBar ===== -->
@@ -63,67 +63,67 @@
     <value>Base</value>
   </data>
   <data name="MENUBAR.MENU.FILE" xml:space="preserve">
-    <value>File</value>
+    <value>Arquivo</value>
   </data>
   <data name="MENUBAR.MENU.EDIT" xml:space="preserve">
-    <value>Edit</value>
+    <value>Editar</value>
   </data>
   <data name="MENUBAR.MENU.DRAW" xml:space="preserve">
-    <value>Draw</value>
+    <value>Desenhar</value>
   </data>
   <data name="MENUBAR.MENU.HELP" xml:space="preserve">
-    <value>Help</value>
+    <value>Ajuda</value>
   </data>
   <data name="MENUBAR.ITEM.BASE.OPTIONS" xml:space="preserve">
-    <value>Options</value>
+    <value>Opções</value>
   </data>
   <data name="MENUBAR.ITEM.BASE.CHANGETHEME" xml:space="preserve">
-    <value>Change Theme</value>
+    <value>Alterar Tema</value>
   </data>
   <data name="MENUBAR.ITEM.BASE.CHANGELANGUAGE" xml:space="preserve">
-    <value>Change Language</value>
+    <value>Alterar Idioma</value>
   </data>
   <data name="MENUBAR.ITEM.FILE.OPEN" xml:space="preserve">
-    <value>Open...</value>
+    <value>Abrir...</value>
   </data>
   <data name="MENUBAR.ITEM.FILE.SAVE" xml:space="preserve">
-    <value>Save</value>
+    <value>Salvar</value>
   </data>
   <data name="MENUBAR.ITEM.FILE.SAVEAS" xml:space="preserve">
-    <value>Save As...</value>
+    <value>Salvar Como...</value>
   </data>
   <data name="MENUBAR.ITEM.FILE.EXIT" xml:space="preserve">
-    <value>Exit</value>
+    <value>Sair</value>
   </data>
   <data name="MENUBAR.ITEM.EDIT.UNDO" xml:space="preserve">
-    <value>Undo</value>
+    <value>Desfazer</value>
   </data>
   <data name="MENUBAR.ITEM.EDIT.REDO" xml:space="preserve">
-    <value>Redo</value>
+    <value>Refazer</value>
   </data>
   <data name="MENUBAR.ITEM.EDIT.SELECT" xml:space="preserve">
-    <value>Select</value>
+    <value>Selecionar</value>
   </data>
   <data name="MENUBAR.ITEM.EDIT.ERASE" xml:space="preserve">
-    <value>Erase</value>
+    <value>Apagar</value>
   </data>
   <data name="MENUBAR.ITEM.EDIT.CLEANALL" xml:space="preserve">
-    <value>Clean All</value>
+    <value>Limpar Tudo</value>
   </data>
   <data name="MENUBAR.ITEM.DRAW.LINE" xml:space="preserve">
-    <value>Line</value>
+    <value>Linha</value>
   </data>
   <data name="MENUBAR.ITEM.DRAW.CIRCLE" xml:space="preserve">
-    <value>Circle</value>
+    <value>Círculo</value>
   </data>
   <data name="MENUBAR.ITEM.DRAW.ARC" xml:space="preserve">
-    <value>Arc</value>
+    <value>Arco</value>
   </data>
   <data name="MENUBAR.ITEM.DRAW.POLYLINE" xml:space="preserve">
-    <value>Polyline</value>
+    <value>Polilinha</value>
   </data>
   <data name="MENUBAR.ITEM.HELP.ABOUT" xml:space="preserve">
-    <value>About</value>
+    <value>Sobre</value>
   </data>
 
   <!-- ===== MainWindow ===== -->
@@ -131,7 +131,7 @@
     <value>NormalCAD</value>
   </data>
   <data name="SIDEBAR.TOOLTIP.PROPERTIES" xml:space="preserve">
-    <value>Properties</value>
+    <value>Propriedades</value>
   </data>
   <data name="SIDEBAR.TOOLTIP.LAYERS" xml:space="preserve">
     <value>Layers</value>
