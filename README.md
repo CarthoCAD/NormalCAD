@@ -57,6 +57,7 @@ The internal architecture was modeled after the **AutoCAD .NET API** (ObjectARX/
 - **Layer Manager** — Create and manage layers. Entities inherit layer properties.
 - **Status Bar** — Displays cursor coordinates in real time.
 - **Dark Mode / Light Mode** — Toggle theme at runtime without restart (`THEME` command).
+- **Localization** — English and Portuguese (pt-BR) UI with runtime language switching (`LANGUAGE` command / Base → Change Language). Strings are backed by `.resx` resources and re-localize live on switch. The chosen language and theme persist between sessions in `%APPDATA%/NormalCAD/config.json`.
 
 ---
 
@@ -141,6 +142,7 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Save | `SAVE` | — | File → Save |
 | Save As | `SAVEAS` | — | File → Save As... |
 | Toggle Theme | `THEME` | `TH` | Base → Change Theme |
+| Toggle Language | `LANGUAGE` | `LANG` | Base → Change Language |
 | Quit | `QUIT` | `EXIT`, `Q` | File → Exit |
 | **Pan** | Middle mouse button drag | | |
 | **Zoom** | Mouse scroll (focused on cursor) | | |

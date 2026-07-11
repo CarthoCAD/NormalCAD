@@ -54,6 +54,7 @@ NormalCAD.sln
 │   │   ├── Dialogs.resx         # Dialog titles, filters, error messages, system strings
 │   │   ├── EntityProperties.resx # Entity property display names and category labels
 │   │   ├── ComboOptions.resx    # Combo option display names (LineWeight, Linetype, etc.)
+│   │   ├── *.pt-BR.resx         # Portuguese (Brazil) satellite translations for each resource
 │   │   ├── CommandResources.cs  # ResourceManager helper for command strings
 │   │   ├── PanelResources.cs    # ResourceManager helper for panel strings
 │   │   ├── DialogResources.cs   # ResourceManager helper for dialog strings
@@ -68,8 +69,9 @@ NormalCAD.sln
 │   │   │   ├── IEntityPropertyProvider.cs, EntityPropertyManager.cs
 │   │   │   ├── PropertyDescriptor.cs, ComboOption.cs, EntityPropertyProvider.cs
 │   │   │   ├── Line/Circle/Arc/PolylinePropertyProvider.cs
-│   │   │   └── LineWeightOptionProvider.cs, LinetypeOptionProvider.cs
-│   │   └── Services/Converters/ # NormalCAD ↔ ACadSharp converters
+│   │   │   ├── LineWeightOptionProvider.cs, LinetypeOptionProvider.cs
+│   │   │   └── PropertyCategory.cs, LocalizedEnum.cs, ResourcePrefixAttribute.cs
+│   │   └── Services/            # LanguageService (culture), ConfigService (config.json), Converters/ (ACadSharp)
 │   ├── Utilities/              # Cross-cutting helpers (AngleConverter, etc.)
 │   ├── View/                    # Avalonia UI
 │   │   ├── Controls/            # CadViewport, BottomBar, MenuBar, palettes

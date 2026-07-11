@@ -57,6 +57,7 @@ A arquitetura interna foi modelada com base na **API .NET do AutoCAD** (ObjectAR
 - **Gerenciador de Camadas** — Cria e gerencia layers. Entidades herdam propriedades da layer.
 - **Barra de Status** — Exibe coordenadas do cursor em tempo real.
 - **Dark Mode / Light Mode** — Alterna tema em tempo de execução sem reiniciar (comando `THEME`).
+- **Localização** — Interface em Inglês e Português (pt-BR) com troca de idioma em tempo de execução (comando `LANGUAGE` / Base → Change Language). As strings vêm de recursos `.resx` e são re-localizadas ao vivo na troca. O idioma e o tema escolhidos persistem entre sessões em `%APPDATA%/NormalCAD/config.json`.
 
 ---
 
@@ -141,6 +142,7 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Salvar | `SAVE` | — | File → Save |
 | Salvar Como | `SAVEAS` | — | File → Save As... |
 | Alternar Tema | `THEME` | `TH` | Base → Change Theme |
+| Alternar Idioma | `LANGUAGE` | `LANG` | Base → Change Language |
 | Sair | `QUIT` | `EXIT`, `Q` | File → Exit |
 | **Navegar (Pan)** | Arrastar com o botão do meio do mouse | | |
 | **Zoom** | Scroll do mouse (foco na posição do cursor) | | |

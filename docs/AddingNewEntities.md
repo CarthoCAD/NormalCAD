@@ -99,11 +99,16 @@ live in Core.
     - Guard with `if (entity is not MyEntity e) yield break;`.
     - `yield return new PropertyDescriptor { ... }` for each property, matching
       the order and labels of the AutoCAD properties palette for that entity.
-    - Each descriptor carries `Category`, `DisplayName`, `PropertyType`, `Order`,
-      `GetValue`, optional `TrySetValue` (omit or `null` for read-only; avoid
-      setting `IsReadOnly` explicitly — it is computed from `TrySetValue == null`),
-      optional `ComboOptions`, and `SingleSelectionOnly` (set `true` for
-      properties that make no sense in a multi-selection, e.g. per-vertex data).
+    - Each descriptor carries `Category` (a `PropertyCategory` enum value —
+      `Geometry` or `Misc` for entity-specific properties; the shared
+      `EntityPropertyProvider` supplies `General`), `DisplayName`, `PropertyType`,
+      `Order`, `GetValue`, optional `TrySetValue` (omit or `null` for read-only;
+      avoid setting `IsReadOnly` explicitly — it is computed from
+      `TrySetValue == null`), optional `ComboOptions`, and `SingleSelectionOnly`
+      (set `true` for properties that make no sense in a multi-selection, e.g.
+      per-vertex data). Categories render in `PropertyCategory` declaration order
+      (language-independent); their labels resolve from `CATEGORY.*` keys via
+      `LocalizedEnum`.
     - Convert units at this boundary (e.g. radians → degrees via
       `NormalCAD.Utilities.AngleConverter`); Core stays in radians.
  2. Add a `<ENTITY>.DISPLAYNAME` key to `NormalCAD/Resources/EntityProperties.resx`
