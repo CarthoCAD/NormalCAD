@@ -10,7 +10,6 @@ namespace NormalCAD.Controller.Providers
     {
         public string DisplayName => EntityPropertyResources.Get("CIRCLE.DISPLAYNAME");
 
-        private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
         private static string CenterXLabel => EntityPropertyResources.Get("CIRCLE.GEOMETRY.CENTERX");
         private static string CenterYLabel => EntityPropertyResources.Get("CIRCLE.GEOMETRY.CENTERY");
         private static string CenterZLabel => EntityPropertyResources.Get("CIRCLE.GEOMETRY.CENTERZ");
@@ -25,7 +24,7 @@ namespace NormalCAD.Controller.Providers
 
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = CenterXLabel,
                 PropertyType = typeof(double),
                 Order = 101,
@@ -34,7 +33,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = CenterYLabel,
                 PropertyType = typeof(double),
                 Order = 102,
@@ -43,7 +42,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = CenterZLabel,
                 PropertyType = typeof(double),
                 Order = 103,
@@ -52,7 +51,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = RadiusLabel,
                 PropertyType = typeof(double),
                 Order = 104,
@@ -61,7 +60,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = DiameterLabel,
                 PropertyType = typeof(double),
                 Order = 105,
@@ -70,7 +69,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = CircumferenceLabel,
                 PropertyType = typeof(double),
                 Order = 106,
@@ -79,7 +78,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = AreaLabel,
                 PropertyType = typeof(double),
                 Order = 107,

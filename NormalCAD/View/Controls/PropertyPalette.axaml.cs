@@ -152,7 +152,7 @@ namespace NormalCAD.View.Controls
 
             var ordered = descriptors.OrderBy(d => d.Category).ThenBy(d => d.Order);
 
-            string? currentCategory = null;
+            PropertyCategory? currentCategory = null;
             int rowIndex = 0;
 
             foreach (var desc in ordered)
@@ -161,7 +161,10 @@ namespace NormalCAD.View.Controls
                 {
                     currentCategory = desc.Category;
                     _propsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-                    AddCategoryHeader(currentCategory ?? CategoryFallback, rowIndex);
+                    var categoryLabel = LocalizedEnum.Resolve(desc.Category);
+                    if (string.IsNullOrEmpty(categoryLabel))
+                        categoryLabel = CategoryFallback;
+                    AddCategoryHeader(categoryLabel, rowIndex);
                     rowIndex++;
                 }
 

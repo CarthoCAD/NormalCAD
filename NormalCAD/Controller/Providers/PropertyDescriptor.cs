@@ -5,7 +5,7 @@ namespace NormalCAD.Controller.Providers
 {
     public class PropertyDescriptor
     {
-        public string Category { get; init; } = string.Empty;
+        public PropertyCategory Category { get; init; } = PropertyCategory.General;
         public string DisplayName { get; init; } = string.Empty;
         public Type PropertyType { get; init; } = typeof(string);
         public bool IsReadOnly => TrySetValue == null;

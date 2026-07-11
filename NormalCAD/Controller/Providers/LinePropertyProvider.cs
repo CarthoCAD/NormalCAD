@@ -9,7 +9,6 @@ namespace NormalCAD.Controller.Providers
     {
         public string DisplayName => EntityPropertyResources.Get("LINE.DISPLAYNAME");
 
-        private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
         private static string StartXLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTX");
         private static string StartYLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTY");
         private static string StartZLabel => EntityPropertyResources.Get("LINE.GEOMETRY.STARTZ");
@@ -28,7 +27,7 @@ namespace NormalCAD.Controller.Providers
 
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = StartXLabel,
                 PropertyType = typeof(double),
                 Order = 101,
@@ -37,7 +36,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = StartYLabel,
                 PropertyType = typeof(double),
                 Order = 102,
@@ -46,7 +45,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = StartZLabel,
                 PropertyType = typeof(double),
                 Order = 103,
@@ -55,7 +54,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = EndXLabel,
                 PropertyType = typeof(double),
                 Order = 104,
@@ -64,7 +63,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = EndYLabel,
                 PropertyType = typeof(double),
                 Order = 105,
@@ -73,7 +72,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = EndZLabel,
                 PropertyType = typeof(double),
                 Order = 106,
@@ -82,7 +81,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = DeltaXLabel,
                 PropertyType = typeof(double),
                 Order = 107,
@@ -90,7 +89,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = DeltaYLabel,
                 PropertyType = typeof(double),
                 Order = 108,
@@ -98,7 +97,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = DeltaZLabel,
                 PropertyType = typeof(double),
                 Order = 109,
@@ -106,7 +105,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = LengthLabel,
                 PropertyType = typeof(double),
                 Order = 110,
@@ -114,7 +113,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = AngleLabel,
                 PropertyType = typeof(double),
                 Order = 111,

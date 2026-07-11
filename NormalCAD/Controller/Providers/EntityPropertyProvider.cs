@@ -11,7 +11,6 @@ namespace NormalCAD.Controller.Providers
     {
         public string DisplayName => string.Empty;
 
-        private static string CategoryGeneral => EntityPropertyResources.Get("CATEGORY.GENERAL");
         private static string ColorLabel => EntityPropertyResources.Get("ENTITY.GENERAL.COLOR");
         private static string LayerLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LAYER");
         private static string LinetypeLabel => EntityPropertyResources.Get("ENTITY.GENERAL.LINETYPE");
@@ -23,7 +22,7 @@ namespace NormalCAD.Controller.Providers
         {
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeneral, DisplayName = ColorLabel, PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = ColorLabel, PropertyType = typeof(string),
                 Order = 1,
                 GetValue = () => entity.Color.ToString(),
                 TrySetValue = v =>
@@ -36,7 +35,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeneral, DisplayName = LayerLabel, PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = LayerLabel, PropertyType = typeof(string),
                 Order = 2, GetValue = () => entity.Layer,
                 TrySetValue = v =>
                 {
@@ -55,20 +54,20 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeneral, DisplayName = LinetypeLabel, PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = LinetypeLabel, PropertyType = typeof(string),
                 Order = 3, GetValue = () => entity.Linetype,
                 ComboOptions = LinetypeOptionProvider.GetOptions(),
                 TrySetValue = v => { entity.Linetype = (string)v!; return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeneral, DisplayName = LinetypeScaleLabel, PropertyType = typeof(double),
+                Category = PropertyCategory.General, DisplayName = LinetypeScaleLabel, PropertyType = typeof(double),
                 Order = 4, GetValue = () => entity.LinetypeScale,
                 TrySetValue = v => { entity.LinetypeScale = (double)v!; return true; }
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeneral, DisplayName = LineweightLabel, PropertyType = typeof(LineWeight),
+                Category = PropertyCategory.General, DisplayName = LineweightLabel, PropertyType = typeof(LineWeight),
                 Order = 5,
                 ComboOptions = LineWeightOptionProvider.GetOptions(),
                 GetValue = () => entity.LineWeight,
@@ -80,7 +79,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeneral, DisplayName = TransparencyLabel, PropertyType = typeof(string),
+                Category = PropertyCategory.General, DisplayName = TransparencyLabel, PropertyType = typeof(string),
                 Order = 6,
                 GetValue = () => entity.Transparency.ToString(),
                 TrySetValue = v =>

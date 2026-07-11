@@ -10,8 +10,6 @@ namespace NormalCAD.Controller.Providers
     {
         public string DisplayName => EntityPropertyResources.Get("POLYLINE.DISPLAYNAME");
 
-        private static string CategoryGeometry => EntityPropertyResources.Get("CATEGORY.GEOMETRY");
-        private static string CategoryMisc => EntityPropertyResources.Get("CATEGORY.MISC");
         private static string CurrentVertexLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.CURRENTVERTEX");
         private static string VertexXLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.VERTEXX");
         private static string VertexYLabel => EntityPropertyResources.Get("POLYLINE.GEOMETRY.VERTEXY");
@@ -41,7 +39,7 @@ namespace NormalCAD.Controller.Providers
 
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = CurrentVertexLabel,
                 PropertyType = typeof(int),
                 Order = 101,
@@ -58,7 +56,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = VertexXLabel,
                 PropertyType = typeof(double),
                 Order = 102,
@@ -74,7 +72,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = VertexYLabel,
                 PropertyType = typeof(double),
                 Order = 103,
@@ -90,7 +88,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = StartSegmentWidthLabel,
                 PropertyType = typeof(double),
                 Order = 104,
@@ -105,7 +103,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = EndSegmentWidthLabel,
                 PropertyType = typeof(double),
                 Order = 105,
@@ -120,7 +118,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = GlobalWidthLabel,
                 PropertyType = typeof(double),
                 Order = 106,
@@ -135,7 +133,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = ElevationLabel,
                 PropertyType = typeof(double),
                 Order = 107,
@@ -144,7 +142,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = AreaLabel,
                 PropertyType = typeof(double),
                 Order = 108,
@@ -152,7 +150,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryGeometry,
+                Category = PropertyCategory.Geometry,
                 DisplayName = LengthLabel,
                 PropertyType = typeof(double),
                 Order = 109,
@@ -160,7 +158,7 @@ namespace NormalCAD.Controller.Providers
             };
             yield return new PropertyDescriptor
             {
-                Category = CategoryMisc,
+                Category = PropertyCategory.Misc,
                 DisplayName = ClosedLabel,
                 PropertyType = typeof(bool),
                 Order = 201,
