@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -19,12 +18,8 @@ namespace NormalCAD.Controller.Commands
         public void Activate(CadController controller)
         {
             var isLight = !controller.IsLightTheme;
-            controller.IsLightTheme = isLight;
-
-            Application.Current!.RequestedThemeVariant = isLight ? Avalonia.Styling.ThemeVariant.Light : Avalonia.Styling.ThemeVariant.Dark;
-
-            controller.Viewport.IsLightTheme = isLight;
-            controller.Viewport.InvalidateVisual();
+            controller.ApplyTheme(isLight);
+            Services.ConfigService.Update(c => c.Theme = isLight ? "Light" : "Dark");
 
             var themeName = isLight ? MsgLight : MsgDark;
             controller.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));

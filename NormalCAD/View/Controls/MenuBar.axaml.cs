@@ -17,6 +17,7 @@ public partial class MenuBar : UserControl
     {
         InitializeComponent();
         PopulateMenu(GetMenuStructure());
+        global::NormalCAD.Controller.Services.LanguageService.LanguageChanged += Rebuild;
     }
 
     private void InitializeComponent()
@@ -31,6 +32,7 @@ public partial class MenuBar : UserControl
     private static string MenuHelp => PanelResources.Get("MENUBAR.MENU.HELP");
     private static string ItemBaseOptions => PanelResources.Get("MENUBAR.ITEM.BASE.OPTIONS");
     private static string ItemBaseChangeTheme => PanelResources.Get("MENUBAR.ITEM.BASE.CHANGETHEME");
+    private static string ItemBaseChangeLanguage => PanelResources.Get("MENUBAR.ITEM.BASE.CHANGELANGUAGE");
     private static string ItemFileOpen => PanelResources.Get("MENUBAR.ITEM.FILE.OPEN");
     private static string ItemFileSave => PanelResources.Get("MENUBAR.ITEM.FILE.SAVE");
     private static string ItemFileSaveAs => PanelResources.Get("MENUBAR.ITEM.FILE.SAVEAS");
@@ -52,7 +54,8 @@ public partial class MenuBar : UserControl
         [
             new(ItemBaseOptions, "_.OPTIONS", null),
             new(null, null, null),
-            new(ItemBaseChangeTheme, "_.THEME", null)
+            new(ItemBaseChangeTheme, "_.THEME", null),
+            new(ItemBaseChangeLanguage, "_.LANGUAGE", null)
         ]),
         new(MenuFile, null, null,
         [
@@ -91,6 +94,11 @@ public partial class MenuBar : UserControl
 
         foreach (var entry in structure)
             menuControl.Items.Add(BuildMenuItem(entry));
+    }
+
+    public void Rebuild()
+    {
+        PopulateMenu(GetMenuStructure());
     }
 
     private Control BuildMenuItem(MenuEntry entry)

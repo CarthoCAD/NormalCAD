@@ -66,6 +66,8 @@ namespace NormalCAD.View.Controls
 
             _txtPropsTitle = this.FindControl<TextBlock>("TxtPropsTitle");
             _propsGrid = this.FindControl<Grid>("PropsGrid");
+
+            global::NormalCAD.Controller.Services.LanguageService.LanguageChanged += Refresh;
         }
 
         private void EnsureBrushes()

@@ -213,5 +213,15 @@ namespace NormalCAD.Controller
         {
             SelectionChanged?.Invoke();
         }
+
+        public void ApplyTheme(bool isLight)
+        {
+            IsLightTheme = isLight;
+            Avalonia.Application.Current!.RequestedThemeVariant = isLight
+                ? Avalonia.Styling.ThemeVariant.Light
+                : Avalonia.Styling.ThemeVariant.Dark;
+            Viewport.IsLightTheme = isLight;
+            Viewport.InvalidateVisual();
+        }
     }
 }

@@ -34,6 +34,7 @@ namespace NormalCAD
             BtnTabLayers.SetValue(ToolTip.TipProperty, PanelResources.Get("SIDEBAR.TOOLTIP.LAYERS"));
 
             _controller = new CadController(Viewport);
+            _controller.ApplyTheme(Controller.Services.ConfigService.Current.Theme == "Light");
 
             _propertyPalette = new PropertyPalette { Controller = _controller };
             _layerPalette = new LayerPalette { Controller = _controller };

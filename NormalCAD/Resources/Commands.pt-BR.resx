@@ -21,39 +21,39 @@
     <value>CMD</value>
   </data>
   <data name="CMD.PROMPT.OPPOSITECORNER" xml:space="preserve">
-    <value>Specify opposite corner</value>
+    <value>Especifique o canto oposto</value>
   </data>
   <data name="CMD.MSG.FOUND" xml:space="preserve">
-    <value>1 found, {0} total</value>
+    <value>1 encontrado, {0} total</value>
   </data>
   <data name="CMD.MSG.REMOVED" xml:space="preserve">
-    <value>1 removed, {0} total</value>
+    <value>1 removido, {0} total</value>
   </data>
   <data name="CMD.MSG.FOUND_N" xml:space="preserve">
-    <value>{0} found, {1} total</value>
+    <value>{0} encontrados, {1} total</value>
   </data>
   <data name="CMD.MSG.REMOVED_N" xml:space="preserve">
-    <value>{0} removed, {1} total</value>
+    <value>{0} removidos, {1} total</value>
   </data>
   <data name="CMD.MSG.ECHO" xml:space="preserve">
-    <value>command: {0}</value>
+    <value>comando: {0}</value>
   </data>
   <data name="CMD.MSG.CANNOT_CALL_DIRECTLY" xml:space="preserve">
-    <value>Command '{0}' cannot be called directly.</value>
+    <value>Comando '{0}' não pode ser chamado diretamente.</value>
   </data>
   <data name="CMD.MSG.UNKNOWN_COMMAND" xml:space="preserve">
-    <value>Unknown command '{0}'. Press F1 for help.</value>
+    <value>Comando desconhecido '{0}'. Pressione F1 para ajuda.</value>
   </data>
   <data name="CMD.MSG.AMBIGUOUS_KEYWORD" xml:space="preserve">
-    <value>Ambiguous keyword.</value>
+    <value>Palavra-chave ambígua.</value>
   </data>
   <data name="CMD.MSG.KEYWORD_REQUIRED" xml:space="preserve">
-    <value>Option keyword required.</value>
+    <value>Palavra-chave requerida.</value>
   </data>
 
   <!-- ===== LINE ===== -->
   <data name="LINE.LOCALNAME" xml:space="preserve">
-    <value>LINE</value>
+    <value>LINHA</value>
   </data>
   <data name="LINE.ALIAS" xml:space="preserve">
     <value>L</value>
@@ -61,30 +61,30 @@
 
   <!-- ===== CIRCLE ===== -->
   <data name="CIRCLE.LOCALNAME" xml:space="preserve">
-    <value>CIRCLE</value>
+    <value>CIRCULO</value>
   </data>
   <data name="CIRCLE.ALIAS" xml:space="preserve">
     <value>C,CI</value>
   </data>
   <data name="CIRCLE.PROMPT.CENTERPOINT" xml:space="preserve">
-    <value>Specify center point for circle </value>
+    <value>Especifique o ponto central do círculo </value>
   </data>
   <data name="CIRCLE.PROMPT.RADIUS" xml:space="preserve">
-    <value>Specify radius of circle </value>
+    <value>Especifique o raio do círculo </value>
   </data>
   <data name="CIRCLE.PROMPT.DIAMETER" xml:space="preserve">
-    <value>Specify diameter of circle </value>
+    <value>Especifique o diâmetro do círculo </value>
   </data>
   <data name="CIRCLE.KEY.DIAMETER" xml:space="preserve">
-    <value>Diameter</value>
+    <value>Diâmetro</value>
   </data>
   <data name="CIRCLE.KEY.RADIUS" xml:space="preserve">
-    <value>Radius</value>
+    <value>Raio</value>
   </data>
 
   <!-- ===== ARC ===== -->
   <data name="ARC.LOCALNAME" xml:space="preserve">
-    <value>ARC</value>
+    <value>ARCO</value>
   </data>
   <data name="ARC.ALIAS" xml:space="preserve">
     <value>A</value>
@@ -92,27 +92,27 @@
 
   <!-- ===== PLINE ===== -->
   <data name="PLINE.LOCALNAME" xml:space="preserve">
-    <value>PLINE</value>
+    <value>PLINHA</value>
   </data>
   <data name="PLINE.ALIAS" xml:space="preserve">
     <value>PL</value>
   </data>
   <data name="PLINE.PROMPT.FIRSTPOINT" xml:space="preserve">
-    <value>Specify start point</value>
+    <value>Especifique o ponto inicial</value>
   </data>
   <data name="PLINE.PROMPT.NEXTPOINT" xml:space="preserve">
-    <value>Specify next point</value>
+    <value>Especifique o próximo ponto</value>
   </data>
   <data name="PLINE.KEY.UNDO" xml:space="preserve">
-    <value>Undo</value>
+    <value>Desfazer</value>
   </data>
   <data name="PLINE.KEY.CLOSE" xml:space="preserve">
-    <value>Close</value>
+    <value>Fechar</value>
   </data>
 
   <!-- ===== ERASE ===== -->
   <data name="ERASE.LOCALNAME" xml:space="preserve">
-    <value>ERASE</value>
+    <value>APAGAR</value>
   </data>
   <data name="ERASE.ALIAS" xml:space="preserve">
     <value>E</value>
@@ -120,81 +120,81 @@
 
   <!-- ===== CLEANALL ===== -->
   <data name="CLEANALL.LOCALNAME" xml:space="preserve">
-    <value>CLEANALL</value>
+    <value>LIMPARTUDO</value>
   </data>
   <data name="CLEANALL.ALIAS" xml:space="preserve">
-    <value>CLA</value>
+    <value>LTD</value>
   </data>
   <data name="CLEANALL.MSG.CLEARED" xml:space="preserve">
-    <value>Drawing cleared successfully.</value>
+    <value>Desenho limpo com sucesso.</value>
   </data>
 
   <!-- ===== OPEN ===== -->
   <data name="OPEN.LOCALNAME" xml:space="preserve">
-    <value>OPEN</value>
+    <value>ABRIR</value>
   </data>
   <data name="OPEN.MSG.LOADED" xml:space="preserve">
-    <value>Drawing loaded: {0}</value>
+    <value>Desenho carregado: {0}</value>
   </data>
   <data name="OPEN.MSG.ERROR" xml:space="preserve">
-    <value>Error opening: {0}</value>
+    <value>Erro ao abrir: {0}</value>
   </data>
 
   <!-- ===== SAVE ===== -->
   <data name="SAVE.LOCALNAME" xml:space="preserve">
-    <value>SAVE</value>
+    <value>SALVAR</value>
   </data>
   <data name="SAVE.MSG.SAVED" xml:space="preserve">
-    <value>Drawing saved: {0}</value>
+    <value>Desenho salvo: {0}</value>
   </data>
   <data name="SAVE.MSG.ERROR" xml:space="preserve">
-    <value>Error saving: {0}</value>
+    <value>Erro ao salvar: {0}</value>
   </data>
 
   <!-- ===== SAVEAS ===== -->
   <data name="SAVEAS.LOCALNAME" xml:space="preserve">
-    <value>SAVEAS</value>
+    <value>SALVARCOMO</value>
   </data>
 
   <!-- ===== QUIT ===== -->
   <data name="QUIT.LOCALNAME" xml:space="preserve">
-    <value>QUIT</value>
+    <value>SAIR</value>
   </data>
   <data name="QUIT.ALIAS" xml:space="preserve">
-    <value>EXIT,Q</value>
+    <value>SAIR</value>
   </data>
 
   <!-- ===== THEME ===== -->
   <data name="THEME.LOCALNAME" xml:space="preserve">
-    <value>THEME</value>
+    <value>TEMA</value>
   </data>
   <data name="THEME.ALIAS" xml:space="preserve">
-    <value>TH</value>
+    <value>TEMA</value>
   </data>
   <data name="THEME.MSG.LIGHT" xml:space="preserve">
-    <value>Light</value>
+    <value>Claro</value>
   </data>
   <data name="THEME.MSG.DARK" xml:space="preserve">
-    <value>Dark</value>
+    <value>Escuro</value>
   </data>
   <data name="THEME.MSG.CHANGED" xml:space="preserve">
-    <value>Theme changed to {0}.</value>
+    <value>Tema alterado para {0}.</value>
   </data>
 
   <!-- ===== LANGUAGE ===== -->
   <data name="LANGUAGE.LOCALNAME" xml:space="preserve">
-    <value>LANGUAGE</value>
+    <value>IDIOMA</value>
   </data>
   <data name="LANGUAGE.ALIAS" xml:space="preserve">
-    <value>LANG</value>
+    <value>IDIOMA</value>
   </data>
   <data name="LANGUAGE.MSG.CHANGED" xml:space="preserve">
-    <value>Language changed to {0}.</value>
+    <value>Idioma alterado para {0}.</value>
   </data>
   <data name="LANGUAGE.MSG.EN" xml:space="preserve">
-    <value>English</value>
+    <value>Inglês</value>
   </data>
   <data name="LANGUAGE.MSG.PTBR" xml:space="preserve">
-    <value>Portuguese</value>
+    <value>Português</value>
   </data>
 </root>
