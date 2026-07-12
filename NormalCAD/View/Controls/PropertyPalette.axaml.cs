@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Controller.Providers;
 using NormalCAD.Resources;
 using CorePropDesc = NormalCAD.Controller.Providers.PropertyDescriptor;
@@ -22,11 +21,9 @@ namespace NormalCAD.View.Controls
         private static string CategoryFallback => PanelResources.Get("PROPERTYPALETTE.CATEGORY.FALLBACK");
         private static string BooleanYes => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.YES");
         private static string BooleanNo => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.NO");
-        private static string InvalidValueFormat => PanelResources.Get("PROPERTYPALETTE.MSG.INVALID_VALUE");
 
         private Controller.CadController? _controller;
         private EntityPropertyManager? _propertyManager;
-        private List<ObjectId> _selectedIds = [];
 
         public bool IsDropDownOpen { get; private set; }
 
@@ -102,46 +99,27 @@ namespace NormalCAD.View.Controls
             _propsGrid.Children.Clear();
             _propsGrid.RowDefinitions.Clear();
 
-            if (_controller == null || _propertyManager == null) return;
+            if (_propertyManager == null) return;
 
-            var db = _controller.Database;
-            var selectedIds = _controller.SelectedEntityIds;
+            var properties = _propertyManager.GetPropertiesForSelection();
 
-            if (selectedIds.Count == 0)
+            if (properties.SelectionCount == 0)
             {
                 _txtPropsTitle.Text = NoSelectionText;
-                _selectedIds = [];
                 return;
             }
 
-            _selectedIds = selectedIds.ToList();
-
-            var entities = new List<Entity>();
-            foreach (var id in selectedIds)
-            {
-                using (var trans = db.TransactionManager.StartTransaction())
-                {
-                    var obj = trans.GetObject(id, OpenMode.ForRead);
-                    if (obj is Entity entity)
-                        entities.Add(entity);
-                }
-            }
-
-            if (entities.Count == 0)
+            if (properties.EntityCount == 0)
             {
                 _txtPropsTitle.Text = UnknownObjectText;
                 return;
             }
 
-            _txtPropsTitle.Text = entities.Count > 1
-                ? string.Format(SelectedFormat, entities.Count)
-                : _propertyManager.GetDisplayName(entities[0].GetType());
+            _txtPropsTitle.Text = properties.EntityCount > 1
+                ? string.Format(SelectedFormat, properties.EntityCount)
+                : properties.SingleTypeDisplayName;
 
-            var descriptors = entities.Count == 1
-                ? _propertyManager.GetProperties(entities[0])
-                : _propertyManager.GetMergedProperties(entities);
-
-            BuildPropertyGrid(descriptors);
+            BuildPropertyGrid(properties.Descriptors);
             _propsGrid.InvalidateVisual();
             InvalidateVisual();
         }
@@ -338,28 +316,14 @@ namespace NormalCAD.View.Controls
 
         private void ApplyAndCommit(CorePropDesc desc, object? value)
         {
-            if (_controller == null) return;
+            if (_propertyManager == null) return;
 
-            var db = _controller.Database;
-            try
+            switch (_propertyManager.SetValue(desc, value))
             {
-                using (var trans = db.TransactionManager.StartTransaction())
-                {
-                    if (desc.TrySetValue!(value))
-                    {
-                        trans.Commit();
-                        _controller.Viewport?.InvalidateVisual();
-                        OnSelectionChanged();
-                    }
-                    else
-                    {
-                        _controller.InputManager.SetPromptMessage(string.Format(InvalidValueFormat, desc.DisplayName));
-                    }
-                }
-            }
-            catch
-            {
-                OnSelectionChanged();
+                case PropertyEditResult.Committed:
+                case PropertyEditResult.Failed:
+                    OnSelectionChanged();
+                    break;
             }
         }
     }
