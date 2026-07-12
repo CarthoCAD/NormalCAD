@@ -36,20 +36,6 @@ namespace NormalCAD.Controller
         public event Action? DatabaseChanged;
         public event Action<string>? ActiveCommandChanged;
 
-        public CadController(Document document, CadViewport viewport)
-        {
-            Document = document;
-            Viewport = viewport;
-            Viewport.Controller = this;
-            CmdManager = new CmdManager(this);
-            InputManager = new InputManager(this);
-            EntityPropertyManager = new EntityPropertyManager();
-
-            document.Database.Changed += OnDatabaseChanged;
-
-            SetCommand(new BaseCommand());
-        }
-
         public CadController(CadViewport viewport)
         {
             if (Application.Host == null)
@@ -62,7 +48,7 @@ namespace NormalCAD.Controller
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
-            EntityPropertyManager = new EntityPropertyManager();
+            EntityPropertyManager = new EntityPropertyManager(this);
 
             Document.Database.Changed += OnDatabaseChanged;
 

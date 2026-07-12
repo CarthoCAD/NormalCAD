@@ -1,17 +1,80 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="NormalCAD.View.Controls.PropertyPalette">
+             xmlns:prov="using:NormalCAD.Controller.Providers"
+             xmlns:local="using:NormalCAD.View.Controls"
+             x:Class="NormalCAD.View.Controls.PropertyPalette"
+             x:CompileBindings="True">
+  <UserControl.Styles>
+    <!-- Editable text editor: bordered box. -->
+    <Style Selector="TextBox.propEditor">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource Theme.Text}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Theme.Border}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <!-- Read-only value: keeps the box, only the text is muted. -->
+    <Style Selector="TextBox.propEditor[IsReadOnly=True]">
+      <Setter Property="Foreground" Value="{DynamicResource Theme.TextSec}"/>
+    </Style>
+  </UserControl.Styles>
   <ScrollViewer Padding="10">
     <StackPanel Spacing="10">
       <TextBlock Name="TxtPropsTitle"
                  Foreground="{DynamicResource Theme.Text}"
                  FontSize="12" FontWeight="Bold"/>
-      <Grid Name="PropsGrid">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-      </Grid>
+      <ItemsControl Name="PropsItems">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="prov:PropertyGroup">
+            <StackPanel>
+              <Border BorderBrush="{DynamicResource Theme.Border}"
+                      BorderThickness="0,0,0,1"
+                      Margin="0,4,0,2" Padding="0,0,0,2">
+                <TextBlock Text="{Binding Header}"
+                           FontWeight="Bold" FontSize="11"
+                           Foreground="{DynamicResource Theme.Accent}"/>
+              </Border>
+              <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="prov:PropertyRow">
+                    <Grid ColumnDefinitions="*,*" Margin="0,1">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding DisplayName}"
+                                 FontSize="11"
+                                 Foreground="{DynamicResource Theme.TextSec}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,2,4,2"/>
+                      <TextBox Grid.Column="1"
+                               Classes="propEditor"
+                               IsVisible="{Binding IsText}"
+                               Text="{Binding DisplayText, Mode=OneWay}"
+                               IsReadOnly="{Binding IsReadOnly}"
+                               CornerRadius="3"
+                               Padding="4,2"
+                               FontSize="11"
+                               Height="26"
+                               VerticalContentAlignment="Center"/>
+                      <ComboBox Grid.Column="1"
+                                IsVisible="{Binding IsCombo}"
+                                ItemsSource="{Binding Options}"
+                                SelectedItem="{Binding SelectedOption, Mode=TwoWay}"
+                                IsEnabled="{Binding IsEditable}"
+                                local:ComboDropDownWatcher.Enabled="True"
+                                BorderBrush="{DynamicResource Theme.Border}"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Padding="4,2"
+                                FontSize="11"
+                                Height="26"
+                                HorizontalAlignment="Stretch"
+                                VerticalContentAlignment="Center"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
     </StackPanel>
   </ScrollViewer>
 </UserControl>
