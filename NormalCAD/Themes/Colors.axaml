@@ -13,6 +13,7 @@
             <Color x:Key="Color.TextSec">DimGray</Color>
             <Color x:Key="Color.TextBoxBg">White</Color>
             <Color x:Key="Color.Border">#CCCCCC</Color>
+            <Color x:Key="Color.Accent">#007ACC</Color>
 
             <Color x:Key="Color.ViewportBg">#F5F5F5</Color>
             <Color x:Key="Color.ViewportGrid">#E0E0E0</Color>
@@ -34,6 +35,7 @@
             <Color x:Key="Color.TextSec">LightGray</Color>
             <Color x:Key="Color.TextBoxBg">#333333</Color>
             <Color x:Key="Color.Border">#3D3D3D</Color>
+            <Color x:Key="Color.Accent">#007ACC</Color>
 
             <Color x:Key="Color.ViewportBg">#181818</Color>
             <Color x:Key="Color.ViewportGrid">#262626</Color>

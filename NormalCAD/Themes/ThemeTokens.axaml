@@ -9,6 +9,7 @@
     <SolidColorBrush x:Key="Theme.TextSec" Color="{DynamicResource Color.TextSec}" />
     <SolidColorBrush x:Key="Theme.TextBoxBg" Color="{DynamicResource Color.TextBoxBg}" />
     <SolidColorBrush x:Key="Theme.Border" Color="{DynamicResource Color.Border}" />
+    <SolidColorBrush x:Key="Theme.Accent" Color="{DynamicResource Color.Accent}" />
 
     <SolidColorBrush x:Key="Theme.ViewportBg" Color="{DynamicResource Color.ViewportBg}" />
     <SolidColorBrush x:Key="Theme.ViewportGrid" Color="{DynamicResource Color.ViewportGrid}" />
