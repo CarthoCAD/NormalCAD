@@ -65,9 +65,9 @@ NormalCAD.sln
 │   │   ├── CmdManager.cs        # Command discovery, registration and dispatch
 │   │   ├── InputManager.cs      # Input + prompt keywords + prefix matching
 │   │   ├── Commands/            # ICadCommand implementations
-│   │   ├── Providers/           # Entity property providers (PropertyPalette metadata)
+│   │   ├── Providers/           # Entity property providers + bindable row models (PropertyPalette)
 │   │   │   ├── IEntityPropertyProvider.cs, EntityPropertyManager.cs
-│   │   │   ├── PropertyDescriptor.cs, ComboOption.cs, EntityPropertyProvider.cs
+│   │   │   ├── PropertyDescriptor.cs, PropertyRow.cs, ComboOption.cs, EntityPropertyProvider.cs
 │   │   │   ├── Line/Circle/Arc/PolylinePropertyProvider.cs
 │   │   │   ├── LineWeightOptionProvider.cs, LinetypeOptionProvider.cs
 │   │   │   └── PropertyCategory.cs, LocalizedEnum.cs, ResourcePrefixAttribute.cs
