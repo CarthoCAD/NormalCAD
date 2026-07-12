@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -205,9 +204,7 @@ namespace NormalCAD.View.Controls
         {
             var tb = new TextBox
             {
-                Text = value is double d
-                    ? d.ToString("F4", CultureInfo.InvariantCulture)
-                    : value.ToString(),
+                Text = desc.Format(value),
                 IsReadOnly = readOnly,
                 Background = Brushes.Transparent,
                 Foreground = _textBrush,
@@ -278,20 +275,11 @@ namespace NormalCAD.View.Controls
             if (sender is not TextBox tb || tb.Tag is not CorePropDesc desc) return;
             if (desc.TrySetValue == null) return;
 
-            if (desc.PropertyType == typeof(double))
-            {
-                if (double.TryParse(tb.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double d))
-                    ApplyAndCommit(desc, d);
-            }
-            else if (desc.PropertyType == typeof(int))
-            {
-                if (int.TryParse(tb.Text, out int i))
-                    ApplyAndCommit(desc, i);
-            }
+            if (desc.TryParse(tb.Text, out var value))
+                ApplyAndCommit(desc, value);
             else
-            {
-                ApplyAndCommit(desc, tb.Text);
-            }
+                tb.Text = desc.Format(desc.GetValue());
+
             e.Handled = true;
         }
 
@@ -318,13 +306,10 @@ namespace NormalCAD.View.Controls
         {
             if (_propertyManager == null) return;
 
-            switch (_propertyManager.SetValue(desc, value))
-            {
-                case PropertyEditResult.Committed:
-                case PropertyEditResult.Failed:
-                    OnSelectionChanged();
-                    break;
-            }
+            // The manager reports an alert internally on rejection; refresh either
+            // way so the field shows the committed value or reverts to the current one.
+            _propertyManager.SetValue(desc, value);
+            OnSelectionChanged();
         }
     }
 }
