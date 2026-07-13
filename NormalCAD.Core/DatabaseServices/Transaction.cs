@@ -41,27 +41,18 @@ namespace NormalCAD.Core.DatabaseServices
             if (_isCommitted) return;
             _isCommitted = true;
 
-            bool layerModified = false;
-
             foreach (var obj in _addedObjects)
             {
                 obj.IsNewObject = false;
                 obj.IsModified = false;
-                if (obj is LayerTableRecord)
-                    layerModified = true;
             }
 
             foreach (var obj in _modifiedObjects)
             {
-                if (obj is LayerTableRecord)
-                    layerModified = true;
+                _database.RaiseObjectModified(obj);
             }
 
             _database.TransactionManager.EndTransaction(this);
-            _database.RaiseChanged();
-
-            if (layerModified)
-                _database.RaiseLayersChanged();
         }
 
         public void Abort()

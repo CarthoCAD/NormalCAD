@@ -50,12 +50,26 @@ namespace NormalCAD.Controller
             InputManager = new InputManager(this);
             EntityPropertyManager = new EntityPropertyManager(this);
 
-            Document.Database.Changed += OnDatabaseChanged;
+            SubscribeToDatabaseEvents(Document.Database);
 
             SetCommand(new BaseCommand());
         }
 
-        private void OnDatabaseChanged()
+        private void SubscribeToDatabaseEvents(Database db)
+        {
+            db.ObjectAppended += OnDatabaseObjectEvent;
+            db.ObjectModified += OnDatabaseObjectEvent;
+            db.ObjectErased += OnDatabaseObjectEvent;
+        }
+
+        private void UnsubscribeFromDatabaseEvents(Database db)
+        {
+            db.ObjectAppended -= OnDatabaseObjectEvent;
+            db.ObjectModified -= OnDatabaseObjectEvent;
+            db.ObjectErased -= OnDatabaseObjectEvent;
+        }
+
+        private void OnDatabaseObjectEvent(object? sender, ObjectEventArgs e)
         {
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
@@ -63,9 +77,9 @@ namespace NormalCAD.Controller
 
         public void SetDocument(Document document)
         {
-            Document.Database.Changed -= OnDatabaseChanged;
+            UnsubscribeFromDatabaseEvents(Document.Database);
             Document = document;
-            Document.Database.Changed += OnDatabaseChanged;
+            SubscribeToDatabaseEvents(Document.Database);
 
             ClearSelection();
             Viewport.ActiveCommandPreview = null;
@@ -77,8 +91,8 @@ namespace NormalCAD.Controller
 
         public void SetDatabase(Database db, string filePath)
         {
-            string name = System.IO.Path.GetFileName(filePath);
-            var doc = new Document(db) { Name = name, FilePath = filePath };
+            db.Filename = filePath;
+            var doc = new Document(db);
             doc.Editor = new Editor(doc);
             Application.DocumentManager.Add(doc);
             Application.DocumentManager.SetActive(doc);

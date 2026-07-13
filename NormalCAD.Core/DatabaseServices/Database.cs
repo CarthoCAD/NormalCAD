@@ -1,55 +1,192 @@
 using System;
 using System.Collections.Generic;
+using NormalCAD.Core.Geometry;
 
 namespace NormalCAD.Core.DatabaseServices
 {
-    public class Database : DBObject
+    public class Database : IDisposable
     {
         private long _nextIdValue = 1;
-        private readonly Dictionary<ObjectId, DBObject> _objects = new Dictionary<ObjectId, DBObject>();
+        private readonly Dictionary<ObjectId, DBObject> _objects = new();
+        private bool _isDisposed;
+
+        #region Symbol Table IDs
 
         public ObjectId BlockTableId { get; private set; }
         public ObjectId LayerTableId { get; private set; }
         public ObjectId ViewportTableId { get; private set; }
+        public ObjectId LinetypeTableId { get; private set; }
+        public ObjectId TextStyleTableId { get; private set; }
+        public ObjectId DimStyleTableId { get; private set; }
+        public ObjectId RegAppTableId { get; private set; }
+        public ObjectId UcsTableId { get; private set; }
+        public ObjectId ViewTableId { get; private set; }
+
+        #endregion
+
+        #region Dictionary IDs
+
+        public ObjectId NamedObjectsDictionaryId { get; private set; }
+        public ObjectId GroupDictionaryId { get; private set; }
+        public ObjectId LayoutDictionaryId { get; private set; }
+
+        #endregion
+
+        #region Structural / State
+
+        public ObjectId CurrentSpaceId { get; set; }
+        public ObjectId CurrentViewportTableRecordId { get; set; }
+        public int TileMode { get; set; }
+
+        #endregion
+
+        #region File
+
+        public string Filename { get; set; }
+        public string OriginalFileName { get; private set; }
+
+        #endregion
+
+        #region Diagnostics
+
+        public int ApproxNumObjects => _objects.Count;
+        public bool IsBeingDestroyed => _isDisposed;
+
+        #endregion
+
+        #region Transaction
 
         public TransactionManager TransactionManager { get; }
 
-        public event Action? Changed;
-        public event Action? LayersChanged;
+        #endregion
 
-        public Database()
+        #region Events
+
+        public event EventHandler<ObjectEventArgs>? ObjectAppended;
+        public event EventHandler<ObjectEventArgs>? ObjectModified;
+        public event EventHandler<ObjectEventArgs>? ObjectErased;
+
+        #endregion
+
+        #region Constructors
+
+        public Database() : this(true, true)
         {
-            // The database registers itself
-            this.ObjectId = new ObjectId(1, this);
-            _objects[this.ObjectId] = this;
-            _nextIdValue = 2;
+        }
 
+        public Database(bool buildDefaultDrawing, bool noDocument)
+        {
             TransactionManager = new TransactionManager(this);
+            Filename = "";
+            OriginalFileName = "";
+            LinetypeTableId = ObjectId.Null;
+            TextStyleTableId = ObjectId.Null;
+            DimStyleTableId = ObjectId.Null;
+            RegAppTableId = ObjectId.Null;
+            UcsTableId = ObjectId.Null;
+            ViewTableId = ObjectId.Null;
+            NamedObjectsDictionaryId = ObjectId.Null;
+            GroupDictionaryId = ObjectId.Null;
+            LayoutDictionaryId = ObjectId.Null;
 
-            // Initialize basic symbol tables
-            var blockTable = new BlockTable(this);
-            BlockTableId = blockTable.ObjectId;
+            if (buildDefaultDrawing)
+            {
+                var blockTable = new BlockTable(this);
+                BlockTableId = blockTable.ObjectId;
 
-            var layerTable = new LayerTable(this);
-            LayerTableId = layerTable.ObjectId;
+                var layerTable = new LayerTable(this);
+                LayerTableId = layerTable.ObjectId;
 
-            // Create default table records
-            var modelSpace = new BlockTableRecord(BlockTableRecord.ModelSpace);
-            blockTable.Add(modelSpace);
+                var modelSpace = new BlockTableRecord(BlockTableRecord.ModelSpace);
+                blockTable.Add(modelSpace);
 
-            var paperSpace = new BlockTableRecord(BlockTableRecord.PaperSpace);
-            blockTable.Add(paperSpace);
+                var paperSpace = new BlockTableRecord(BlockTableRecord.PaperSpace);
+                blockTable.Add(paperSpace);
 
-            // Create default layer "0"
-            var layerZero = new LayerTableRecord("0", EntityColor.White);
-            layerTable.Add(layerZero);
+                CurrentSpaceId = blockTable[BlockTableRecord.ModelSpace];
 
-            // Initialize viewport table with *Active viewport
-            var viewportTable = new ViewportTable(this);
-            ViewportTableId = viewportTable.ObjectId;
+                var layerZero = new LayerTableRecord("0", EntityColor.White);
+                layerTable.Add(layerZero);
 
-            var activeViewport = new ViewportTableRecord(ViewportTable.ActiveViewport, Geometry.Point3d.Origin, 100.0);
-            viewportTable.Add(activeViewport);
+                var viewportTable = new ViewportTable(this);
+                ViewportTableId = viewportTable.ObjectId;
+
+                var activeViewport = new ViewportTableRecord(
+                    ViewportTable.ActiveViewport, Point3d.Origin, 100.0);
+                viewportTable.Add(activeViewport);
+            }
+
+            if (!noDocument)
+            {
+                TileMode = 1;
+            }
+        }
+
+        #endregion
+
+        #region I/O Stubs
+
+        public void ReadDwgFile(string fileName, FileOpenMode mode,
+            bool allowCPConversion, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReadDxfFile(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DxfIn(string fileName, string? logfileName = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveAs(string fileName, bool bBakAndRename,
+            DwgVersion version, object? security)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ObjectId Insert(string blockName, Database sourceDb,
+            bool preserveSourceDatabase)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ObjectId Insert(Matrix3d transform, Database sourceDb,
+            bool preserveSourceDatabase)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Wblock(Database destDb, ObjectIdCollection ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ObjectIdCollection WblockCloneObjects(ObjectIdCollection ids,
+            ObjectId ownerId, IdMapping? mapping,
+            DuplicateRecordCloning cloning, bool deferXlation)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region Object Storage (internal)
+
+        internal DBObject GetObject(ObjectId id)
+        {
+            if (_objects.TryGetValue(id, out var dbObj))
+                return dbObj;
+            throw new ArgumentException(
+                $"Object with ID {id.Value} not found in database.");
+        }
+
+        internal bool TryGetObject(ObjectId id, out DBObject? dbObj)
+        {
+            return _objects.TryGetValue(id, out dbObj);
         }
 
         internal ObjectId GenerateNextId()
@@ -62,26 +199,42 @@ namespace NormalCAD.Core.DatabaseServices
             _objects[dbObj.ObjectId] = dbObj;
         }
 
-        internal void RaiseChanged()
+        public bool TryGetObjectId(Handle handle, out ObjectId id)
         {
-            Changed?.Invoke();
+            id = ObjectId.Null;
+            return false;
         }
 
-        internal void RaiseLayersChanged()
+        #endregion
+
+        #region Event Raisers (internal)
+
+        internal void RaiseObjectAppended(DBObject obj)
         {
-            LayersChanged?.Invoke();
+            ObjectAppended?.Invoke(this, new ObjectEventArgs(obj));
         }
 
-        public DBObject GetObject(ObjectId id)
+        internal void RaiseObjectModified(DBObject obj)
         {
-            if (_objects.TryGetValue(id, out var dbObj))
-                return dbObj;
-            throw new ArgumentException($"Object with ID {id.Value} not found in database.");
+            ObjectModified?.Invoke(this, new ObjectEventArgs(obj));
         }
 
-        public bool TryGetObject(ObjectId id, out DBObject? dbObj)
+        internal void RaiseObjectErased(DBObject obj)
         {
-            return _objects.TryGetValue(id, out dbObj);
+            ObjectErased?.Invoke(this, new ObjectEventArgs(obj));
         }
+
+        #endregion
+
+        #region Dispose
+
+        public void Dispose()
+        {
+            if (_isDisposed) return;
+            _isDisposed = true;
+            _objects.Clear();
+        }
+
+        #endregion
     }
 }

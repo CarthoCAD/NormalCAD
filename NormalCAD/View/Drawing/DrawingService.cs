@@ -10,7 +10,7 @@ namespace NormalCAD.View.Drawing
     {
         private readonly Dictionary<Type, IEntityRenderer> _renderers = new();
         private readonly Dictionary<string, Color> _layerColorCache = new(StringComparer.OrdinalIgnoreCase);
-        private bool _subscribed;
+        private Database? _subscribedDb;
 
         public DrawingService()
         {
@@ -71,14 +71,18 @@ namespace NormalCAD.View.Drawing
 
         private void EnsureSubscribed(Controller.CadController controller)
         {
-            if (_subscribed) return;
-            _subscribed = true;
-            controller.Database.LayersChanged += OnLayersChanged;
+            var db = controller.Database;
+            if (_subscribedDb == db) return;
+            if (_subscribedDb != null)
+                _subscribedDb.ObjectModified -= OnDatabaseObjectModified;
+            _subscribedDb = db;
+            db.ObjectModified += OnDatabaseObjectModified;
         }
 
-        private void OnLayersChanged()
+        private void OnDatabaseObjectModified(object? sender, ObjectEventArgs e)
         {
-            _layerColorCache.Clear();
+            if (e.DBObject is LayerTableRecord)
+                _layerColorCache.Clear();
         }
 
         private Color ResolveEntityColor(Entity ent, Database database, bool isLightTheme)

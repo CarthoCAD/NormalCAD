@@ -11,16 +11,21 @@ namespace NormalCAD.Core.ApplicationServices
 
         public EditorInput.Editor Editor { get; internal set; }
 
-        public string Name { get; set; }
-
-        public string FilePath { get; set; }
+        public string Name
+        {
+            get
+            {
+                var filename = Database.Filename;
+                return string.IsNullOrEmpty(filename)
+                    ? ""
+                    : System.IO.Path.GetFileName(filename);
+            }
+        }
 
         public Document(DatabaseServices.Database database)
         {
             Database = database;
             Editor = null!;
-            Name = "";
-            FilePath = "";
         }
 
         public DocumentLock LockDocument()

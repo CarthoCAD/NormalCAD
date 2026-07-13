@@ -17,9 +17,10 @@ namespace NormalCAD.Host
         public Document CreateDocument()
         {
             _docCounter++;
-            var db = new DB.Database();
+            var db = new DB.Database(true, false);
+            db.Filename = string.Format(DefaultName, _docCounter);
 
-            var doc = new Document(db) { Name = string.Format(DefaultName, _docCounter) };
+            var doc = new Document(db);
             doc.Editor = new Editor(doc);
 
             DocumentManager.Add(doc);

@@ -20,7 +20,7 @@ namespace NormalCAD.Controller.Commands
 
         public async void Activate(CadController controller)
         {
-            string filePath = controller.Document.FilePath;
+            string filePath = controller.Database.Filename;
 
             if (!string.IsNullOrEmpty(filePath))
             {
@@ -66,8 +66,7 @@ namespace NormalCAD.Controller.Commands
                 {
                     controller.SaveViewportState();
                     Services.FileService.Save(controller.Database, path);
-                    controller.Document.FilePath = path;
-                    controller.Document.Name = System.IO.Path.GetFileName(path);
+                    controller.Database.Filename = path;
                     controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(path)));
                 }
                 catch (Exception ex)
