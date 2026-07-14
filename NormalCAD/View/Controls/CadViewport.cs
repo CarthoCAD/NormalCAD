@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using System;
+using CoreApp = NormalCAD.Core.ApplicationServices.Application;
 using System.Collections.Generic;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
@@ -382,7 +383,7 @@ public class CadViewport : Control
         activeSnap = SnapType.None;
         snapPoint = Point3d.Origin;
 
-        var db = Controller?.Database;
+        var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
         if (db == null || CurrentCursorState != CadCursorState.Crosshair)
             return ScreenToWorld(screenMousePos);
 

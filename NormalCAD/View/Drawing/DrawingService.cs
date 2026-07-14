@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Media;
 using NormalCAD.Core.DatabaseServices;
+using CoreApp = NormalCAD.Core.ApplicationServices.Application;
 
 namespace NormalCAD.View.Drawing
 {
@@ -28,9 +29,11 @@ namespace NormalCAD.View.Drawing
         public void DrawDatabase(DrawingContext context, Controller.CadController controller,
                                   Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
-            EnsureSubscribed(controller);
+            EnsureSubscribed();
 
-            var db = controller.Database;
+            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             if (!db.TryGetObject(db.BlockTableId, out var btObj) || btObj is not BlockTable bt)
                 return;
 
@@ -52,9 +55,12 @@ namespace NormalCAD.View.Drawing
                                bool isSelected, bool isPreview,
                                Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
-            EnsureSubscribed(controller);
+            EnsureSubscribed();
 
-            var baseColor = ResolveEntityColor(ent, controller.Database, controller.IsLightTheme);
+            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+            var baseColor = db != null
+                ? ResolveEntityColor(ent, db, controller.IsLightTheme)
+                : Colors.White;
             Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
             if (isPreview)
                 renderColor = Color.Parse("#FF9900");
@@ -69,9 +75,10 @@ namespace NormalCAD.View.Drawing
                 renderer.Render(context, ent, pen, worldToScreen, zoom);
         }
 
-        private void EnsureSubscribed(Controller.CadController controller)
+        private void EnsureSubscribed()
         {
-            var db = controller.Database;
+            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
             if (_subscribedDb == db) return;
             if (_subscribedDb != null)
                 _subscribedDb.ObjectModified -= OnDatabaseObjectModified;

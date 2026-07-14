@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Input;
+using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 
@@ -20,14 +21,22 @@ namespace NormalCAD.Controller.Commands
 
         public async void Activate(CadController controller)
         {
-            string filePath = controller.Database.Filename;
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null)
+            {
+                controller.SetCommand(new BaseCommand());
+                return;
+            }
+
+            var db = doc.Database;
+            string filePath = db.Filename;
 
             if (!string.IsNullOrEmpty(filePath))
             {
                 try
                 {
                     controller.SaveViewportState();
-                    Services.FileService.Save(controller.Database, filePath);
+                    Services.FileService.Save(db, filePath);
                     controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(filePath)));
                 }
                 catch (Exception ex)
@@ -45,6 +54,11 @@ namespace NormalCAD.Controller.Commands
 
         public static async System.Threading.Tasks.Task ShowSaveDialog(CadController controller)
         {
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+
+            var db = doc.Database;
+
             var window = (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window == null) return;
 
@@ -65,8 +79,8 @@ namespace NormalCAD.Controller.Commands
                 try
                 {
                     controller.SaveViewportState();
-                    Services.FileService.Save(controller.Database, path);
-                    controller.Database.Filename = path;
+                    Services.FileService.Save(db, path);
+                    db.Filename = path;
                     controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(path)));
                 }
                 catch (Exception ex)

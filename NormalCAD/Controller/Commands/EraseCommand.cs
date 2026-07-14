@@ -1,4 +1,5 @@
 using Avalonia.Input;
+using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -14,16 +15,24 @@ namespace NormalCAD.Controller.Commands
 
         public void Activate(CadController controller)
         {
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null)
+            {
+                controller.SetCommand(new BaseCommand());
+                return;
+            }
+
+            var db = doc.Database;
             var selected = controller.SelectedEntityIds;
 
             if (selected.Count > 0)
             {
-                using (var trans = controller.Database.TransactionManager.StartTransaction())
+                using (var trans = db.TransactionManager.StartTransaction())
                 {
-                    if (controller.Database.TryGetObject(controller.Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
+                    if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
                     {
                         var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                        if (controller.Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
+                        if (db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
                         {
                             foreach (var entId in selected)
                             {

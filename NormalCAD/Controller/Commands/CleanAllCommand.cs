@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Avalonia.Input;
+using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -17,12 +18,21 @@ namespace NormalCAD.Controller.Commands
 
         public void Activate(CadController controller)
         {
-            using (var trans = controller.Database.TransactionManager.StartTransaction())
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null)
             {
-                if (controller.Database.TryGetObject(controller.Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
+                controller.SetCommand(new BaseCommand());
+                return;
+            }
+
+            var db = doc.Database;
+
+            using (var trans = db.TransactionManager.StartTransaction())
+            {
+                if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
                 {
                     var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                    if (controller.Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
+                    if (db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
                     {
                         var ids = new List<ObjectId>(btr.GetEntityIds());
                         foreach (var id in ids)

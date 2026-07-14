@@ -15,8 +15,6 @@ namespace NormalCAD.Controller
 {
     public class CadController
     {
-        public Document Document { get; private set; }
-        public Database Database => Document.Database;
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
         public InputManager InputManager { get; }
@@ -43,14 +41,15 @@ namespace NormalCAD.Controller
                 Application.Host = new Host.ApplicationHost();
             }
 
-            Document = Application.Host.CreateDocument();
+            Application.Host.CreateDocument();
             Viewport = viewport;
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
             EntityPropertyManager = new EntityPropertyManager(this);
 
-            SubscribeToDatabaseEvents(Document.Database);
+            SubscribeToDatabaseEvents(
+                Application.DocumentManager.MdiActiveDocument!.Database);
 
             SetCommand(new BaseCommand());
         }
@@ -77,9 +76,12 @@ namespace NormalCAD.Controller
 
         public void SetDocument(Document document)
         {
-            UnsubscribeFromDatabaseEvents(Document.Database);
-            Document = document;
-            SubscribeToDatabaseEvents(Document.Database);
+            var previous = Application.DocumentManager.MdiActiveDocument;
+            if (previous != null && previous != document)
+                UnsubscribeFromDatabaseEvents(previous.Database);
+
+            Application.DocumentManager.SetActive(document);
+            SubscribeToDatabaseEvents(document.Database);
 
             ClearSelection();
             Viewport.ActiveCommandPreview = null;
@@ -95,13 +97,14 @@ namespace NormalCAD.Controller
             var doc = new Document(db);
             doc.Editor = new Editor(doc);
             Application.DocumentManager.Add(doc);
-            Application.DocumentManager.SetActive(doc);
             SetDocument(doc);
         }
 
         public void SaveViewportState()
         {
-            var db = Document.Database;
+            var db = Application.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             if (!db.TryGetObject(db.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
                 return;
 
@@ -114,7 +117,9 @@ namespace NormalCAD.Controller
 
         public void RestoreViewportState()
         {
-            var db = Document.Database;
+            var db = Application.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             if (!db.TryGetObject(db.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
                 return;
 
@@ -157,9 +162,12 @@ namespace NormalCAD.Controller
 
         public void AddNewEntityToActiveSpace(Entity entity)
         {
-            using (Document.LockDocument())
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+
+            var db = doc.Database;
+            using (doc.LockDocument())
             {
-                var db = Document.Database;
                 using (var trans = db.TransactionManager.StartTransaction())
                 {
                     if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
