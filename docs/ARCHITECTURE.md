@@ -17,6 +17,7 @@ NormalCAD.sln
 │   │   ├── Document.cs          # Database + Editor + LockDocument()
 │   │   ├── DocumentCollection.cs # MdiActiveDocument
 │   │   ├── DocumentLock.cs      # IDisposable, Monitor.Enter/Exit
+│   │   ├── DocumentLockMode.cs  # Enum NotLocked/AutoWrite/ProtectedAutoWrite/Write
 │   │   └── IApplicationHost.cs  # Internal host initialization interface
 │   ├── DatabaseServices/        # Database, entities and auxiliary types
 │   │   ├── Entity.cs            # Base for all entities (Layer, Color, Linetype, LineWeight, etc.)
@@ -30,6 +31,10 @@ NormalCAD.sln
 │   │   ├── ViewportTable.cs, ViewportTableRecord.cs
 │   │   ├── SymbolTable.cs, SymbolTableRecord.cs
 │   │   ├── EntityColor.cs, SnapType.cs, OpenMode.cs, Culture.cs
+│   │   ├── Handle.cs, FileOpenMode.cs, DwgVersion.cs
+│   │   ├── DuplicateRecordCloning.cs, IdMapping.cs
+│   │   ├── ObjectEventArgs.cs, ObjectIdCollection.cs
+│   │   ├── SymbolUtilityServices.cs
 │   │   ├── Intersect.cs         # Enum Intersect (OnBothOperands, ExtendThis, ExtendArgument, ExtendBoth)
 │   │   ├── LineWeight.cs        # Enum LineWeight (ByLayer, ByBlock, Default, W0..W211)
 │   │   └── Transparency.cs      # Struct Transparency (ByLayer / alpha 0-255)
@@ -61,7 +66,7 @@ NormalCAD.sln
 │   │   ├── EntityPropertyResources.cs # ResourceManager helper for entity property strings
 │   │   └── ComboOptionResources.cs    # ResourceManager helper for combo option strings
 │   ├── Controller/              # Command logic and orchestration
-│   │   ├── CadController.cs     # Central orchestrator (initializes Application, manages Document)
+│   │   ├── CadController.cs     # Subsystem hub — bridges DB events to UI, manages command lifecycle
 │   │   ├── CmdManager.cs        # Command discovery, registration and dispatch
 │   │   ├── InputManager.cs      # Input + prompt keywords + prefix matching
 │   │   ├── Commands/            # ICadCommand implementations
@@ -72,7 +77,7 @@ NormalCAD.sln
 │   │   │   ├── LineWeightOptionProvider.cs, LinetypeOptionProvider.cs
 │   │   │   └── PropertyCategory.cs, LocalizedEnum.cs, ResourcePrefixAttribute.cs
 │   │   └── Services/            # LanguageService (culture), ConfigService (config.json), Converters/ (ACadSharp)
-│   ├── Utilities/              # Cross-cutting helpers (AngleConverter, etc.)
+│   ├── Utilities/              # Cross-cutting helpers (AngleConverter, CadCoreHelper, etc.)
 │   ├── View/                    # Avalonia UI
 │   │   ├── Controls/            # CadViewport, BottomBar, MenuBar, palettes
 │   │   └── Drawing/             # Renderers (Line, Circle, Arc, Polyline)
