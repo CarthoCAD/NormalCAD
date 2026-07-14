@@ -2,6 +2,7 @@ using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Resources;
+using NormalCAD.Utilities;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
@@ -129,7 +130,7 @@ namespace NormalCAD.Controller.Commands
             _polyline.Closed = closed;
             _polyline.Layer = _controller.ActiveLayer;
             _polyline.Color = _controller.ActiveColor;
-            _controller.AddNewEntityToActiveSpace(_polyline);
+            CadCoreHelper.AddNewEntityToCurrentSpace(_polyline);
             _controller.SetCommand(new BaseCommand());
         }
     }

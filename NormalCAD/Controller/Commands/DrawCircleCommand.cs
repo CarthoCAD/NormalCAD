@@ -2,6 +2,7 @@ using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Resources;
+using NormalCAD.Utilities;
 using System;
 using NormalCAD.View.Controls;
 
@@ -89,7 +90,7 @@ namespace NormalCAD.Controller.Commands
                         Layer = _controller.ActiveLayer,
                         Color = _controller.ActiveColor
                     };
-                    _controller.AddNewEntityToActiveSpace(circle);
+                    CadCoreHelper.AddNewEntityToCurrentSpace(circle);
                 }
 
                 _controller.SetCommand(new BaseCommand());

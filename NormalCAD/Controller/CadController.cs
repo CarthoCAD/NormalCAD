@@ -160,30 +160,6 @@ namespace NormalCAD.Controller
 
         public bool IsSelected(ObjectId id) => _selectedEntityIds.Contains(id);
 
-        public void AddNewEntityToActiveSpace(Entity entity)
-        {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            if (doc == null) return;
-
-            var db = doc.Database;
-            using (doc.LockDocument())
-            {
-                using (var trans = db.TransactionManager.StartTransaction())
-                {
-                    if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
-                    {
-                        var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                        if (db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                        {
-                            btr.AppendEntity(entity);
-                            trans.AddNewlyCreatedDBObject(entity, true);
-                        }
-                    }
-                    trans.Commit();
-                }
-            }
-        }
-
         public void AddToSelection(ObjectId id)
         {
             _selectedEntityIds.Add(id);

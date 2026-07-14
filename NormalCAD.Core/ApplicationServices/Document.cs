@@ -28,6 +28,11 @@ namespace NormalCAD.Core.ApplicationServices
             Editor = null!;
         }
 
+        public DocumentLockMode LockMode =>
+            Monitor.IsEntered(_lock) ? DocumentLockMode.Write : DocumentLockMode.NotLocked;
+
+        internal bool IsLocked => Monitor.IsEntered(_lock);
+
         public DocumentLock LockDocument()
         {
             Monitor.Enter(_lock);

@@ -3,6 +3,7 @@ using Avalonia.Input;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Resources;
+using NormalCAD.Utilities;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
@@ -61,7 +62,7 @@ namespace NormalCAD.Controller.Commands
                     Layer = _controller.ActiveLayer,
                     Color = _controller.ActiveColor
                 };
-                _controller.AddNewEntityToActiveSpace(arc);
+                CadCoreHelper.AddNewEntityToCurrentSpace(arc);
                 _controller.SetCommand(new BaseCommand());
             }
         }
