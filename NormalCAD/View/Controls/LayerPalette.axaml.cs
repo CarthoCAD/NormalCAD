@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Resources;
+using CoreApp = NormalCAD.Core.ApplicationServices.Application;
 
 namespace NormalCAD.View.Controls
 {
@@ -65,16 +66,16 @@ namespace NormalCAD.View.Controls
         private void OnDatabaseChanged()
         {
             if (_controller == null) return;
+            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             var list = new List<LayerItem>();
-            if (_controller.Database != null)
+            if (db.TryGetObject(db.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
             {
-                if (_controller.Database.TryGetObject(_controller.Database.LayerTableId, out var ltObj) && ltObj is LayerTable lt)
+                foreach (var record in lt)
                 {
-                    foreach (var record in lt)
-                    {
-                        var brush = new SolidColorBrush(Color.FromArgb(record.Color.A, record.Color.R, record.Color.G, record.Color.B));
-                        list.Add(new LayerItem { Name = record.Name, ColorBrush = brush });
-                    }
+                    var brush = new SolidColorBrush(Color.FromArgb(record.Color.A, record.Color.R, record.Color.G, record.Color.B));
+                    list.Add(new LayerItem { Name = record.Name, ColorBrush = brush });
                 }
             }
 
@@ -96,6 +97,9 @@ namespace NormalCAD.View.Controls
         private void BtnAddLayer_Click(object? sender, RoutedEventArgs e)
         {
             if (_controller == null) return;
+            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             var txtNewLayerName = this.FindControl<TextBox>("TxtNewLayerName");
             if (txtNewLayerName == null) return;
 
@@ -104,9 +108,9 @@ namespace NormalCAD.View.Controls
             {
                 try
                 {
-                    using (var trans = _controller.Database.TransactionManager.StartTransaction())
+                    using (var trans = db.TransactionManager.StartTransaction())
                     {
-                        var lt = (LayerTable)trans.GetObject(_controller.Database.LayerTableId, OpenMode.ForWrite);
+                        var lt = (LayerTable)trans.GetObject(db.LayerTableId, OpenMode.ForWrite);
                         if (!lt.Has(name))
                         {
                             var rand = new Random();

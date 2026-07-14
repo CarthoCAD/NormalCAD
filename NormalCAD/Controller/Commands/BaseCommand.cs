@@ -6,6 +6,7 @@ using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 using NormalCAD.View.Controls;
+using CoreApp = NormalCAD.Core.ApplicationServices.Application;
 
 namespace NormalCAD.Controller.Commands
 {
@@ -51,14 +52,16 @@ namespace NormalCAD.Controller.Commands
             if (_controller == null) return;
 
             var viewport = _controller.Viewport;
-            var db = _controller.Database;
+            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             var mouseScreenPos = e.GetPosition(viewport);
             bool isShift = (e.KeyModifiers & KeyModifiers.Shift) != 0;
 
             if (_isSelectingBox)
             {
                 viewport.SelectionEndPoint = mouseScreenPos;
-                int found = PerformSelectionBox(viewport, isShift);
+                int found = PerformSelectionBox(viewport, isShift, db);
                 FinishSelection(found, isShift);
                 return;
             }
@@ -151,7 +154,7 @@ namespace NormalCAD.Controller.Commands
             _controller.Viewport.InvalidateVisual();
         }
 
-        private int PerformSelectionBox(CadViewport viewport, bool isShift)
+        private int PerformSelectionBox(CadViewport viewport, bool isShift, Database db)
         {
             if (!viewport.SelectionStartPoint.HasValue || !viewport.SelectionEndPoint.HasValue) return 0;
 
@@ -161,7 +164,6 @@ namespace NormalCAD.Controller.Commands
             var screenRect = GetRect(p1, p2);
             bool isCrossing = p2.X < p1.X;
 
-            var db = _controller!.Database;
             var toSelect = new List<ObjectId>();
 
             if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)

@@ -35,7 +35,7 @@ namespace NormalCAD.Controller.Services
             if (cadDoc == null)
                 throw new Exception(ErrorLoadFailed);
 
-            var db = new Database();
+            var db = new Database(true, false);
 
             using (var trans = db.TransactionManager.StartTransaction())
             {

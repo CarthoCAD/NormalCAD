@@ -39,6 +39,8 @@ namespace NormalCAD.Core.DatabaseServices
 
             _entityIds.Add(entity.ObjectId);
             _spatialIndex.Insert(entity.GeometricExtents, entity.ObjectId);
+
+            db.RaiseObjectAppended(entity);
         }
 
         public void RemoveEntity(ObjectId entityId)
@@ -46,6 +48,7 @@ namespace NormalCAD.Core.DatabaseServices
             if (this.Database != null && this.Database.TryGetObject(entityId, out var obj) && obj is Entity ent)
             {
                 _spatialIndex.Remove(ent.GeometricExtents, entityId);
+                this.Database.RaiseObjectErased(ent);
             }
             _entityIds.Remove(entityId);
         }

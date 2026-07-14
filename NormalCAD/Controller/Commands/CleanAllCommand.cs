@@ -3,6 +3,7 @@ using Avalonia.Input;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
+using NormalCAD.Utilities;
 
 namespace NormalCAD.Controller.Commands
 {
@@ -17,22 +18,14 @@ namespace NormalCAD.Controller.Commands
 
         public void Activate(CadController controller)
         {
-            using (var trans = controller.Database.TransactionManager.StartTransaction())
+            CadCoreHelper.EditCurrentSpace((trans, currentSpace) =>
             {
-                if (controller.Database.TryGetObject(controller.Database.BlockTableId, out var btObj) && btObj is BlockTable bt)
+                var ids = new List<ObjectId>(currentSpace.GetEntityIds());
+                foreach (var id in ids)
                 {
-                    var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                    if (controller.Database.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                    {
-                        var ids = new List<ObjectId>(btr.GetEntityIds());
-                        foreach (var id in ids)
-                        {
-                            btr.RemoveEntity(id);
-                        }
-                    }
+                    currentSpace.RemoveEntity(id);
                 }
-                trans.Commit();
-            }
+            });
 
             controller.ClearSelection();
             controller.InputManager.SetPromptMessage(MsgCleared);

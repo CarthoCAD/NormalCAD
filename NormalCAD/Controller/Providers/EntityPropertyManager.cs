@@ -218,6 +218,17 @@ namespace NormalCAD.Controller.Providers
                 using (doc.LockDocument())
                 using (var trans = doc.Database.TransactionManager.StartTransaction())
                 {
+                    // FIXME: Remove this manual ForWrite loop once UpgradeOpen() is
+                    // implemented. Each TrySetValue closure should call
+                    // entity.UpgradeOpen() to self-promote from ForRead to ForWrite
+                    // inside the active transaction. At that point this block becomes
+                    // dead code — the transaction will already track the entity via
+                    // the object's own open-state, not through a bulk pre-registration.
+                    foreach (var id in _controller.SelectedEntityIds)
+                    {
+                        trans.GetObject(id, OpenMode.ForWrite);
+                    }
+
                     if (descriptor.TrySetValue(value))
                     {
                         trans.Commit();

@@ -35,10 +35,6 @@ Implement a full undo/redo stack using the AutoCAD command-group model: each int
 
 The combo box editors in the property palette (LineWeight, Linetype, the boolean Yes/No, and `ByLayer`/`ByBlock` values) appear not to localize correctly — verify and fix. Confirm that each `ComboOption.DisplayName` resolves to the current UI culture and, crucially, that the displayed text updates when the language is switched at runtime. Likely areas to inspect: the option providers (`LineWeightOptionProvider`, `LinetypeOptionProvider`) and the generated boolean options; the `ComboOptions.resx` / `EntityProperties.resx` keys behind them; whether option lists or their display strings are cached/built once instead of re-read per culture; and whether the palette re-projects its rows on `LanguageService.LanguageChanged` so the combos rebuild with new-culture display names (the selected item must also re-match after the rebuild). Add a check that a language switch with an entity selected refreshes every combo's text.
 
-## Centralize Document and Database Access (priority: medium)
-
-`CadController.Database` and `CadController.Document` are accessed directly from commands, UI controls, services, and converters scattered across the codebase. When active document switching is implemented, any code holding a stale reference to a previous document will operate on the wrong data. All access to the current document and database must route through `Application.DocumentManager.ActiveDocument` so that a document switch automatically redirects every consumer. This affects at least `FileService`, all `ICadCommand` implementations, `PropertyPalette`, `LayerPalette`, `DrawingService`, and `CadViewport`. The `CadController` should become a thin facade that delegates to `DocumentManager.ActiveDocument` rather than holding its own mutable `Document` field.
-
 ## Cache Brushes and Pens in `DrawingService` (priority: medium)
 
 `DrawingService.DrawEntity` allocates a new `SolidColorBrush` and a new `Pen` for every entity on every frame. With 1000 entities at 60fps, that is approximately 120,000 allocations per second just for rendering brushes and pens, driving significant GC pressure. Cache brushes and pens in a `ConcurrentDictionary` keyed by `(Avalonia.Media.Color, double thickness, DashStyle?)` or similar tuple. Invalidate and clear the cache on theme change (Light ↔ Dark), since theme tokens resolve to different colors.
@@ -66,10 +62,6 @@ The provider palette fields for bulge/width already exist, so this item is purel
 
 `MainWindow.OnSidebarPointerExited` creates a new `DispatcherTimer` instance every time the pointer leaves the sidebar area, and `BottomBar.ShowFloatingPrompt` / `HideFloatingPrompt` each create new timers on every call. Over a single editing session, dozens of orphaned timer instances accumulate — each still wired to its Tick handler via closure, preventing garbage collection. Create the timers once in the constructor of each class, store them as instance fields, and reuse them via `Start()` / `Stop()` with updated intervals or callbacks as needed.
 
-## Extract `GetModelSpace()` Helper (priority: medium)
-
-The pattern `db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt` followed by `bt[BlockTableRecord.ModelSpace]` and another `TryGetObject` to get `BlockTableRecord btr` appears 8 times across `BaseCommand`, `EraseCommand`, `CleanAllCommand`, `DrawingService`, `TableParsers`, `CadViewport`, and `CadController`. Add an extension method `Database.TryGetModelSpace(out BlockTableRecord)` in the Core assembly. This reduces duplication and provides a single point of change if model space retrieval logic ever needs adjustment.
-
 ## Active Document Switching (priority: medium)
 
 Allow users to create, open, and switch between multiple documents within a single application session, managed by `Application.DocumentManager`. Requires: UI for displaying open documents (tabs, a window menu, or a document list dropdown), per-document viewport state save and restore (camera position, zoom, active layer, selection set), ensuring all subsystems (`DrawingService`, `PropertyPalette`, `LayerPalette`, `InputManager`, active command) respond correctly to a document transition, and handling the edge case where the last document is closed (return to a "no document" startup state). Depends on the "Centralize Document and Database Access" item so that consumers do not hold stale references.
@@ -91,7 +83,21 @@ Create a color-selection dialog matching AutoCAD's "Select Color" (index color /
 
 ## Active Space Switching (Model / Paper Space) (priority: medium)
 
-Allow users to toggle between model space and paper space layouts within a document. Requires: reading `BlockTableRecord.IsPaperSpace` to distinguish spaces, exposing paper space block records alongside model space in the UI (a tab bar or dropdown), switching the active `BlockTableRecord` in `CadController` so all entity operations target the correct space, and adjusting viewport rendering per space type (model space: infinite grid, world coordinates; paper space: sheet boundary, layout-relative coordinates, viewport objects displayed as clipped windows into model space). Implementation should also handle the case where a document has no paper space layouts defined yet.
+Allow users to toggle between model space and paper space layouts within a document. Requires: reading `BlockTableRecord.IsPaperSpace` to distinguish spaces, exposing paper space block records alongside model space in the UI (a tab bar or dropdown), switching the active `BlockTableRecord` so all entity operations target the correct space, and adjusting viewport rendering per space type (model space: infinite grid, world coordinates; paper space: sheet boundary, layout-relative coordinates, viewport objects displayed as clipped windows into model space). Implementation should also handle the case where a document has no paper space layouts defined yet.
+
+## Refactor `CadController` — Decompose God Class (priority: medium)
+
+`CadController` is an orchestration hub that accumulated responsibilities from four distinct AutoCAD .NET API roles: `Application` (bootstrap/document lifecycle), `Editor` (selection/session state), `Document` (viewport persistence), and UI glue (theme, input pass-through). This blocks independent testing and forces every new feature through a single 200+ line class.
+
+Break it down:
+
+- **Theme** — extract `ApplyTheme` into a `ThemeService`. `MainWindow` calls it directly; `CadController` drops `IsLightTheme` and `ApplyTheme`.
+- **Subsystem circular dependency** — `CmdManager`, `InputManager`, `EntityPropertyManager` receive `CadController` in their constructors only to call 1-2 methods each. Replace with targeted delegates or a minimal `ICadController` interface.
+- **Viewport persistence** — move `SaveViewportState`/`RestoreViewportState` into `CadCoreHelper` or trigger automatically on `SetDocument`.
+- **Selection + session state** — migrate `_selectedEntityIds`, `ActiveLayer`, `ActiveColor`, and selection events to `Editor` (depends on "Extract Idle State from `BaseCommand`").
+- **Input pass-through** — remove `OnPointerPressed`/`OnPointerMoved`/`OnKeyDown` indirection (depends on "Refactor Command Input System").
+
+After decomposition, `CadController` should be a thin facade coordinating `CmdManager`, `InputManager`, and `EntityPropertyManager`, with no direct database access, no session state, and no UI concern.
 
 ## Move `CadCursorState` to Controller (priority: low)
 

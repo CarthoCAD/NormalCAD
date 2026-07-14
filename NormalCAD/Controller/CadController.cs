@@ -15,8 +15,6 @@ namespace NormalCAD.Controller
 {
     public class CadController
     {
-        public Document Document { get; private set; }
-        public Database Database => Document.Database;
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
         public InputManager InputManager { get; }
@@ -43,19 +41,34 @@ namespace NormalCAD.Controller
                 Application.Host = new Host.ApplicationHost();
             }
 
-            Document = Application.Host.CreateDocument();
+            Application.Host.CreateDocument();
             Viewport = viewport;
             Viewport.Controller = this;
             CmdManager = new CmdManager(this);
             InputManager = new InputManager(this);
             EntityPropertyManager = new EntityPropertyManager(this);
 
-            Document.Database.Changed += OnDatabaseChanged;
+            SubscribeToDatabaseEvents(
+                Application.DocumentManager.MdiActiveDocument!.Database);
 
             SetCommand(new BaseCommand());
         }
 
-        private void OnDatabaseChanged()
+        private void SubscribeToDatabaseEvents(Database db)
+        {
+            db.ObjectAppended += OnDatabaseObjectEvent;
+            db.ObjectModified += OnDatabaseObjectEvent;
+            db.ObjectErased += OnDatabaseObjectEvent;
+        }
+
+        private void UnsubscribeFromDatabaseEvents(Database db)
+        {
+            db.ObjectAppended -= OnDatabaseObjectEvent;
+            db.ObjectModified -= OnDatabaseObjectEvent;
+            db.ObjectErased -= OnDatabaseObjectEvent;
+        }
+
+        private void OnDatabaseObjectEvent(object? sender, ObjectEventArgs e)
         {
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
@@ -63,9 +76,12 @@ namespace NormalCAD.Controller
 
         public void SetDocument(Document document)
         {
-            Document.Database.Changed -= OnDatabaseChanged;
-            Document = document;
-            Document.Database.Changed += OnDatabaseChanged;
+            var previous = Application.DocumentManager.MdiActiveDocument;
+            if (previous != null && previous != document)
+                UnsubscribeFromDatabaseEvents(previous.Database);
+
+            Application.DocumentManager.SetActive(document);
+            SubscribeToDatabaseEvents(document.Database);
 
             ClearSelection();
             Viewport.ActiveCommandPreview = null;
@@ -77,17 +93,18 @@ namespace NormalCAD.Controller
 
         public void SetDatabase(Database db, string filePath)
         {
-            string name = System.IO.Path.GetFileName(filePath);
-            var doc = new Document(db) { Name = name, FilePath = filePath };
+            db.Filename = filePath;
+            var doc = new Document(db);
             doc.Editor = new Editor(doc);
             Application.DocumentManager.Add(doc);
-            Application.DocumentManager.SetActive(doc);
             SetDocument(doc);
         }
 
         public void SaveViewportState()
         {
-            var db = Document.Database;
+            var db = Application.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             if (!db.TryGetObject(db.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
                 return;
 
@@ -100,7 +117,9 @@ namespace NormalCAD.Controller
 
         public void RestoreViewportState()
         {
-            var db = Document.Database;
+            var db = Application.DocumentManager.MdiActiveDocument?.Database;
+            if (db == null) return;
+
             if (!db.TryGetObject(db.ViewportTableId, out var vtObj) || vtObj is not ViewportTable vt)
                 return;
 
@@ -140,27 +159,6 @@ namespace NormalCAD.Controller
         }
 
         public bool IsSelected(ObjectId id) => _selectedEntityIds.Contains(id);
-
-        public void AddNewEntityToActiveSpace(Entity entity)
-        {
-            using (Document.LockDocument())
-            {
-                var db = Document.Database;
-                using (var trans = db.TransactionManager.StartTransaction())
-                {
-                    if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
-                    {
-                        var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                        if (db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                        {
-                            btr.AppendEntity(entity);
-                            trans.AddNewlyCreatedDBObject(entity, true);
-                        }
-                    }
-                    trans.Commit();
-                }
-            }
-        }
 
         public void AddToSelection(ObjectId id)
         {
