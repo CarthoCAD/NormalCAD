@@ -1,9 +1,9 @@
-using Avalonia.Input;
-using NormalCAD.Core.Geometry;
+using System;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Core.EditorInput;
+using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 using NormalCAD.Utilities;
-using System;
 using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
@@ -32,103 +32,98 @@ namespace NormalCAD.Controller.Commands
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _center = null;
             _isDiameter = false;
-
-            _controller.InputManager.SetCurrentPrompt(LocalName, PromptCenterPoint);
+            _controller.InputManager.RegisterMouseMove(OnMouseMove);
+            RegisterCenterPrompt();
         }
 
         public void Deactivate()
         {
             if (_controller != null)
             {
-                _controller.InputManager.ClearKeywords();
-                _controller.Viewport.ActiveCommandPreview = null;
+                _controller.InputManager.ClearAllRegistrations();
                 _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
             }
         }
 
-        private void OnKeyword(string keyword)
+        private void RegisterCenterPrompt()
         {
-            if (_controller == null || !_center.HasValue) return;
-
-            if (keyword == KeyDiameter)
-            {
-                _isDiameter = true;
-                _controller.InputManager.SetCurrentPrompt(LocalName, PromptDiameter,
-                    new[] { KeyRadius }, OnKeyword);
-            }
-            else if (keyword == KeyRadius)
-            {
-                _isDiameter = false;
-                _controller.InputManager.SetCurrentPrompt(LocalName, PromptRadius,
-                    new[] { KeyDiameter }, OnKeyword);
-            }
-
-            UpdatePreview();
-            _controller.Viewport.InvalidateVisual();
+            _controller!.InputManager.RegisterGetPoint(
+                new PromptPointOptions { Message = PromptCenterPoint },
+                OnCenterPoint);
         }
 
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
+        private void OnCenterPoint(PromptPointResult result)
         {
-            if (_controller == null) return;
+            if (result.Status != PromptStatus.OK) { Finish(); return; }
+            _center = result.Value;
+            RegisterRadiusPrompt();
+        }
 
-            if (!_center.HasValue)
-            {
-                _center = worldPt;
-
-                _controller.InputManager.SetCurrentPrompt(LocalName, PromptRadius,
-                    new[] { KeyDiameter }, OnKeyword);
-            }
-            else
-            {
-                double dist = _center.Value.DistanceTo(worldPt);
-                double radius = _isDiameter ? dist / 2.0 : dist;
-
-                if (radius > 1e-6)
+        private void RegisterRadiusPrompt()
+        {
+            _controller!.InputManager.RegisterGetPoint(
+                new PromptPointOptions
                 {
-                    var circle = new Circle(_center.Value, Vector3d.ZAxis, radius)
-                    {
-                        Layer = _controller.ActiveLayer,
-                        Color = _controller.ActiveColor
-                    };
-                    CadCoreHelper.AddNewEntityToCurrentSpace(circle);
-                }
+                    Message = _isDiameter ? PromptDiameter : PromptRadius,
+                    BasePoint = _center,
+                    Keywords = new[] { _isDiameter ? KeyRadius : KeyDiameter }
+                },
+                OnRadiusPoint);
+        }
 
-                _controller.SetCommand(new BaseCommand());
+        private void OnRadiusPoint(PromptPointResult result)
+        {
+            if (result.Status == PromptStatus.Keyword)
+            {
+                _isDiameter = !_isDiameter;
+                RegisterRadiusPrompt();
+                return;
             }
-        }
+            if (result.Status != PromptStatus.OK) { Finish(); return; }
 
-        public void OnPointerMoved(Point3d worldPt)
-        {
-            _lastWorldPoint = worldPt;
-            UpdatePreview();
-        }
-
-        private void UpdatePreview()
-        {
-            if (_controller == null || !_center.HasValue) return;
-
-            double dist = _center.Value.DistanceTo(_lastWorldPoint);
+            double dist = _center!.Value.DistanceTo(result.Value);
             double radius = _isDiameter ? dist / 2.0 : dist;
 
             if (radius > 1e-6)
             {
-                _controller.Viewport.ActiveCommandPreview = new Circle(_center.Value, Vector3d.ZAxis, radius)
+                var circle = new Circle(_center.Value, Vector3d.ZAxis, radius)
                 {
-                    Layer = _controller.ActiveLayer,
+                    Layer = _controller!.ActiveLayer,
                     Color = _controller.ActiveColor
                 };
+                CadCoreHelper.AddNewEntityToCurrentSpace(circle);
             }
+
+            Finish();
         }
 
-        public void OnKeyDown(KeyEventArgs e)
+        private void OnMouseMove(Point3d worldPt)
         {
-            if (_controller == null) return;
+            _lastWorldPoint = worldPt;
+            if (_controller == null || !_center.HasValue) return;
 
-            if (e.Key == Key.Enter || e.Key == Key.Space)
+            double dist = _center.Value.DistanceTo(worldPt);
+            double radius = _isDiameter ? dist / 2.0 : dist;
+
+            if (radius > 1e-6)
             {
-                _controller.SetCommand(new BaseCommand());
-                e.Handled = true;
+                _controller.InputManager.SetPreview("circle",
+                    new Circle(_center.Value, Vector3d.ZAxis, radius)
+                    {
+                        Layer = _controller.ActiveLayer,
+                        Color = _controller.ActiveColor
+                    });
             }
+            _controller.Viewport.InvalidateVisual();
         }
+
+        private void Finish()
+        {
+            _controller!.SetCommand(new BaseCommand());
+        }
+
+        public void OnPointerPressed(Point3d worldPt, Avalonia.Input.PointerPressedEventArgs e) { }
+        public void OnPointerMoved(Point3d worldPt) { }
+        public void OnKeyDown(Avalonia.Input.KeyEventArgs e) { }
     }
 }

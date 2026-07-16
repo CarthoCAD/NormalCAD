@@ -1,6 +1,7 @@
 using Avalonia.Input;
-using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Core.EditorInput;
+using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 using NormalCAD.Utilities;
 using NormalCAD.View.Controls;
@@ -16,6 +17,7 @@ namespace NormalCAD.Controller.Commands
 
         private CadController? _controller;
         private Polyline _polyline = new();
+        private Point3d? _lastCommittedPoint;
 
         public string Name => "_.PLINE";
         public string LocalName => CommandResources.Get("PLINE.LOCALNAME");
@@ -30,101 +32,105 @@ namespace NormalCAD.Controller.Commands
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _polyline = new Polyline();
-            _controller.Viewport.ActiveCommandPreview = _polyline;
-
-            UpdatePrompt();
+            _lastCommittedPoint = null;
+            _controller.InputManager.SetPreview("polyline", _polyline);
+            _controller.InputManager.RegisterMouseMove(OnMouseMove);
+            RegisterFirstPointPrompt();
         }
 
         public void Deactivate()
         {
             if (_controller != null)
             {
-                _controller.InputManager.ClearKeywords();
-                _controller.Viewport.ActiveCommandPreview = null;
+                _controller.InputManager.ClearAllRegistrations();
                 _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
             }
         }
 
-        private void UpdatePrompt()
+        private void RegisterFirstPointPrompt()
         {
-            if (_controller == null) return;
-
-            var name = LocalName;
-
-            if (CommittedCount == 0)
-                _controller.InputManager.SetCurrentPrompt(name, PromptFirstPoint);
-            else if (CommittedCount == 1)
-                _controller.InputManager.SetCurrentPrompt(name, PromptNextPoint,
-                    new[] { KeyUndo }, OnKeyword);
-            else
-                _controller.InputManager.SetCurrentPrompt(name, PromptNextPoint,
-                    new[] { KeyUndo, KeyClose }, OnKeyword);
+            _controller!.InputManager.RegisterGetPoint(
+                new PromptPointOptions { Message = PromptFirstPoint },
+                OnFirstPoint);
         }
 
-        private void OnKeyword(string keyword)
+        private void OnFirstPoint(PromptPointResult result)
         {
-            if (_controller == null) return;
+            if (result.Status != PromptStatus.OK) { Finish(closed: false); return; }
 
-            if (keyword == KeyClose && CommittedCount >= 2)
-            {
-                CommitPolyline(closed: true);
-            }
-            else if (keyword == KeyUndo && _polyline.NumberOfVertices >= 2)
-            {
-                _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 2);
-                UpdatePrompt();
-                _controller.Viewport.InvalidateVisual();
-            }
+            _polyline.Elevation = result.Value.Z;
+            _polyline.AddVertexAt(0, Point2d.FromPoint3d(result.Value), 0.0, 0.0, 0.0);
+            _polyline.AddVertexAt(1, Point2d.FromPoint3d(result.Value), 0.0, 0.0, 0.0);
+            _lastCommittedPoint = result.Value;
+
+            RegisterNextPointPrompt();
         }
 
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
+        private void RegisterNextPointPrompt()
         {
-            if (_controller == null) return;
+            var keywords = CommittedCount >= 2
+                ? new[] { KeyUndo, KeyClose }
+                : new[] { KeyUndo };
 
-            var props = e.GetCurrentPoint(_controller.Viewport).Properties;
-            if (props.IsRightButtonPressed && CommittedCount >= 2)
-            {
-                CommitPolyline(closed: false);
-                return;
-            }
-
-            if (_polyline.NumberOfVertices == 0)
-            {
-                _polyline.Elevation = worldPt.Z;
-                _polyline.AddVertexAt(0, Point2d.FromPoint3d(worldPt), 0.0, 0.0, 0.0);
-            }
-            else
-            {
-                _polyline.SetPointAt(_polyline.NumberOfVertices - 1, Point2d.FromPoint3d(worldPt));
-            }
-
-            _polyline.AddVertexAt(_polyline.NumberOfVertices, Point2d.FromPoint3d(worldPt), 0.0, 0.0, 0.0);
-
-            UpdatePrompt();
+            _controller!.InputManager.RegisterGetPoint(
+                new PromptPointOptions
+                {
+                    Message = PromptNextPoint,
+                    Keywords = keywords,
+                    BasePoint = _lastCommittedPoint
+                },
+                OnNextPoint);
         }
 
-        public void OnPointerMoved(Point3d worldPt)
+        private void OnNextPoint(PromptPointResult result)
+        {
+            if (result.Status == PromptStatus.Keyword)
+            {
+                if (result.StringResult == KeyClose && CommittedCount >= 2)
+                {
+                    Finish(closed: true);
+                    return;
+                }
+                if (result.StringResult == KeyUndo && _polyline.NumberOfVertices >= 2)
+                {
+                    _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 2);
+                    _controller!.Viewport.InvalidateVisual();
+                    if (_polyline.NumberOfVertices == 0)
+                        RegisterFirstPointPrompt();
+                    else
+                        RegisterNextPointPrompt();
+                    return;
+                }
+            }
+
+            if (result.Status != PromptStatus.OK) { Finish(closed: false); return; }
+
+            var worldPt = result.Value;
+            _polyline.SetPointAt(_polyline.NumberOfVertices - 1,
+                Point2d.FromPoint3d(worldPt));
+            _polyline.AddVertexAt(_polyline.NumberOfVertices,
+                Point2d.FromPoint3d(worldPt), 0.0, 0.0, 0.0);
+            _lastCommittedPoint = worldPt;
+
+            RegisterNextPointPrompt();
+        }
+
+        private void OnMouseMove(Point3d worldPt)
         {
             if (_controller == null || _polyline.NumberOfVertices == 0) return;
 
-            _polyline.SetPointAt(_polyline.NumberOfVertices - 1, Point2d.FromPoint3d(worldPt));
+            _polyline.SetPointAt(_polyline.NumberOfVertices - 1,
+                Point2d.FromPoint3d(worldPt));
             _controller.Viewport.InvalidateVisual();
         }
 
-        public void OnKeyDown(KeyEventArgs e)
+        private void Finish(bool closed)
         {
-            if (_controller == null) return;
-
-            if ((e.Key == Key.Enter || e.Key == Key.Space) && CommittedCount >= 2)
+            if (_controller == null || CommittedCount < 2)
             {
-                CommitPolyline(closed: false);
-                e.Handled = true;
+                _controller!.SetCommand(new BaseCommand());
+                return;
             }
-        }
-
-        private void CommitPolyline(bool closed)
-        {
-            if (_controller == null || CommittedCount < 2) return;
 
             _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 1);
             _polyline.Closed = closed;
@@ -133,5 +139,9 @@ namespace NormalCAD.Controller.Commands
             CadCoreHelper.AddNewEntityToCurrentSpace(_polyline);
             _controller.SetCommand(new BaseCommand());
         }
+
+        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
+        public void OnPointerMoved(Point3d worldPt) { }
+        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

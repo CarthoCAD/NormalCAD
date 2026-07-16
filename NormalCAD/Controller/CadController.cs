@@ -84,7 +84,6 @@ namespace NormalCAD.Controller
             SubscribeToDatabaseEvents(document.Database);
 
             ClearSelection();
-            Viewport.ActiveCommandPreview = null;
             SetCommand(new BaseCommand());
             RestoreViewportState();
             DatabaseChanged?.Invoke();
@@ -133,7 +132,6 @@ namespace NormalCAD.Controller
         public void SetCommand(ICadCommand command)
         {
             _activeCommand?.Deactivate();
-            Viewport.ActiveCommandPreview = null;
             _activeCommand = command;
             InputManager.SetCurrentPrompt(_activeCommand.LocalName);
             _activeCommand.Activate(this);            

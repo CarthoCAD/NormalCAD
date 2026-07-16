@@ -117,16 +117,9 @@ namespace NormalCAD.View.Controls
             {
                 string commandText = _txtPrompt.Text?.Trim() ?? "";
                 _txtPrompt.Text = "";
-                if (!string.IsNullOrEmpty(commandText))
+                if (!string.IsNullOrEmpty(commandText) && !_controller.InputManager.TryProcessTextInput(commandText))
                 {
-                    if (_controller.InputManager.HasKeywords)
-                    {
-                        _controller.TryHandleKeyword(commandText);
-                    }
-                    else
-                    {
-                        await _controller.CmdManager.ExecuteCommand(commandText);
-                    }
+                    await _controller.CmdManager.ExecuteCommand(commandText);
                 }
                 e.Handled = true;
             }

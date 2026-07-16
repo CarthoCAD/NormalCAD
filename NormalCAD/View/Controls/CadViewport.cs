@@ -30,8 +30,6 @@ public class CadViewport : Control
     public Point3d WorldCenter { get; set; } = Point3d.Origin;
     public double Zoom { get; set; } = 1.0;
 
-    public Entity? ActiveCommandPreview { get; set; }
-
     public void RestoreViewport(ViewportTableRecord vtr)
     {
         WorldCenter = vtr.Center;
@@ -202,12 +200,18 @@ public class CadViewport : Control
         if (Controller != null)
             _drawingService.DrawDatabase(context, Controller, WorldToScreen, Zoom);
 
-        // 5. Draw Active Command Preview
-        if (ActiveCommandPreview != null && Controller != null)
+        // 5. Draw Active Command Previews
+        if (Controller != null)
         {
-            _drawingService.DrawEntity(context, ActiveCommandPreview, Controller,
-                                    isSelected: false, isPreview: true,
-                                    WorldToScreen, Zoom);
+            foreach (var kvp in Controller.InputManager.ActivePreviews)
+            {
+                if (kvp.Value != null)
+                {
+                    _drawingService.DrawEntity(context, kvp.Value, Controller,
+                        isSelected: false, isPreview: true,
+                        WorldToScreen, Zoom);
+                }
+            }
         }
 
         // 6. Draw Snap Indicator

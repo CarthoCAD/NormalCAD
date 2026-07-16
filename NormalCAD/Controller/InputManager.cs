@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Avalonia.Input;
+using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Core.EditorInput;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Controller.Commands;
 using NormalCAD.Resources;
@@ -20,7 +23,17 @@ namespace NormalCAD.Controller
         private string[] _keywords = Array.Empty<string>();
         private Action<string>? _keywordHandler;
 
+        private Action<PromptPointResult>? _pointCallback;
+        private Action<PromptDoubleResult>? _distanceCallback;
+        private Action<PromptStringResult>? _stringCallback;
+        private Action<PromptKeywordResult>? _keywordCallback;
+        private Action<Point3d>? _mouseMoveCallback;
+        private PromptPointOptions? _activePointOptions;
+
+        private readonly Dictionary<string, Entity?> _previews = new();
+
         public bool HasKeywords => _keywords.Length > 0;
+        public IReadOnlyDictionary<string, Entity?> ActivePreviews => _previews;
 
         public event Action<string>? PromptMessageChanged;
         public event Action<string>? CurrentPromptChanged;
@@ -60,18 +73,13 @@ namespace NormalCAD.Controller
 
         public bool TryHandleKeyword(string text)
         {
-            if (!HasKeywords)
-                return false;
-
-            var handler = _keywordHandler;
-            if (handler == null)
-                return false;
+            if (!HasKeywords) return false;
 
             foreach (var kw in _keywords)
             {
                 if (string.Equals(kw, text, StringComparison.OrdinalIgnoreCase))
                 {
-                    handler(kw);
+                    DispatchKeyword(kw);
                     return true;
                 }
             }
@@ -85,7 +93,7 @@ namespace NormalCAD.Controller
 
             if (matches.Count == 1)
             {
-                handler(matches[0]);
+                DispatchKeyword(matches[0]);
                 return true;
             }
 
@@ -95,6 +103,18 @@ namespace NormalCAD.Controller
                 SetPromptMessage(MsgKeywordRequired);
 
             return true;
+        }
+
+        private void DispatchKeyword(string keyword)
+        {
+            if (_pointCallback != null)
+                _pointCallback(new PromptPointResult(PromptStatus.Keyword, default, keyword));
+            else if (_distanceCallback != null)
+                _distanceCallback(new PromptDoubleResult(PromptStatus.Keyword, 0, keyword));
+            else if (_stringCallback != null)
+                _stringCallback(new PromptStringResult(PromptStatus.Keyword, keyword));
+            else if (_keywordCallback != null)
+                _keywordCallback(new PromptKeywordResult(PromptStatus.OK, keyword));
         }
 
         public void SetPromptMessage(string message)
@@ -107,13 +127,161 @@ namespace NormalCAD.Controller
 
         public IReadOnlyList<string> GetRecentPrompts() => _promptHistory.AsReadOnly();
 
+        #region Preview
+
+        public void SetPreview(string key, Entity entity)
+        {
+            _previews[key] = entity;
+        }
+
+        public void RemovePreview(string key)
+        {
+            _previews.Remove(key);
+        }
+
+        public void ClearAllPreviews()
+        {
+            _previews.Clear();
+        }
+
+        private void UpdateRubberband(Point3d worldPt)
+        {
+            if (_activePointOptions?.BasePoint is { } basePt)
+            {
+                var line = new Line(basePt, worldPt);
+                _previews["$rubberband"] = line;
+            }
+        }
+
+        #endregion
+
+        #region Callback Registration
+
+        public void RegisterGetPoint(PromptPointOptions options, Action<PromptPointResult> callback)
+        {
+            _pointCallback = callback;
+            _activePointOptions = options;
+            _keywords = options.Keywords ?? Array.Empty<string>();
+            _keywordCallback = null;
+            _distanceCallback = null;
+            _stringCallback = null;
+
+            var prompt = BuildPromptText(options.Message, _keywords);
+            if (CurrentPrompt != prompt)
+            {
+                CurrentPrompt = prompt;
+                CurrentPromptChanged?.Invoke(prompt);
+            }
+        }
+
+        public void RegisterGetDistance(PromptDistanceOptions options, Action<PromptDoubleResult> callback)
+        {
+            _distanceCallback = callback;
+            _pointCallback = null;
+            _activePointOptions = options;
+            _keywords = options.Keywords ?? Array.Empty<string>();
+            _keywordCallback = null;
+            _stringCallback = null;
+
+            var prompt = BuildPromptText(options.Message, _keywords);
+            if (CurrentPrompt != prompt)
+            {
+                CurrentPrompt = prompt;
+                CurrentPromptChanged?.Invoke(prompt);
+            }
+        }
+
+        public void RegisterGetString(PromptStringOptions options, Action<PromptStringResult> callback)
+        {
+            _stringCallback = callback;
+            _pointCallback = null;
+            _distanceCallback = null;
+            _keywordCallback = null;
+            _activePointOptions = null;
+            _keywords = Array.Empty<string>();
+
+            CurrentPrompt = options.Message + ":";
+            CurrentPromptChanged?.Invoke(CurrentPrompt);
+        }
+
+        public void RegisterGetKeywords(PromptKeywordOptions options, Action<PromptKeywordResult> callback)
+        {
+            _keywordCallback = callback;
+            _pointCallback = null;
+            _distanceCallback = null;
+            _stringCallback = null;
+            _activePointOptions = null;
+            _keywords = options.Keywords ?? Array.Empty<string>();
+
+            var prompt = BuildPromptText(options.Message, _keywords);
+            if (CurrentPrompt != prompt)
+            {
+                CurrentPrompt = prompt;
+                CurrentPromptChanged?.Invoke(prompt);
+            }
+        }
+
+        public void RegisterMouseMove(Action<Point3d> callback)
+        {
+            _mouseMoveCallback = callback;
+        }
+
+        public void ClearAllRegistrations()
+        {
+            _pointCallback = null;
+            _distanceCallback = null;
+            _stringCallback = null;
+            _keywordCallback = null;
+            _mouseMoveCallback = null;
+            _activePointOptions = null;
+            _keywordHandler = null;
+            _keywords = Array.Empty<string>();
+            _previews.Clear();
+        }
+
+        private string ActiveLocalName =>
+            _controller.ActiveCommand?.GetType() == typeof(BaseCommand)
+                ? ""
+                : _controller.ActiveCommand?.LocalName ?? "";
+
+        private string BuildPromptText(string message, string[] keywords)
+        {
+            var prefix = string.IsNullOrEmpty(ActiveLocalName)
+                ? ""
+                : ActiveLocalName + " ";
+            return keywords is { Length: > 0 }
+                ? $"{prefix}{message} or [{string.Join("/", keywords)}]:"
+                : $"{prefix}{message}:";
+        }
+
+        #endregion
+
+        #region Input Dispatch
+
         public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
         {
+            if (_pointCallback != null)
+            {
+                _pointCallback(new PromptPointResult(PromptStatus.OK, worldPt, ""));
+                return;
+            }
+
+            if (_distanceCallback != null)
+            {
+                double distance = _activePointOptions?.BasePoint is { } bp
+                    ? bp.DistanceTo(worldPt)
+                    : worldPt.DistanceTo(Point3d.Origin);
+                _distanceCallback(new PromptDoubleResult(PromptStatus.OK, distance, ""));
+                return;
+            }
+
             _controller.ActiveCommand?.OnPointerPressed(worldPt, e);
         }
 
         public void OnPointerMoved(Point3d worldPt)
         {
+            UpdateRubberband(worldPt);
+            _mouseMoveCallback?.Invoke(worldPt);
             _controller.ActiveCommand?.OnPointerMoved(worldPt);
         }
 
@@ -128,12 +296,70 @@ namespace NormalCAD.Controller
 
             if (e.Key == Key.Escape)
             {
-                _controller.CancelCurrentCommand();
+                CancelActivePrompt(PromptStatus.Cancel);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Enter || e.Key == Key.Space)
+            {
+                FinishActivePrompt(PromptStatus.None);
                 e.Handled = true;
                 return;
             }
 
             _controller.ActiveCommand?.OnKeyDown(e);
         }
+
+        private void CancelActivePrompt(PromptStatus status)
+        {
+            if (_pointCallback != null)
+                _pointCallback(new PromptPointResult(status));
+            else if (_distanceCallback != null)
+                _distanceCallback(new PromptDoubleResult(status));
+            else if (_stringCallback != null)
+                _stringCallback(new PromptStringResult(status));
+            else if (_keywordCallback != null)
+                _keywordCallback(new PromptKeywordResult(status));
+            else
+                _controller.CancelCurrentCommand();
+        }
+
+        private void FinishActivePrompt(PromptStatus status)
+        {
+            if (_pointCallback != null)
+                _pointCallback(new PromptPointResult(status));
+            else if (_distanceCallback != null)
+                _distanceCallback(new PromptDoubleResult(status));
+            else if (_stringCallback != null)
+                _stringCallback(new PromptStringResult(status));
+            else if (_keywordCallback != null)
+                _keywordCallback(new PromptKeywordResult(status));
+        }
+
+        public bool TryProcessTextInput(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+
+            if (TryHandleKeyword(text))
+                return true;
+
+            if (_distanceCallback != null && double.TryParse(text,
+                NumberStyles.Float, CultureInfo.InvariantCulture, out var numericValue))
+            {
+                _distanceCallback(new PromptDoubleResult(PromptStatus.OK, numericValue, ""));
+                return true;
+            }
+
+            if (_stringCallback != null)
+            {
+                _stringCallback(new PromptStringResult(PromptStatus.OK, text));
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }

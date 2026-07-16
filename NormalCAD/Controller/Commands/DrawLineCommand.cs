@@ -1,6 +1,7 @@
 using Avalonia.Input;
-using NormalCAD.Core.Geometry;
 using NormalCAD.Core.DatabaseServices;
+using NormalCAD.Core.EditorInput;
+using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 using NormalCAD.Utilities;
 using NormalCAD.View.Controls;
@@ -9,6 +10,9 @@ namespace NormalCAD.Controller.Commands
 {
     public class DrawLineCommand : ICadCommand
     {
+        private static string PromptFirstPoint => CommandResources.Get("LINE.PROMPT.FIRSTPOINT");
+        private static string PromptNextPoint => CommandResources.Get("LINE.PROMPT.NEXTPOINT");
+
         private CadController? _controller;
         private Point3d? _startPoint;
 
@@ -22,58 +26,82 @@ namespace NormalCAD.Controller.Commands
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _startPoint = null;
+            _controller.InputManager.RegisterMouseMove(OnMouseMove);
+            RegisterFirstPointPrompt();
         }
 
         public void Deactivate()
         {
             if (_controller != null)
             {
-                _controller.Viewport.ActiveCommandPreview = null;
+                _controller.InputManager.ClearAllRegistrations();
                 _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
             }
         }
 
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
+        private void RegisterFirstPointPrompt()
         {
-            if (_controller == null) return;
+            _controller!.InputManager.RegisterGetPoint(
+                new PromptPointOptions { Message = PromptFirstPoint },
+                OnPoint);
+        }
+
+        private void RegisterNextPointPrompt()
+        {
+            _controller!.InputManager.RegisterGetPoint(
+                new PromptPointOptions
+                {
+                    Message = PromptNextPoint,
+                    BasePoint = _startPoint
+                },
+                OnPoint);
+        }
+
+        private void OnPoint(PromptPointResult result)
+        {
+            if (result.Status != PromptStatus.OK) { Finish(); return; }
+
+            var worldPt = result.Value;
 
             if (!_startPoint.HasValue)
             {
                 _startPoint = worldPt;
+                RegisterNextPointPrompt();
             }
             else
             {
                 var line = new Line(_startPoint.Value, worldPt)
                 {
-                    Layer = _controller.ActiveLayer,
+                    Layer = _controller!.ActiveLayer,
                     Color = _controller.ActiveColor
                 };
                 CadCoreHelper.AddNewEntityToCurrentSpace(line);
 
                 _startPoint = worldPt;
+                RegisterNextPointPrompt();
             }
         }
 
-        public void OnPointerMoved(Point3d worldPt)
+        private void OnMouseMove(Point3d worldPt)
         {
             if (_controller == null || !_startPoint.HasValue) return;
 
-            _controller.Viewport.ActiveCommandPreview = new Line(_startPoint.Value, worldPt)
-            {
-                Layer = _controller.ActiveLayer,
-                Color = _controller.ActiveColor
-            };
+            _controller.InputManager.SetPreview("line",
+                new Line(_startPoint.Value, worldPt)
+                {
+                    Layer = _controller.ActiveLayer,
+                    Color = _controller.ActiveColor
+                });
+            _controller.Viewport.InvalidateVisual();
         }
 
-        public void OnKeyDown(KeyEventArgs e)
+        private void Finish()
         {
-            if (_controller == null) return;
-
-            if (e.Key == Key.Enter || e.Key == Key.Space)
-            {
-                _controller.SetCommand(new BaseCommand());
-                e.Handled = true;
-            }
+            _controller!.SetCommand(new BaseCommand());
         }
+
+        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
+        public void OnPointerMoved(Point3d worldPt) { }
+        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

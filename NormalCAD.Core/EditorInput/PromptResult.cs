@@ -7,7 +7,8 @@ namespace NormalCAD.Core.EditorInput
         OK,
         Cancel,
         Keyword,
-        Error
+        Error,
+        None
     }
 
     public struct PromptPointResult
