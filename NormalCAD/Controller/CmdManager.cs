@@ -15,6 +15,10 @@ namespace NormalCAD.Controller
 
         private readonly CadController _controller;
         private readonly Dictionary<string, ICadCommand> _commands = [];
+        private readonly List<string> _commandHistory = new();
+        private const int MaxHistory = 50;
+
+        public IReadOnlyList<string> CommandHistory => _commandHistory;
 
         public CmdManager(CadController cadController)
         {
@@ -66,6 +70,14 @@ namespace NormalCAD.Controller
                 {
                     _controller.InputManager.SetPromptMessage(string.Format(MsgCannotCallDirectly, input));
                     return;
+                }
+
+                var localName = cmd.LocalName.ToUpperInvariant();
+                if (_commandHistory.Count == 0 || _commandHistory[0] != localName)
+                {
+                    _commandHistory.Insert(0, localName);
+                    if (_commandHistory.Count > MaxHistory)
+                        _commandHistory.RemoveAt(_commandHistory.Count - 1);
                 }
 
                 _controller.InputManager.SetPromptMessage(string.Format(MsgEcho, cmd.LocalName));

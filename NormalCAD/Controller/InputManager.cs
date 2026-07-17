@@ -15,6 +15,19 @@ namespace NormalCAD.Controller
         private static string DefaultPrompt => CommandResources.Get("CMD.PROMPT.DEFAULT");
         private static string MsgAmbiguousKeyword => CommandResources.Get("CMD.MSG.AMBIGUOUS_KEYWORD");
         private static string MsgKeywordRequired => CommandResources.Get("CMD.MSG.KEYWORD_REQUIRED");
+        private static string MsgPointOrKeyword => CommandResources.Get("CMD.MSG.POINT_OR_KEYWORD_REQUIRED");
+        private static string MsgPointRequired => CommandResources.Get("CMD.MSG.POINT_REQUIRED");
+        private static string MsgDistanceOrKeyword => CommandResources.Get("CMD.MSG.DISTANCE_OR_KEYWORD_REQUIRED");
+        private static string MsgDistanceRequired => CommandResources.Get("CMD.MSG.DISTANCE_REQUIRED");
+        private static string MsgStringRequired => CommandResources.Get("CMD.MSG.STRING_REQUIRED");
+        private static string MsgInvalidPoint => CommandResources.Get("CMD.MSG.INVALID_POINT");
+        private static string MsgInvalidDistance => CommandResources.Get("CMD.MSG.INVALID_DISTANCE");
+
+        internal bool HasAnyCallback =>
+            _pointCallback != null || _distanceCallback != null ||
+            _stringCallback != null || _keywordCallback != null;
+
+        public event Action<string?>? NavigateToPromptRequested;
 
         private readonly CadController _controller;
         private readonly List<string> _promptHistory = new();
@@ -29,6 +42,7 @@ namespace NormalCAD.Controller
         private Action<PromptKeywordResult>? _keywordCallback;
         private Action<Point3d>? _mouseMoveCallback;
         private PromptPointOptions? _activePointOptions;
+        private int _historyIndex = -1;
 
         private readonly Dictionary<string, Entity?> _previews = new();
 
@@ -102,7 +116,7 @@ namespace NormalCAD.Controller
             else
                 SetPromptMessage(MsgKeywordRequired);
 
-            return true;
+            return false;
         }
 
         private void DispatchKeyword(string keyword)
@@ -303,7 +317,32 @@ namespace NormalCAD.Controller
 
             if (e.Key == Key.Enter || e.Key == Key.Space)
             {
-                FinishActivePrompt(PromptStatus.None);
+                if (HasAnyCallback)
+                    FinishActivePrompt(PromptStatus.None);
+                else
+                    TryRepeatLastCommand();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Up)
+            {
+                if (!HasAnyCallback)
+                {
+                    var text = NavigateHistory(1);
+                    NavigateToPromptRequested?.Invoke(text);
+                }
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Down)
+            {
+                if (!HasAnyCallback)
+                {
+                    var text = NavigateHistory(-1);
+                    NavigateToPromptRequested?.Invoke(text);
+                }
                 e.Handled = true;
                 return;
             }
@@ -344,10 +383,26 @@ namespace NormalCAD.Controller
             if (TryHandleKeyword(text))
                 return true;
 
-            if (_distanceCallback != null && double.TryParse(text,
-                NumberStyles.Float, CultureInfo.InvariantCulture, out var numericValue))
+            if (_pointCallback != null)
             {
-                _distanceCallback(new PromptDoubleResult(PromptStatus.OK, numericValue, ""));
+                if (Point3d.TryParse(text, out var point))
+                {
+                    _pointCallback(new PromptPointResult(PromptStatus.OK, point, ""));
+                    return true;
+                }
+                SetPromptMessage(HasKeywords ? MsgPointOrKeyword : MsgInvalidPoint);
+                return true;
+            }
+
+            if (_distanceCallback != null)
+            {
+                if (double.TryParse(text, NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out var numericValue))
+                {
+                    _distanceCallback(new PromptDoubleResult(PromptStatus.OK, numericValue, ""));
+                    return true;
+                }
+                SetPromptMessage(HasKeywords ? MsgDistanceOrKeyword : MsgInvalidDistance);
                 return true;
             }
 
@@ -357,7 +412,45 @@ namespace NormalCAD.Controller
                 return true;
             }
 
+            if (_keywordCallback != null)
+            {
+                SetPromptMessage(MsgKeywordRequired);
+                return true;
+            }
+
             return false;
+        }
+
+        #endregion
+
+        #region Command History
+
+        public string? NavigateHistory(int delta)
+        {
+            var history = _controller.CmdManager.CommandHistory;
+            if (history.Count == 0) return null;
+
+            _historyIndex += delta;
+            if (_historyIndex < -1)
+                _historyIndex = -1;
+            if (_historyIndex >= history.Count)
+                _historyIndex = history.Count - 1;
+
+            return _historyIndex >= 0 ? history[_historyIndex] : null;
+        }
+
+        public void ResetHistoryIndex()
+        {
+            _historyIndex = -1;
+        }
+
+        public bool TryRepeatLastCommand()
+        {
+            var history = _controller.CmdManager.CommandHistory;
+            if (history.Count == 0) return false;
+
+            _ = _controller.CmdManager.ExecuteCommand(history[0]);
+            return true;
         }
 
         #endregion

@@ -50,6 +50,27 @@
   <data name="CMD.MSG.KEYWORD_REQUIRED" xml:space="preserve">
     <value>Palavra-chave requerida.</value>
   </data>
+  <data name="CMD.MSG.POINT_OR_KEYWORD_REQUIRED" xml:space="preserve">
+    <value>Ponto ou palavra-chave requerida.</value>
+  </data>
+  <data name="CMD.MSG.POINT_REQUIRED" xml:space="preserve">
+    <value>Ponto requerido.</value>
+  </data>
+  <data name="CMD.MSG.DISTANCE_OR_KEYWORD_REQUIRED" xml:space="preserve">
+    <value>Distância ou palavra-chave requerida.</value>
+  </data>
+  <data name="CMD.MSG.DISTANCE_REQUIRED" xml:space="preserve">
+    <value>Distância requerida.</value>
+  </data>
+  <data name="CMD.MSG.STRING_REQUIRED" xml:space="preserve">
+    <value>Texto requerido.</value>
+  </data>
+  <data name="CMD.MSG.INVALID_POINT" xml:space="preserve">
+    <value>Formato de ponto inválido. Esperado X,Y ou X,Y,Z.</value>
+  </data>
+  <data name="CMD.MSG.INVALID_DISTANCE" xml:space="preserve">
+    <value>Formato de distância inválido.</value>
+  </data>
 
   <!-- ===== LINE ===== -->
   <data name="LINE.LOCALNAME" xml:space="preserve">

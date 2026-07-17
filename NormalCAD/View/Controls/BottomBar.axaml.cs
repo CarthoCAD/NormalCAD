@@ -33,6 +33,7 @@ namespace NormalCAD.View.Controls
                     _controller.Viewport.PointerMoved -= OnViewportPointerMoved;
                     _controller.InputManager.PromptMessageChanged -= OnPromptMessageChanged;
                     _controller.InputManager.CurrentPromptChanged -= OnCurrentPromptChanged;
+                    _controller.InputManager.NavigateToPromptRequested -= OnNavigateToPromptRequested;
                 }
                 _controller = value;
                 if (_controller != null)
@@ -40,6 +41,7 @@ namespace NormalCAD.View.Controls
                     _controller.Viewport.PointerMoved += OnViewportPointerMoved;
                     _controller.InputManager.PromptMessageChanged += OnPromptMessageChanged;
                     _controller.InputManager.CurrentPromptChanged += OnCurrentPromptChanged;
+                    _controller.InputManager.NavigateToPromptRequested += OnNavigateToPromptRequested;
 
                     OnCurrentPromptChanged(_controller.InputManager.CurrentPrompt);
                 }
@@ -104,9 +106,28 @@ namespace NormalCAD.View.Controls
         {
             if (_controller == null || _txtPrompt == null) return;
 
+            if (e.Key == Key.Up)
+            {
+                var text = _controller.InputManager.NavigateHistory(1);
+                if (text != null) _txtPrompt.Text = text;
+                _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Down)
+            {
+                var text = _controller.InputManager.NavigateHistory(-1);
+                _txtPrompt.Text = text ?? "";
+                _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key == Key.Escape)
             {
                 _txtPrompt.Text = "";
+                _controller.InputManager.ResetHistoryIndex();
                 _controller.CancelCurrentCommand();
                 HideFloatingPrompt();
                 e.Handled = true;
@@ -117,10 +138,20 @@ namespace NormalCAD.View.Controls
             {
                 string commandText = _txtPrompt.Text?.Trim() ?? "";
                 _txtPrompt.Text = "";
-                if (!string.IsNullOrEmpty(commandText) && !_controller.InputManager.TryProcessTextInput(commandText))
+                _controller.InputManager.ResetHistoryIndex();
+
+                if (!string.IsNullOrEmpty(commandText))
                 {
-                    await _controller.CmdManager.ExecuteCommand(commandText);
+                    if (!_controller.InputManager.TryProcessTextInput(commandText))
+                    {
+                        await _controller.CmdManager.ExecuteCommand(commandText);
+                    }
                 }
+                else if (!_controller.InputManager.HasAnyCallback)
+                {
+                    _controller.InputManager.TryRepeatLastCommand();
+                }
+
                 e.Handled = true;
             }
         }
@@ -131,6 +162,14 @@ namespace NormalCAD.View.Controls
             {
                 _txtPromptPrefix.Text = prompt;
             }
+        }
+
+        private void OnNavigateToPromptRequested(string? text)
+        {
+            if (_txtPrompt == null) return;
+            _txtPrompt.Text = text ?? "";
+            _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+            _txtPrompt.Focus();
         }
 
         private void OnPromptMessageChanged(string message)

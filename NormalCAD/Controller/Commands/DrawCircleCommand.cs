@@ -61,17 +61,17 @@ namespace NormalCAD.Controller.Commands
 
         private void RegisterRadiusPrompt()
         {
-            _controller!.InputManager.RegisterGetPoint(
-                new PromptPointOptions
+            _controller!.InputManager.RegisterGetDistance(
+                new PromptDistanceOptions
                 {
                     Message = _isDiameter ? PromptDiameter : PromptRadius,
                     BasePoint = _center,
                     Keywords = new[] { _isDiameter ? KeyRadius : KeyDiameter }
                 },
-                OnRadiusPoint);
+                OnRadius);
         }
 
-        private void OnRadiusPoint(PromptPointResult result)
+        private void OnRadius(PromptDoubleResult result)
         {
             if (result.Status == PromptStatus.Keyword)
             {
@@ -81,12 +81,11 @@ namespace NormalCAD.Controller.Commands
             }
             if (result.Status != PromptStatus.OK) { Finish(); return; }
 
-            double dist = _center!.Value.DistanceTo(result.Value);
-            double radius = _isDiameter ? dist / 2.0 : dist;
+            double radius = _isDiameter ? result.Value / 2.0 : result.Value;
 
             if (radius > 1e-6)
             {
-                var circle = new Circle(_center.Value, Vector3d.ZAxis, radius)
+                var circle = new Circle(_center!.Value, Vector3d.ZAxis, radius)
                 {
                     Layer = _controller!.ActiveLayer,
                     Color = _controller.ActiveColor
