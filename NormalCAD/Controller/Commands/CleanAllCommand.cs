@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -13,10 +13,11 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.CLEANALL";
         public string LocalName => CommandResources.Get("CLEANALL.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("CLEANALL.ALIAS");
-        public bool IsInternal => false;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync(CadController controller)
         {
             CadCoreHelper.EditCurrentSpace((trans, currentSpace) =>
             {
@@ -31,11 +32,9 @@ namespace NormalCAD.Controller.Commands
             controller.InputManager.SetPromptMessage(MsgCleared);
 
             controller.SetCommand(new BaseCommand());
+            return Task.CompletedTask;
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

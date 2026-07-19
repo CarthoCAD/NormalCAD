@@ -1,5 +1,5 @@
 using System;
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 
@@ -16,10 +16,11 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.OPEN";
         public string LocalName => CommandResources.Get("OPEN.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
-        public bool IsInternal => false;
 
-        public async void Activate(CadController controller)
+        public async Task ActivateAsync(CadController controller)
         {
             var window = (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window != null)
@@ -55,8 +56,5 @@ namespace NormalCAD.Controller.Commands
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

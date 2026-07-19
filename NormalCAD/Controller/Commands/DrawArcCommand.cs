@@ -1,5 +1,5 @@
 using System;
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.EditorInput;
 using NormalCAD.Core.Geometry;
@@ -23,10 +23,11 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.ARC";
         public string LocalName => CommandResources.Get("ARC.LOCALNAME");
+        public CommandType Type => CommandType.Interactive;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("ARC.ALIAS");
-        public bool IsInternal => false;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync(CadController controller)
         {
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
@@ -34,6 +35,7 @@ namespace NormalCAD.Controller.Commands
             _radius = 0;
             _controller.InputManager.RegisterMouseMove(OnMouseMove);
             RegisterCenterPrompt();
+            return Task.CompletedTask;
         }
 
         public void Deactivate()
@@ -141,9 +143,5 @@ namespace NormalCAD.Controller.Commands
         {
             _controller!.SetCommand(new BaseCommand());
         }
-
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

@@ -134,7 +134,7 @@ namespace NormalCAD.Controller
             _activeCommand?.Deactivate();
             _activeCommand = command;
             InputManager.SetCurrentPrompt(_activeCommand.LocalName);
-            _activeCommand.Activate(this);            
+            _activeCommand.ActivateAsync(this);            
             ActiveCommandChanged?.Invoke(_activeCommand.LocalName);
             Viewport.InvalidateVisual();
         }

@@ -1,5 +1,6 @@
-using Avalonia.Input;
-using NormalCAD.Core.Geometry;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NormalCAD.Controller.Commands
 {
@@ -8,11 +9,14 @@ namespace NormalCAD.Controller.Commands
         string Name { get; }
         string LocalName { get; }
         string Alias { get; }
-        bool IsInternal { get; }
-        void Activate(CadController controller);
+        IReadOnlyList<string> Aliases => Alias
+            .Split(',')
+            .Select(a => a.Trim())
+            .Where(a => a.Length > 0)
+            .ToList();
+        CommandType Type { get; }
+        CommandFlags Flags { get; }
+        Task ActivateAsync(CadController controller);
         void Deactivate();
-        void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e);
-        void OnPointerMoved(Point3d worldPt);
-        void OnKeyDown(KeyEventArgs e);
     }
 }

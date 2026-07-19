@@ -1,5 +1,5 @@
 using System;
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -16,10 +16,11 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.SAVE";
         public string LocalName => CommandResources.Get("SAVE.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
-        public bool IsInternal => false;
 
-        public async void Activate(CadController controller)
+        public async Task ActivateAsync(CadController controller)
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null)
@@ -52,7 +53,7 @@ namespace NormalCAD.Controller.Commands
             controller.SetCommand(new BaseCommand());
         }
 
-        public static async System.Threading.Tasks.Task ShowSaveDialog(CadController controller)
+        public static async Task ShowSaveDialog(CadController controller)
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
@@ -91,8 +92,5 @@ namespace NormalCAD.Controller.Commands
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

@@ -147,7 +147,11 @@ namespace NormalCAD.View.Controls
                         await _controller.CmdManager.ExecuteCommand(commandText);
                     }
                 }
-                else if (!_controller.InputManager.HasAnyCallback)
+                else if (_controller.InputManager.HasEditingPrompt)
+                {
+                    _controller.InputManager.AcceptPrompt();
+                }
+                else
                 {
                     _controller.InputManager.TryRepeatLastCommand();
                 }

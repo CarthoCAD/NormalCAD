@@ -1,5 +1,5 @@
 using Avalonia;
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 
@@ -9,18 +9,17 @@ namespace NormalCAD.Controller.Commands
     {
         public string Name => "_.QUIT";
         public string LocalName => CommandResources.Get("QUIT.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("QUIT.ALIAS");
-        public bool IsInternal => false;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync(CadController controller)
         {
             var window = (Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             window?.Close();
+            return Task.CompletedTask;
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

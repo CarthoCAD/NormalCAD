@@ -1,4 +1,4 @@
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.EditorInput;
 using NormalCAD.Core.Geometry;
@@ -21,13 +21,14 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.PLINE";
         public string LocalName => CommandResources.Get("PLINE.LOCALNAME");
+        public CommandType Type => CommandType.Interactive;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("PLINE.ALIAS");
-        public bool IsInternal => false;
 
         private int CommittedCount =>
             _polyline.NumberOfVertices > 0 ? _polyline.NumberOfVertices - 1 : 0;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync(CadController controller)
         {
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
@@ -36,6 +37,7 @@ namespace NormalCAD.Controller.Commands
             _controller.InputManager.SetPreview("polyline", _polyline);
             _controller.InputManager.RegisterMouseMove(OnMouseMove);
             RegisterFirstPointPrompt();
+            return Task.CompletedTask;
         }
 
         public void Deactivate()
@@ -94,6 +96,9 @@ namespace NormalCAD.Controller.Commands
                 if (result.StringResult == KeyUndo && _polyline.NumberOfVertices >= 2)
                 {
                     _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 2);
+                    _lastCommittedPoint = _polyline.NumberOfVertices >= 2
+                        ? _polyline.GetPoint3dAt(_polyline.NumberOfVertices - 2)
+                        : (Point3d?)null;
                     _controller!.Viewport.InvalidateVisual();
                     if (_polyline.NumberOfVertices == 0)
                         RegisterFirstPointPrompt();
@@ -139,9 +144,5 @@ namespace NormalCAD.Controller.Commands
             CadCoreHelper.AddNewEntityToCurrentSpace(_polyline);
             _controller.SetCommand(new BaseCommand());
         }
-
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

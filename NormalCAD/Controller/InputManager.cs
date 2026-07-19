@@ -25,11 +25,19 @@ namespace NormalCAD.Controller
 
         internal bool HasAnyCallback =>
             _pointCallback != null || _distanceCallback != null ||
+            _stringCallback != null || _keywordCallback != null ||
+            _selectionManager.IsActive;
+
+        internal bool IsShiftPressed => _selectionManager.IsShiftPressed;
+
+        internal bool HasEditingPrompt =>
+            _pointCallback != null || _distanceCallback != null ||
             _stringCallback != null || _keywordCallback != null;
 
         public event Action<string?>? NavigateToPromptRequested;
 
         private readonly CadController _controller;
+        private readonly SelectionManager _selectionManager;
         private readonly List<string> _promptHistory = new();
         private const int MaxPromptHistory = 100;
 
@@ -57,6 +65,7 @@ namespace NormalCAD.Controller
         public InputManager(CadController controller)
         {
             _controller = controller;
+            _selectionManager = new SelectionManager(controller, this);
         }
 
         public void SetCurrentPrompt(string cmdName)
@@ -235,6 +244,36 @@ namespace NormalCAD.Controller
             }
         }
 
+        public void RegisterGetEntity(PromptEntityOptions options, Action<PromptEntityResult> callback)
+        {
+            _pointCallback = null;
+            _distanceCallback = null;
+            _stringCallback = null;
+            _keywordCallback = null;
+            _selectionManager.BeginGetEntity(options, callback);
+        }
+
+        public void RegisterGetSelection(PromptSelectionOptions options, Action<PromptSelectionResult> callback)
+        {
+            _pointCallback = null;
+            _distanceCallback = null;
+            _stringCallback = null;
+            _keywordCallback = null;
+            _selectionManager.BeginGetSelection(options, callback);
+        }
+
+        public void ResetPromptToCommand()
+        {
+            if (_controller.ActiveCommand != null)
+                SetCurrentPrompt(_controller.ActiveCommand.LocalName);
+        }
+
+        public void AcceptPrompt()
+        {
+            if (HasEditingPrompt)
+                FinishActivePrompt(PromptStatus.None);
+        }
+
         public void RegisterMouseMove(Action<Point3d> callback)
         {
             _mouseMoveCallback = callback;
@@ -251,6 +290,7 @@ namespace NormalCAD.Controller
             _keywordHandler = null;
             _keywords = Array.Empty<string>();
             _previews.Clear();
+            _selectionManager.Cancel();
         }
 
         private string ActiveLocalName =>
@@ -274,6 +314,14 @@ namespace NormalCAD.Controller
 
         public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
         {
+            if (_selectionManager.IsActive)
+            {
+                _selectionManager.OnPointerPressed(worldPt,
+                    e.GetPosition(_controller.Viewport),
+                    (e.KeyModifiers & KeyModifiers.Shift) != 0);
+                return;
+            }
+
             if (_pointCallback != null)
             {
                 _pointCallback(new PromptPointResult(PromptStatus.OK, worldPt, ""));
@@ -288,15 +336,18 @@ namespace NormalCAD.Controller
                 _distanceCallback(new PromptDoubleResult(PromptStatus.OK, distance, ""));
                 return;
             }
-
-            _controller.ActiveCommand?.OnPointerPressed(worldPt, e);
         }
 
         public void OnPointerMoved(Point3d worldPt)
         {
+            if (_selectionManager.IsActive)
+            {
+                _selectionManager.OnPointerMoved(worldPt);
+                return;
+            }
+
             UpdateRubberband(worldPt);
             _mouseMoveCallback?.Invoke(worldPt);
-            _controller.ActiveCommand?.OnPointerMoved(worldPt);
         }
 
         public void OnKeyDown(KeyEventArgs e)
@@ -317,7 +368,7 @@ namespace NormalCAD.Controller
 
             if (e.Key == Key.Enter || e.Key == Key.Space)
             {
-                if (HasAnyCallback)
+                if (HasEditingPrompt)
                     FinishActivePrompt(PromptStatus.None);
                 else
                     TryRepeatLastCommand();
@@ -327,7 +378,7 @@ namespace NormalCAD.Controller
 
             if (e.Key == Key.Up)
             {
-                if (!HasAnyCallback)
+                if (!HasEditingPrompt)
                 {
                     var text = NavigateHistory(1);
                     NavigateToPromptRequested?.Invoke(text);
@@ -338,7 +389,7 @@ namespace NormalCAD.Controller
 
             if (e.Key == Key.Down)
             {
-                if (!HasAnyCallback)
+                if (!HasEditingPrompt)
                 {
                     var text = NavigateHistory(-1);
                     NavigateToPromptRequested?.Invoke(text);
@@ -346,8 +397,6 @@ namespace NormalCAD.Controller
                 e.Handled = true;
                 return;
             }
-
-            _controller.ActiveCommand?.OnKeyDown(e);
         }
 
         private void CancelActivePrompt(PromptStatus status)

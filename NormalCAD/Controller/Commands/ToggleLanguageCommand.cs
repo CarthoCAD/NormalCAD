@@ -1,4 +1,4 @@
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 
@@ -10,10 +10,11 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.LANGUAGE";
         public string LocalName => CommandResources.Get("LANGUAGE.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("LANGUAGE.ALIAS");
-        public bool IsInternal => false;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync(CadController controller)
         {
             var current = Services.LanguageService.CurrentCulture.Name;
             var next = current == "pt-BR" ? "" : "pt-BR";
@@ -24,11 +25,9 @@ namespace NormalCAD.Controller.Commands
             controller.InputManager.SetPromptMessage(string.Format(MsgChanged, label));
 
             controller.SetCommand(new BaseCommand());
+            return Task.CompletedTask;
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

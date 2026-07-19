@@ -30,7 +30,9 @@ namespace NormalCAD.Controller
         private void DiscoverCommands()
         {
             var commandTypes = typeof(ICadCommand).Assembly.GetTypes()
-                .Where(t => !t.IsAbstract && !t.IsInterface && typeof(ICadCommand).IsAssignableFrom(t));
+                .Where(t => !t.IsAbstract && !t.IsInterface
+                    && typeof(ICadCommand).IsAssignableFrom(t)
+                    && t != typeof(BaseCommand));
 
             foreach (var type in commandTypes)
             {
@@ -44,15 +46,11 @@ namespace NormalCAD.Controller
             _commands[cmd.Name.ToLower()] = cmd;
             _commands[cmd.LocalName.ToLower()] = cmd;
 
-            if (!string.IsNullOrWhiteSpace(cmd.Alias))
+            foreach (var alias in cmd.Aliases)
             {
-                foreach (var alias in cmd.Alias.Split(','))
+                if (!string.IsNullOrEmpty(alias))
                 {
-                    var trimmed = alias.Trim().ToLower();
-                    if (!string.IsNullOrEmpty(trimmed))
-                    {
-                        _commands[trimmed] = cmd;
-                    }
+                    _commands[alias.ToLower()] = cmd;
                 }
             }
         }
@@ -66,12 +64,6 @@ namespace NormalCAD.Controller
 
             if (_commands.TryGetValue(key, out var cmd))
             {
-                if (cmd.IsInternal)
-                {
-                    _controller.InputManager.SetPromptMessage(string.Format(MsgCannotCallDirectly, input));
-                    return;
-                }
-
                 var localName = cmd.LocalName.ToUpperInvariant();
                 if (_commandHistory.Count == 0 || _commandHistory[0] != localName)
                 {

@@ -1,12 +1,9 @@
-using Avalonia;
-using Avalonia.Input;
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using NormalCAD.Core.DatabaseServices;
-using NormalCAD.Core.Geometry;
+using NormalCAD.Core.EditorInput;
 using NormalCAD.Resources;
 using NormalCAD.View.Controls;
-using CoreApp = NormalCAD.Core.ApplicationServices.Application;
 
 namespace NormalCAD.Controller.Commands
 {
@@ -16,253 +13,126 @@ namespace NormalCAD.Controller.Commands
         private static string MsgRemoved => CommandResources.Get("CMD.MSG.REMOVED");
         private static string MsgFoundN => CommandResources.Get("CMD.MSG.FOUND_N");
         private static string MsgRemovedN => CommandResources.Get("CMD.MSG.REMOVED_N");
-        private static string PromptOppositeCorner => CommandResources.Get("CMD.PROMPT.OPPOSITECORNER");
 
         private CadController? _controller;
-        private bool _isSelectingBox;
 
         public string Name => "*BASECOMMAND";
         public string LocalName => CommandResources.Get("CMD.LOCALNAME");
+        public CommandType Type => CommandType.Interactive;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
-        public bool IsInternal => true;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync(CadController controller)
         {
             _controller = controller;
-            _isSelectingBox = false;
-            if (_controller?.Viewport != null)
+            _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
+            _controller.Viewport.SelectionStartPoint = null;
+            _controller.Viewport.SelectionEndPoint = null;
+            RegisterGetEntity();
+            return Task.CompletedTask;
+        }
+
+        public void Deactivate()
+        {
+            if (_controller != null)
             {
+                _controller.InputManager.ClearAllRegistrations();
                 _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
                 _controller.Viewport.SelectionStartPoint = null;
                 _controller.Viewport.SelectionEndPoint = null;
             }
         }
 
-        public void Deactivate()
+        private void RegisterGetEntity()
         {
-            if (_controller?.Viewport != null)
-            {
-                _controller.Viewport.SelectionStartPoint = null;
-                _controller.Viewport.SelectionEndPoint = null;
-            }
+            _controller!.InputManager.RegisterGetEntity(
+                new PromptEntityOptions(),
+                OnEntityPick);
         }
 
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
+        private void OnEntityPick(PromptEntityResult result)
         {
-            if (_controller == null) return;
+            if (result.Status == PromptStatus.Cancel) return;
 
-            var viewport = _controller.Viewport;
-            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
-            if (db == null) return;
-
-            var mouseScreenPos = e.GetPosition(viewport);
-            bool isShift = (e.KeyModifiers & KeyModifiers.Shift) != 0;
-
-            if (_isSelectingBox)
+            if (result.Status == PromptStatus.OK)
             {
-                viewport.SelectionEndPoint = mouseScreenPos;
-                int found = PerformSelectionBox(viewport, isShift, db);
-                FinishSelection(found, isShift);
+                ToggleEntitySelection(result.ObjectId);
+                RegisterGetEntity();
                 return;
             }
 
-            ObjectId selectedId = ObjectId.Null;
-            double bestScreenDist = 10.0;
-            double zoom = Math.Max(viewport.Zoom, 0.001);
-
-            if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
-            {
-                var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                if (!modelSpaceId.IsNull && db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                {
-                    double worldTolerance = bestScreenDist / zoom;
-                    var worldMouse = viewport.ScreenToWorld(mouseScreenPos);
-                    var candidateIds = btr.QueryNearPoint(worldMouse, worldTolerance);
-
-                    foreach (var entId in candidateIds)
-                    {
-                        if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
-                            continue;
-
-                        double screenDist = ent.GetDistanceTo(worldMouse) * zoom;
-                        if (screenDist < bestScreenDist)
-                        {
-                            bestScreenDist = screenDist;
-                            selectedId = entId;
-                        }
-                    }
-                }
-            }
-
-            if (!selectedId.IsNull)
-            {
-                if (isShift)
-                {
-                    if (_controller.IsSelected(selectedId))
-                        _controller.RemoveFromSelection(selectedId);
-                }
-                else
-                {
-                    if (!_controller.IsSelected(selectedId))
-                        _controller.AddToSelection(selectedId);
-                }
-
-                int total = _controller.SelectedEntityIds.Count;
-                string message = isShift
-                    ? string.Format(MsgRemoved, total)
-                    : string.Format(MsgFound, total);
-
-                _controller.InputManager.SetCurrentPrompt(LocalName);
-                _controller.InputManager.SetPromptMessage(message);
-                viewport.InvalidateVisual();
-            }
-            else
-            {
-                _isSelectingBox = true;
-                viewport.SelectionStartPoint = mouseScreenPos;
-                viewport.SelectionEndPoint = mouseScreenPos;
-                _controller.InputManager.SetCurrentPrompt(LocalName, PromptOppositeCorner);
-                viewport.InvalidateVisual();
-            }
+            _controller!.InputManager.RegisterGetSelection(
+                new PromptSelectionOptions { BasePoint = result.PickedPoint },
+                OnBoxSelection);
         }
 
-        public void OnPointerMoved(Point3d worldPt)
+        private void OnBoxSelection(PromptSelectionResult result)
         {
-            if (_controller == null || !_isSelectingBox) return;
-
-            var viewport = _controller.Viewport;
-            viewport.SelectionEndPoint = viewport.WorldToScreen(worldPt);
-        }
-
-        public void OnKeyDown(KeyEventArgs e)
-        {
-        }
-
-        private void FinishSelection(int found, bool isShift)
-        {
-            _isSelectingBox = false;
-            _controller!.InputManager.SetCurrentPrompt(LocalName);
-
-            int total = _controller.SelectedEntityIds.Count;
-            string message = isShift
-                ? string.Format(MsgRemovedN, found, total)
-                : string.Format(MsgFoundN, found, total);
-
-            _controller.InputManager.SetPromptMessage(message);
-            _controller.Viewport.SelectionStartPoint = null;
-            _controller.Viewport.SelectionEndPoint = null;
-            _controller.Viewport.InvalidateVisual();
-        }
-
-        private int PerformSelectionBox(CadViewport viewport, bool isShift, Database db)
-        {
-            if (!viewport.SelectionStartPoint.HasValue || !viewport.SelectionEndPoint.HasValue) return 0;
-
-            var p1 = viewport.SelectionStartPoint.Value;
-            var p2 = viewport.SelectionEndPoint.Value;
-
-            var screenRect = GetRect(p1, p2);
-            bool isCrossing = p2.X < p1.X;
-
-            var toSelect = new List<ObjectId>();
-
-            if (db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
+            if (result.Status != PromptStatus.OK)
             {
-                var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-                if (!modelSpaceId.IsNull && db.TryGetObject(modelSpaceId, out var btrObj) && btrObj is BlockTableRecord btr)
-                {
-                    var worldTL = viewport.ScreenToWorld(screenRect.TopLeft);
-                    var worldBR = viewport.ScreenToWorld(screenRect.BottomRight);
-                    var worldBounds = Extents3d.FromPoints(worldTL, worldBR);
-                    var candidateIds = btr.QueryExtents(worldBounds);
-
-                    foreach (var entId in candidateIds)
-                    {
-                        if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
-                            continue;
-
-                        if (isCrossing)
-                        {
-                            if (EntityIntersectsRect(viewport, screenRect, ent))
-                                toSelect.Add(entId);
-                        }
-                        else
-                        {
-                            if (EntityInsideRect(viewport, screenRect, ent))
-                                toSelect.Add(entId);
-                        }
-                    }
-                }
+                RegisterGetEntity();
+                return;
             }
 
             int changed = 0;
-            if (isShift)
+            bool isShift = _controller!.InputManager.IsShiftPressed;
+
+            foreach (var id in result.Value)
             {
-                foreach (var entId in toSelect)
+                if (isShift)
                 {
-                    if (_controller.IsSelected(entId))
+                    if (_controller.IsSelected(id))
                     {
-                        _controller.RemoveFromSelection(entId);
+                        _controller.RemoveFromSelection(id);
                         changed++;
                     }
+                }
+                else
+                {
+                    if (!_controller.IsSelected(id))
+                    {
+                        _controller.AddToSelection(id);
+                        changed++;
+                    }
+                }
+            }
+
+            int total = _controller!.SelectedEntityIds.Count;
+            string message = string.Format(MsgFoundN, changed, total);
+            _controller.InputManager.SetPromptMessage(message);
+            _controller.Viewport.InvalidateVisual();
+
+            RegisterGetEntity();
+        }
+
+        private void ToggleEntitySelection(ObjectId id)
+        {
+            if (_controller == null) return;
+
+            bool isShift = _controller.InputManager.IsShiftPressed;
+
+            if (isShift)
+            {
+                if (_controller.IsSelected(id))
+                {
+                    _controller.RemoveFromSelection(id);
+                    int total = _controller.SelectedEntityIds.Count;
+                    _controller.InputManager.SetPromptMessage(
+                        string.Format(MsgRemoved, total));
+                    _controller.Viewport.InvalidateVisual();
                 }
             }
             else
             {
-                foreach (var entId in toSelect)
+                if (!_controller.IsSelected(id))
                 {
-                    if (!_controller.IsSelected(entId))
-                    {
-                        _controller.AddToSelection(entId);
-                        changed++;
-                    }
+                    _controller.AddToSelection(id);
+                    int total = _controller.SelectedEntityIds.Count;
+                    _controller.InputManager.SetPromptMessage(
+                        string.Format(MsgFound, total));
+                    _controller.Viewport.InvalidateVisual();
                 }
             }
-
-            return changed;
-        }
-
-        private static Rect GetRect(Point p1, Point p2)
-        {
-            double x = Math.Min(p1.X, p2.X);
-            double y = Math.Min(p1.Y, p2.Y);
-            double w = Math.Abs(p1.X - p2.X);
-            double h = Math.Abs(p1.Y - p2.Y);
-            return new Rect(x, y, w, h);
-        }
-
-        private static bool EntityInsideRect(CadViewport viewport, Rect screenRect, Entity ent)
-        {
-            foreach (var pt in ent.GetGripPoints())
-            {
-                if (!screenRect.Contains(viewport.WorldToScreen(pt)))
-                    return false;
-            }
-            return true;
-        }
-
-        private static bool EntityIntersectsRect(CadViewport viewport, Rect screenRect, Entity ent)
-        {
-            foreach (var pt in ent.GetGripPoints())
-            {
-                if (screenRect.Contains(viewport.WorldToScreen(pt)))
-                    return true;
-            }
-
-            var tl = viewport.ScreenToWorld(screenRect.TopLeft);
-            var tr = viewport.ScreenToWorld(screenRect.TopRight);
-            var br = viewport.ScreenToWorld(screenRect.BottomRight);
-            var bl = viewport.ScreenToWorld(screenRect.BottomLeft);
-
-            var rectPoly = new Polyline(4) { Closed = true };
-            rectPoly.AddVertexAt(0, Point2d.FromPoint3d(tl), 0.0, 0.0, 0.0);
-            rectPoly.AddVertexAt(1, Point2d.FromPoint3d(tr), 0.0, 0.0, 0.0);
-            rectPoly.AddVertexAt(2, Point2d.FromPoint3d(br), 0.0, 0.0, 0.0);
-            rectPoly.AddVertexAt(3, Point2d.FromPoint3d(bl), 0.0, 0.0, 0.0);
-
-            var points = new Point3dCollection();
-            ent.IntersectWith(rectPoly, Intersect.OnBothOperands, points);
-            return points.Count > 0;
         }
     }
 }

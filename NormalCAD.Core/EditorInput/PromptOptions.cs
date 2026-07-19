@@ -33,6 +33,13 @@ namespace NormalCAD.Core.EditorInput
         public bool AllowMultiple { get; set; }
     }
 
+    public class PromptSelectionOptions
+    {
+        public string Message { get; set; } = string.Empty;
+        public string[] Keywords { get; set; } = Array.Empty<string>();
+        public Point3d? BasePoint { get; set; }
+    }
+
     public class PromptAngleOptions : PromptPointOptions
     {
         public bool UseDashedLine { get; set; }
