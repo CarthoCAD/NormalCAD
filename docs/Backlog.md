@@ -2,9 +2,15 @@
 
 Completed items are removed from this backlog. See git history and closed issues for delivered work.
 
-## Introduce `DrawingCommandBase` (priority: high)
+## Centralize Command Lifecycle and Cursor Management (priority: high)
 
-DrawLine, DrawCircle, DrawArc, and DrawPolyline share near-identical `Activate()` and `Deactivate()` boilerplate: cursor state transitions (`PickCross` → `Crosshair` and back), `ActiveCommandPreview` teardown, keyword cleanup, and repeating the same pattern of checking `_controller == null`. Extract an abstract `DrawingCommandBase : ICadCommand` that handles cursor state management, preview clearing on deactivate, keyword reset, and standardized prompt setup via `InputManager`. Circle and Polyline already use the prompt/keyword system; Line and Arc were written before that system existed and currently show no prompts at all — they should be upgraded to use it through the base class so all drawing commands follow a consistent interactive pattern. This eliminates ~30 duplicated lines per command and ensures every future drawing command (Rectangle, Ellipse, Spline, etc.) inherits correct behavior automatically.
+The command lifecycle is currently scattered across individual `ICadCommand` implementations. Every drawing command duplicates cursor transitions (`PickCross` ↔ `Crosshair`), `InputManager` cleanup on deactivate, and null-checked access to `CadController`. Refactor this into centralized infrastructure:
+
+- Make `CadController` a true singleton exposed via `CadController.Current`, so commands and subsystems no longer need to store their own nullable `_controller` reference or receive it through constructors.
+- Move cursor state management into `InputManager`: each prompt registration (`RegisterGetPoint`, `RegisterGetDistance`, `RegisterGetString`, etc.) sets the appropriate cursor automatically based on the input type being requested.
+- Move `InputManager.ClearAllRegistrations()` into `CadController.SetCommand()` / `FinishCommand()`, since cleaning up the previous command's input state is a lifecycle responsibility of the controller, not of each command's `Deactivate()`.
+
+This eliminates the duplicated `Activate()`/`Deactivate()` boilerplate in `DrawLineCommand`, `DrawCircleCommand`, `DrawArcCommand`, and `DrawPolylineCommand`. It also removes the circular dependencies caused by passing `CadController` instances into `CmdManager`, `InputManager`, and `EntityPropertyManager`. An abstract `DrawingCommandBase` is **not** required; any shared helpers (e.g., adding an entity with current layer/color) can be provided as static helpers or extension methods if needed after this refactor.
 
 ## Complete `BlockReference` Entity Pipeline (priority: high)
 
