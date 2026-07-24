@@ -1,16 +1,6 @@
 # Backlog
 
-## Refactor `ICadCommand` Interface (priority: high)
-
-Remove Avalonia framework types (`PointerPressedEventArgs`, `KeyEventArgs`) from the `ICadCommand` contract and replace them with plain POCO structs defined in the Core assembly (e.g., `PointerEventData`, `KeyEventData`). Fix the `async void Activate()` mismatch — `OpenCommand`, `SaveCommand`, and `SaveAsCommand` declare `async void` while the interface declares `void`, risking unhandled exception process crashes. Add `CommandType` (Interactive / Immediate) to formalize the lifecycle distinction already present in the code, and `CommandFlags` (with `UsePickSet` for pick-first selection, extensible for `Session`, `Transparent`, `NoMultiple`, `NoUndoMarker` when those features are needed). Currently every command improvises its own lifecycle — `EraseCommand`, `CleanAllCommand`, `Quit`, and `Theme` do all their work synchronously inside `Activate()` and immediately call `SetCommand(new BaseCommand())`, breaking the intended Activate/Deactivate contract and making it impossible to implement transparent commands or undo markers later without touching every command.
-
-## Extract Idle State from `BaseCommand` (priority: high)
-
-`BaseCommand` is a pseudo-command that implements `ICadCommand` only so it can be set as the active command via `SetCommand()`. This leaks into three layers: the `ICadCommand` interface (`IsInternal` property exists solely to block it), the `CmdManager` (special-case logic rejects `IsInternal` commands from user input), and 10 concrete commands (all call `controller.SetCommand(new BaseCommand())` upon completion, coupling them to the concrete idle type). Extract selection logic (single-click picking, box selection, entity hit-testing, `found`/`removed` messaging) into an `IdleState` class managed internally by `CadController`. Expose a `CadController.FinishCommand()` method so commands return to idle without constructing or knowing about the idle type. This is a prerequisite for transparent commands (which require restoring a paused command rather than jumping to idle) and for an undo system (which needs the active command to register its own undo group, not delegate to a catch-all idle handler).
-
-## Refactor Command Input System (priority: high)
-
-Replace direct event handling (`OnPointerPressed`, `OnPointerMoved`, `OnKeyDown`) on each command with a callback registration pattern through `InputManager`. Instead of the command receiving raw Avalonia events and extracting coordinates itself, it registers typed callbacks with the `InputManager`: a point-pick callback invoked when the user clicks in the viewport (receives a parsed `Point3d`), a mouse-move callback (receives a `Point3d` for live previews), a coordinate string callback invoked when the user types coordinates in the command bar (e.g., `"100,200"` — `InputManager` parses and passes a `Point3d`), a numeric callback for commands expecting a single value or distance, and a general string callback for arbitrary command-line input. This decouples commands from input hardware details, enables typed coordinate entry (essential for precision CAD drafting), and makes the command state machine testable without a running Avalonia renderer.
+Completed items are removed from this backlog. See git history and closed issues for delivered work.
 
 ## Introduce `DrawingCommandBase` (priority: high)
 
@@ -98,6 +88,10 @@ Break it down:
 - **Input pass-through** — remove `OnPointerPressed`/`OnPointerMoved`/`OnKeyDown` indirection (depends on "Refactor Command Input System").
 
 After decomposition, `CadController` should be a thin facade coordinating `CmdManager`, `InputManager`, and `EntityPropertyManager`, with no direct database access, no session state, and no UI concern.
+
+## Refactor `DrawingService.DrawEntity` Preview/Selection Handling (priority: low)
+
+Decouple visual state (selection highlight, preview, rubberband) from `DrawingService.DrawEntity` by introducing `ApplySelection` and `ApplyPreview` helpers that return modified entity clones. `DrawEntity` should then render entities purely from their own properties (`Color`, `Layer`, `LineWeight`, `Linetype`) without boolean flags for selection/preview. This aligns with the AutoCAD .NET API where visual overrides are applied to temporary clones rather than passed as render flags. Depends on `LineWeight` being honored by the renderer and `Linetype` supporting dashed patterns; until then, keep the current flag-based approach.
 
 ## Move `CadCursorState` to Controller (priority: low)
 
