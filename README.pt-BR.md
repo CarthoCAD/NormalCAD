@@ -17,19 +17,19 @@ A arquitetura interna foi modelada com base na **API .NET do AutoCAD** (ObjectAR
 ### Ferramentas de Desenho
 
 - **Linha** — Desenho em cadeia com preview dinâmico tracejado durante o posicionamento.
-- **Círculo** — Centro + raio, com alternância `Radius`/`Diameter` via keyword no prompt.
-- **Arco** — Centro + raio + ângulo inicial/final, com preview dinâmico.
-- **Polilinha** — Cliques sucessivos adicionam vértices; keywords `Undo` e `Close` com prefix matching.
-- **Seleção** — Clique para adicionar, `Shift + Clique` para remover. Arraste esquerda→direita para Window Select, direita→esquerda para Crossing Select. Utiliza índice espacial R*-tree para performance em desenhos grandes.
+- **Círculo** — Centro + raio, com alternância `Raio`/`Diâmetro` via palavra-chave no prompt.
+- **Arco** — Arco de 3 pontos (início, segundo ponto, fim) com modos opcionais Centro/Raio/Ângulo, com preview dinâmico.
+- **Polilinha** — Cliques sucessivos adicionam vértices; palavras-chave `Desfazer` e `Fechar` com correspondência de prefixo.
+- **Seleção** — Clique para adicionar, `Shift + Clique` para remover. Arraste esquerda→direita para Seleção por Janela, direita→esquerda para Seleção por Cruzamento. Utiliza índice espacial R*-tree para performance em desenhos grandes.
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
 - **Limpar** — Apaga todo o desenho atual.
 
 ### Linha de Comando Integrada (estilo AutoCAD)
 
 - **Prompt de Comandos** — Digite o nome ou alias de um comando e pressione `Enter`/`Espaço` para executar. `Escape` cancela o comando ativo.
-- **Sistema de Keywords** — Comandos registram opções no prompt (ex: `[Undo/Close]`, `[Diameter/Radius]`). Prefix matching (digite `U` para Undo); prefixos ambíguos são rejeitados.
-- **Prompt Dinâmico** — Formato AutoCAD: `"PLINE Specify next point or [Undo/Close]:"`. Prefixo atualiza conforme o comando ativo. Feedback de seleção: `"1 found, 3 total"`.
-- **Aliases** — Descobertos automaticamente via reflection (ex: `C`/`CI` para `CIRCLE`).
+- **Sistema de Palavras-chave** — Comandos registram opções no prompt (ex: `[Desfazer/Fechar]`, `[Diâmetro/Raio]`). Correspondência de prefixo (digite `D` para Desfazer); prefixos ambíguos são rejeitados.
+- **Prompt Dinâmico** — Formato AutoCAD: `"PLINHA Especifique o próximo ponto ou [Desfazer/Fechar]:"`. Prefixo atualiza conforme o comando ativo. Feedback de seleção: `"1 encontrado, 3 total"`.
+- **Aliases** — Descobertos automaticamente via reflection (ex: `C`/`CI` para `CIRCULO`).
 - **Popup Flutuante** — Mensagens de feedback do sistema aparecem acima da barra de comando com fade-out.
 
 ### Object Snapping (Atração Magnética)
@@ -47,17 +47,17 @@ A arquitetura interna foi modelada com base na **API .NET do AutoCAD** (ObjectAR
 
 ### Importação / Exportação DXF e DWG
 
-- **Abrir (OPEN)** — Abre arquivos DXF/DWG. Detecta o formato pela extensão e importa linhas, círculos, arcos, polilinhas (`LwPolyline`) e inserções de bloco (`Insert` → `BlockReference`).
-- **Salvar (SAVE)** — Salva no caminho atual do documento. Documentos novos (sem caminho) comportam-se como SAVEAS.
-- **Salvar Como (SAVEAS)** — Exporta no formato compatível com AutoCAD, LibreCAD, QCAD (DXF ou DWG conforme extensão escolhida), preservando propriedades de entidade (layer, cor, linetype, lineweight, transparência).
+- **Abrir (ABRIR)** — Abre arquivos DXF/DWG. Detecta o formato pela extensão e importa linhas, círculos, arcos, polilinhas (`LwPolyline`) e inserções de bloco (`Insert` → `BlockReference`).
+- **Salvar (SALVAR)** — Salva no caminho atual do documento. Documentos novos (sem caminho) comportam-se como SALVARCOMO.
+- **Salvar Como (SALVARCOMO)** — Exporta no formato compatível com AutoCAD, LibreCAD, QCAD (DXF ou DWG conforme extensão escolhida), preservando propriedades de entidade (layer, cor, linetype, lineweight, transparência).
 
 ### Interface
 
 - **Painel de Propriedades** — Exibe e edita propriedades das entidades selecionadas. Suporta merge multi-seleção (mostra `*VARIES*` quando valores diferem) e categorias Geometry/Misc específicas por entidade. Labels de categorias e propriedades vêm de arquivos `.resx` preparados para localização.
 - **Gerenciador de Camadas** — Cria e gerencia layers. Entidades herdam propriedades da layer.
 - **Barra de Status** — Exibe coordenadas do cursor em tempo real.
-- **Dark Mode / Light Mode** — Alterna tema em tempo de execução sem reiniciar (comando `THEME`).
-- **Localização** — Interface em Inglês e Português (pt-BR) com troca de idioma em tempo de execução (comando `LANGUAGE` / Base → Change Language). As strings vêm de recursos `.resx` e são re-localizadas ao vivo na troca. O idioma e o tema escolhidos persistem entre sessões em `%APPDATA%/NormalCAD/config.json`.
+- **Modo Escuro / Modo Claro** — Alterna tema em tempo de execução sem reiniciar (comando `TEMA`).
+- **Localização** — Interface em Inglês e Português (pt-BR) com troca de idioma em tempo de execução (comando `IDIOMA` / Base → Alterar Idioma). As strings vêm de recursos `.resx` e são re-localizadas ao vivo na troca. O idioma e o tema escolhidos persistem entre sessões em `%APPDATA%/NormalCAD/config.json`.
 
 ---
 
@@ -132,23 +132,23 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 
 | Ação | Comando | Aliases | Menu |
 | --- | --- | --- | --- |
-| Desenhar Linha | `LINE` | `L` | Draw → Line |
-| Desenhar Círculo | `CIRCLE` | `C`, `CI` | Draw → Circle |
-| Desenhar Arco | `ARC` | `A` | Draw → Arc |
-| Desenhar Polilinha | `PLINE` | `PL` | Draw → Polyline |
-| Excluir Selecionados | `ERASE` | `E` | Edit → Erase |
-| Limpar Tudo | `CLEANALL` | `CLA` | Edit → Clean All |
-| Abrir Arquivo | `OPEN` | — | File → Open... |
-| Salvar | `SAVE` | — | File → Save |
-| Salvar Como | `SAVEAS` | — | File → Save As... |
-| Alternar Tema | `THEME` | `TH` | Base → Change Theme |
-| Alternar Idioma | `LANGUAGE` | `LANG` | Base → Change Language |
-| Sair | `QUIT` | `EXIT`, `Q` | File → Exit |
+| Desenhar Linha | `LINHA` | `L` | Desenhar → Linha |
+| Desenhar Círculo | `CIRCULO` | `C`, `CI` | Desenhar → Círculo |
+| Desenhar Arco | `ARCO` | `A` | Desenhar → Arco |
+| Desenhar Polilinha | `PLINHA` | `PL` | Desenhar → Polilinha |
+| Excluir Selecionados | `APAGAR` | `E` | Editar → Apagar |
+| Limpar Tudo | `LIMPARTUDO` | `LTD` | Editar → Limpar Tudo |
+| Abrir Arquivo | `ABRIR` | — | Arquivo → Abrir... |
+| Salvar | `SALVAR` | — | Arquivo → Salvar |
+| Salvar Como | `SALVARCOMO` | — | Arquivo → Salvar Como... |
+| Alternar Tema | `TEMA` | `TEMA` | Base → Alterar Tema |
+| Alternar Idioma | `IDIOMA` | `IDIOMA` | Base → Alterar Idioma |
+| Sair | `SAIR` | `SAIR` | Arquivo → Sair |
 | **Navegar (Pan)** | Arrastar com o botão do meio do mouse | | |
 | **Zoom** | Scroll do mouse (foco na posição do cursor) | | |
 | **Selecionar** | Clique para adicionar, `Shift + Clique` para remover | | |
-| **Seleção por Janela** | Arrastar esquerda→direita (Window) ou direita→esquerda (Crossing) | | |
-| **Cancelar** | `Escape` | | Edit → Select |
+| **Seleção por Janela** | Arrastar esquerda→direita (Janela) ou direita→esquerda (Cruzamento) | | |
+| **Cancelar** | `Escape` | | Editar → Selecionar |
 
 ---
 

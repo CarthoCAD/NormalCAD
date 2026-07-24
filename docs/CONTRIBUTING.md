@@ -62,7 +62,7 @@ Every commit must reference an issue at the end of the subject line. Automated m
 ### Examples
 
 ```bash
-feat(vieweport): add zoom-to-extents command (#42)
+feat(viewport): add zoom-to-extents command (#42)
 fix(io): prevent crash on empty DXF files (#17)
 i18n(pt-BR): translate property palette strings (#58)
 refactor(geometry): simplify intersection algorithm (#61)

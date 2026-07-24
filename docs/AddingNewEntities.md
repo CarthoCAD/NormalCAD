@@ -169,20 +169,32 @@ Round-trips the entity to/from ACadSharp for DXF/DWG import/export.
 Lets the user create the entity interactively.
 
 1. Create `NormalCAD/Controller/Commands/<Verb>Command.cs` implementing
-   `ICadCommand` (`Name`, `LocalName`, `Alias`, `IsInternal`, `Activate`,
-   `Deactivate`, `OnPointerPressed`, `OnPointerMoved`, `OnKeyDown`).
+   `ICadCommand` (`Name`, `LocalName`, `Alias`, `Type`, `Flags`,
+   `ActivateAsync`, `Deactivate`).
+   - `Type` is `CommandType.Interactive` for user-driven drawing commands, or
+     `CommandType.Immediate` for one-shot commands (file, settings, etc.).
+   - `Flags` controls behavior such as `UsePickSet` (pre-selection is passed to
+     the command) and reserved future flags (`NoUndoMarker`).
+   - `Alias` is a comma-separated string of aliases (e.g. `"C,CI"`). The
+     default implementation of `Aliases` parses it automatically; prefer
+     declaring aliases through `Commands.resx` and reading them with
+     `CommandResources.Get(...)`.
    - Use `CadCursorState.Crosshair` while active and restore `PickCross` in
      `Deactivate`.
+   - Drive the interactive flow with `InputManager.RegisterGetPoint`,
+     `RegisterGetDistance`, etc. These methods return a `PromptResult` and
+     accept `PromptPointOptions` with keywords and an optional base point.
    - Drive a live preview via `_controller.Viewport.ActiveCommandPreview`
      (assign a Core entity instance; reuse a single instance and mutate it
-     rather than recreating each frame).
-   - Set prompts/keywords through `InputManager.SetCurrentPrompt`.
+     rather than recreating each frame). For rubberband lines to the cursor,
+     add temporary entries with the `$*` prefix through
+     `_controller.Viewport.AddRubberBandEntity`.
    - On completion, add the entity with
      `_controller.AddNewEntityToActiveSpace(entity)` and return to idle with
-     `_controller.SetCommand(new BaseCommand())`.
+     `_controller.FinishCommand()`.
 2. Command discovery is automatic: `CmdManager.DiscoverCommands` reflects over
    every `ICadCommand` in the assembly and registers `Name`, `LocalName`, and
-   comma-separated `Alias`. No manual registration is needed.
+   `Aliases`. No manual registration is needed.
 3. Add user-facing strings (command name, aliases, prompts, keywords) to
    `NormalCAD/Resources/Commands.resx` (and localized variants) and read them
    through `CommandResources.Get(...)`.
