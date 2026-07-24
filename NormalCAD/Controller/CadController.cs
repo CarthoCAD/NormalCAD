@@ -21,6 +21,7 @@ namespace NormalCAD.Controller
         public EntityPropertyManager EntityPropertyManager { get; }
 
         private ICadCommand? _activeCommand;
+        private readonly IdleState _idleState = new();
         public ICadCommand? ActiveCommand => _activeCommand;
 
         public string ActiveLayer { get; set; } = "0";
@@ -51,7 +52,7 @@ namespace NormalCAD.Controller
             SubscribeToDatabaseEvents(
                 Application.DocumentManager.MdiActiveDocument!.Database);
 
-            SetCommand(new BaseCommand());
+            _idleState.Activate(this);
         }
 
         private void SubscribeToDatabaseEvents(Database db)
@@ -84,7 +85,7 @@ namespace NormalCAD.Controller
             SubscribeToDatabaseEvents(document.Database);
 
             ClearSelection();
-            SetCommand(new BaseCommand());
+            FinishCommand();
             RestoreViewportState();
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
@@ -131,11 +132,22 @@ namespace NormalCAD.Controller
 
         public void SetCommand(ICadCommand command)
         {
+            _idleState.Deactivate();
             _activeCommand?.Deactivate();
             _activeCommand = command;
             InputManager.SetCurrentPrompt(_activeCommand.LocalName);
-            _activeCommand.ActivateAsync(this);            
+            _activeCommand.ActivateAsync(this);
             ActiveCommandChanged?.Invoke(_activeCommand.LocalName);
+            Viewport.InvalidateVisual();
+        }
+
+        public void FinishCommand()
+        {
+            _activeCommand?.Deactivate();
+            _activeCommand = null;
+            _idleState.Activate(this);
+            InputManager.ResetPromptToIdle();
+            ActiveCommandChanged?.Invoke("");
             Viewport.InvalidateVisual();
         }
 
@@ -143,7 +155,7 @@ namespace NormalCAD.Controller
         {
             ClearKeywords();
             ClearSelection();
-            SetCommand(new BaseCommand());
+            FinishCommand();
         }
 
         public void ClearKeywords()

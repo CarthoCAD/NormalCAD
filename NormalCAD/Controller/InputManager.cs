@@ -169,10 +169,14 @@ namespace NormalCAD.Controller
 
         private void UpdateRubberband(Point3d worldPt)
         {
-            if (_activePointOptions?.BasePoint is { } basePt)
+            if (_activePointOptions?.BasePoint is { } basePt && _activePointOptions.UseBasePoint)
             {
                 var line = new Line(basePt, worldPt);
                 _previews["$rubberband"] = line;
+            }
+            else
+            {
+                _previews.Remove("$rubberband");
             }
         }
 
@@ -195,6 +199,8 @@ namespace NormalCAD.Controller
                 CurrentPrompt = prompt;
                 CurrentPromptChanged?.Invoke(prompt);
             }
+
+            RefreshCurrentInput();
         }
 
         public void RegisterGetDistance(PromptDistanceOptions options, Action<PromptDoubleResult> callback)
@@ -212,6 +218,8 @@ namespace NormalCAD.Controller
                 CurrentPrompt = prompt;
                 CurrentPromptChanged?.Invoke(prompt);
             }
+
+            RefreshCurrentInput();
         }
 
         public void RegisterGetString(PromptStringOptions options, Action<PromptStringResult> callback)
@@ -268,6 +276,13 @@ namespace NormalCAD.Controller
                 SetCurrentPrompt(_controller.ActiveCommand.LocalName);
         }
 
+        public void ResetPromptToIdle()
+        {
+            if (CurrentPrompt == DefaultPrompt) return;
+            CurrentPrompt = DefaultPrompt;
+            CurrentPromptChanged?.Invoke(CurrentPrompt);
+        }
+
         public void AcceptPrompt()
         {
             if (HasEditingPrompt)
@@ -277,6 +292,14 @@ namespace NormalCAD.Controller
         public void RegisterMouseMove(Action<Point3d> callback)
         {
             _mouseMoveCallback = callback;
+        }
+
+        public void RefreshCurrentInput()
+        {
+            var worldPt = _controller.Viewport.GetCurrentMouseWorldPosition();
+            UpdateRubberband(worldPt);
+            _mouseMoveCallback?.Invoke(worldPt);
+            _controller.Viewport.InvalidateVisual();
         }
 
         public void ClearAllRegistrations()
@@ -294,7 +317,7 @@ namespace NormalCAD.Controller
         }
 
         private string ActiveLocalName =>
-            _controller.ActiveCommand?.GetType() == typeof(BaseCommand)
+            _controller.CmdManager.IsIdle
                 ? ""
                 : _controller.ActiveCommand?.LocalName ?? "";
 

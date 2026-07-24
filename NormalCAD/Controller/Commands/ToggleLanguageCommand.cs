@@ -24,7 +24,7 @@ namespace NormalCAD.Controller.Commands
             var label = Services.LanguageService.GetDisplayLabel();
             controller.InputManager.SetPromptMessage(string.Format(MsgChanged, label));
 
-            controller.SetCommand(new BaseCommand());
+            controller.FinishCommand();
             return Task.CompletedTask;
         }
 

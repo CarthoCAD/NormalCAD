@@ -52,7 +52,7 @@ namespace NormalCAD.Controller.Commands
                     }
                 }
             }
-            controller.SetCommand(new BaseCommand());
+            controller.FinishCommand();
         }
 
         public void Deactivate() { }

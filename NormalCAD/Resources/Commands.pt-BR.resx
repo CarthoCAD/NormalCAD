@@ -71,6 +71,9 @@
   <data name="CMD.MSG.INVALID_DISTANCE" xml:space="preserve">
     <value>Formato de distância inválido.</value>
   </data>
+  <data name="CMD.MSG.NOTIMPL" xml:space="preserve">
+    <value>Ainda não implementado</value>
+  </data>
 
   <!-- ===== LINE ===== -->
   <data name="LINE.LOCALNAME" xml:space="preserve">
@@ -78,6 +81,18 @@
   </data>
   <data name="LINE.ALIAS" xml:space="preserve">
     <value>L</value>
+  </data>
+  <data name="LINE.PROMPT.FIRSTPOINT" xml:space="preserve">
+    <value>Especifique o primeiro ponto</value>
+  </data>
+  <data name="LINE.PROMPT.NEXTPOINT" xml:space="preserve">
+    <value>Especifique o próximo ponto</value>
+  </data>
+  <data name="LINE.KEY.UNDO" xml:space="preserve">
+    <value>Desfazer</value>
+  </data>
+  <data name="LINE.KEY.CLOSE" xml:space="preserve">
+    <value>Fechar</value>
   </data>
 
   <!-- ===== CIRCLE ===== -->
@@ -102,6 +117,15 @@
   <data name="CIRCLE.KEY.RADIUS" xml:space="preserve">
     <value>Raio</value>
   </data>
+  <data name="CIRCLE.KEY.3P" xml:space="preserve">
+    <value>3P</value>
+  </data>
+  <data name="CIRCLE.KEY.2P" xml:space="preserve">
+    <value>2P</value>
+  </data>
+  <data name="CIRCLE.KEY.TTR" xml:space="preserve">
+    <value>Ttr</value>
+  </data>
 
   <!-- ===== ARC ===== -->
   <data name="ARC.LOCALNAME" xml:space="preserve">
@@ -109,6 +133,30 @@
   </data>
   <data name="ARC.ALIAS" xml:space="preserve">
     <value>A</value>
+  </data>
+  <data name="ARC.PROMPT.STARTPOINT" xml:space="preserve">
+    <value>Especifique o ponto inicial do arco</value>
+  </data>
+  <data name="ARC.PROMPT.SECONDPOINT" xml:space="preserve">
+    <value>Especifique o segundo ponto do arco</value>
+  </data>
+  <data name="ARC.PROMPT.ENDPOINT" xml:space="preserve">
+    <value>Especifique o ponto final do arco</value>
+  </data>
+  <data name="ARC.PROMPT.CENTER" xml:space="preserve">
+    <value>Especifique o ponto central do arco</value>
+  </data>
+  <data name="ARC.PROMPT.STARTPOINT_C" xml:space="preserve">
+    <value>Especifique o ponto inicial do arco</value>
+  </data>
+  <data name="ARC.PROMPT.ENDPOINT_C" xml:space="preserve">
+    <value>Especifique o ponto final do arco</value>
+  </data>
+  <data name="ARC.KEY.CENTER" xml:space="preserve">
+    <value>Centro</value>
+  </data>
+  <data name="ARC.KEY.END" xml:space="preserve">
+    <value>Final</value>
   </data>
 
   <!-- ===== PLINE ===== -->
@@ -129,6 +177,30 @@
   </data>
   <data name="PLINE.KEY.CLOSE" xml:space="preserve">
     <value>Fechar</value>
+  </data>
+  <data name="PLINE.KEY.ARC" xml:space="preserve">
+    <value>Arco</value>
+  </data>
+  <data name="PLINE.KEY.WIDTH" xml:space="preserve">
+    <value>Largura</value>
+  </data>
+  <data name="PLINE.KEY.HALFWIDTH" xml:space="preserve">
+    <value>Meialargura</value>
+  </data>
+  <data name="PLINE.KEY.LENGTH" xml:space="preserve">
+    <value>Comprimento</value>
+  </data>
+  <data name="PLINE.PROMPT.STARTWIDTH" xml:space="preserve">
+    <value>Especifique a largura inicial</value>
+  </data>
+  <data name="PLINE.PROMPT.ENDWIDTH" xml:space="preserve">
+    <value>Especifique a largura final</value>
+  </data>
+  <data name="PLINE.PROMPT.HALFWIDTH" xml:space="preserve">
+    <value>Especifique a meia-largura para todos os segmentos</value>
+  </data>
+  <data name="PLINE.PROMPT.LENGTH" xml:space="preserve">
+    <value>Especifique o comprimento do segmento</value>
   </data>
 
   <!-- ===== ERASE ===== -->

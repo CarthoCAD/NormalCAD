@@ -102,6 +102,11 @@ public class CadViewport : Control
         return new Point3d(worldX, worldY, 0.0);
     }
 
+    public Point3d GetCurrentMouseWorldPosition()
+    {
+        return GetSnappedPoint(_currentMouseScreenPos, out _, out _);
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -207,8 +212,9 @@ public class CadViewport : Control
             {
                 if (kvp.Value != null)
                 {
+                    bool isRubberBand = kvp.Key.StartsWith("$");
                     _drawingService.DrawEntity(context, kvp.Value, Controller,
-                        isSelected: false, isPreview: true,
+                        isSelected: false, isPreview: true, isRubberBand,
                         WorldToScreen, Zoom);
                 }
             }

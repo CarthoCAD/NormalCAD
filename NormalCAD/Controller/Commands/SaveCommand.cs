@@ -25,7 +25,7 @@ namespace NormalCAD.Controller.Commands
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null)
             {
-                controller.SetCommand(new BaseCommand());
+                controller.FinishCommand();
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace NormalCAD.Controller.Commands
                 await ShowSaveDialog(controller);
             }
 
-            controller.SetCommand(new BaseCommand());
+            controller.FinishCommand();
         }
 
         public static async Task ShowSaveDialog(CadController controller)

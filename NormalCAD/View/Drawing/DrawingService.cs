@@ -47,12 +47,12 @@ namespace NormalCAD.View.Drawing
                     continue;
 
                 DrawEntity(context, ent, controller, controller.IsSelected(entId),
-                           isPreview: false, worldToScreen, zoom);
+                           isPreview: false, isRubberBand: false, worldToScreen, zoom);
             }
         }
 
         public void DrawEntity(DrawingContext context, Entity ent, Controller.CadController controller,
-                               bool isSelected, bool isPreview,
+                               bool isSelected, bool isPreview, bool isRubberBand,
                                Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
             EnsureSubscribed();
@@ -62,12 +62,12 @@ namespace NormalCAD.View.Drawing
                 ? ResolveEntityColor(ent, db, controller.IsLightTheme)
                 : Colors.White;
             Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
-            if (isPreview)
+            if (isPreview && isRubberBand)
                 renderColor = Color.Parse("#FF9900");
 
             var brush = new SolidColorBrush(renderColor);
-            var pen = new Pen(brush, isSelected ? 3.0 : (isPreview ? 1.0 : 1.5));
-            if (isPreview)
+            var pen = new Pen(brush, isSelected ? 3.0 : (isPreview && isRubberBand ? 1.0 : 1.5));
+            if (isPreview && isRubberBand)
                 pen.DashStyle = DashStyle.Dash;
 
             var type = ent.GetType();

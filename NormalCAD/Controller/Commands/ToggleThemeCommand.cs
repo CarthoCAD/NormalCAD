@@ -25,7 +25,7 @@ namespace NormalCAD.Controller.Commands
             var themeName = isLight ? MsgLight : MsgDark;
             controller.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));
 
-            controller.SetCommand(new BaseCommand());
+            controller.FinishCommand();
             return Task.CompletedTask;
         }
 

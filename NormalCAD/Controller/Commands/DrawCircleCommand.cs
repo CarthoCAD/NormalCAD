@@ -16,6 +16,10 @@ namespace NormalCAD.Controller.Commands
         private static string PromptDiameter => CommandResources.Get("CIRCLE.PROMPT.DIAMETER");
         private static string KeyDiameter => CommandResources.Get("CIRCLE.KEY.DIAMETER");
         private static string KeyRadius => CommandResources.Get("CIRCLE.KEY.RADIUS");
+        private static string Key3P => CommandResources.Get("CIRCLE.KEY.3P");
+        private static string Key2P => CommandResources.Get("CIRCLE.KEY.2P");
+        private static string KeyTtr => CommandResources.Get("CIRCLE.KEY.TTR");
+        private static string MsgNotImpl => CommandResources.Get("CMD.MSG.NOTIMPL");
 
         private CadController? _controller;
         private Point3d? _center;
@@ -51,12 +55,22 @@ namespace NormalCAD.Controller.Commands
         private void RegisterCenterPrompt()
         {
             _controller!.InputManager.RegisterGetPoint(
-                new PromptPointOptions { Message = PromptCenterPoint },
+                new PromptPointOptions
+                {
+                    Message = PromptCenterPoint,
+                    Keywords = new[] { Key3P, Key2P, KeyTtr }
+                },
                 OnCenterPoint);
         }
 
         private void OnCenterPoint(PromptPointResult result)
         {
+            if (result.Status == PromptStatus.Keyword)
+            {
+                _controller!.InputManager.SetPromptMessage(MsgNotImpl);
+                RegisterCenterPrompt();
+                return;
+            }
             if (result.Status != PromptStatus.OK) { Finish(); return; }
             _center = result.Value;
             RegisterRadiusPrompt();
@@ -121,7 +135,7 @@ namespace NormalCAD.Controller.Commands
 
         private void Finish()
         {
-            _controller!.SetCommand(new BaseCommand());
+            _controller!.FinishCommand();
         }
     }
 }

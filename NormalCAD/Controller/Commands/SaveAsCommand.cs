@@ -15,7 +15,7 @@ namespace NormalCAD.Controller.Commands
         public async Task ActivateAsync(CadController controller)
         {
             await SaveCommand.ShowSaveDialog(controller);
-            controller.SetCommand(new BaseCommand());
+            controller.FinishCommand();
         }
 
         public void Deactivate() { }

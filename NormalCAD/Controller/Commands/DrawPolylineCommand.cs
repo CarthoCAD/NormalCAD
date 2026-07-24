@@ -14,10 +14,21 @@ namespace NormalCAD.Controller.Commands
         private static string PromptNextPoint => CommandResources.Get("PLINE.PROMPT.NEXTPOINT");
         private static string KeyUndo => CommandResources.Get("PLINE.KEY.UNDO");
         private static string KeyClose => CommandResources.Get("PLINE.KEY.CLOSE");
+        private static string KeyArc => CommandResources.Get("PLINE.KEY.ARC");
+        private static string KeyWidth => CommandResources.Get("PLINE.KEY.WIDTH");
+        private static string KeyHalfwidth => CommandResources.Get("PLINE.KEY.HALFWIDTH");
+        private static string KeyLength => CommandResources.Get("PLINE.KEY.LENGTH");
+        private static string MsgNotImpl => CommandResources.Get("CMD.MSG.NOTIMPL");
+        private static string PromptStartWidth => CommandResources.Get("PLINE.PROMPT.STARTWIDTH");
+        private static string PromptEndWidth => CommandResources.Get("PLINE.PROMPT.ENDWIDTH");
+        private static string PromptHalfWidth => CommandResources.Get("PLINE.PROMPT.HALFWIDTH");
+        private static string PromptLength => CommandResources.Get("PLINE.PROMPT.LENGTH");
 
         private CadController? _controller;
         private Polyline _polyline = new();
         private Point3d? _lastCommittedPoint;
+        private double _startWidth;
+        private double _endWidth;
 
         public string Name => "_.PLINE";
         public string LocalName => CommandResources.Get("PLINE.LOCALNAME");
@@ -25,17 +36,19 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("PLINE.ALIAS");
 
-        private int CommittedCount =>
-            _polyline.NumberOfVertices > 0 ? _polyline.NumberOfVertices - 1 : 0;
+        private int CommittedCount => _polyline.NumberOfVertices;
 
         public Task ActivateAsync(CadController controller)
         {
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
-            _polyline = new Polyline();
+            _polyline = new Polyline
+            {
+                Layer = _controller.ActiveLayer,
+                Color = _controller.ActiveColor
+            };
             _lastCommittedPoint = null;
             _controller.InputManager.SetPreview("polyline", _polyline);
-            _controller.InputManager.RegisterMouseMove(OnMouseMove);
             RegisterFirstPointPrompt();
             return Task.CompletedTask;
         }
@@ -61,8 +74,7 @@ namespace NormalCAD.Controller.Commands
             if (result.Status != PromptStatus.OK) { Finish(closed: false); return; }
 
             _polyline.Elevation = result.Value.Z;
-            _polyline.AddVertexAt(0, Point2d.FromPoint3d(result.Value), 0.0, 0.0, 0.0);
-            _polyline.AddVertexAt(1, Point2d.FromPoint3d(result.Value), 0.0, 0.0, 0.0);
+            _polyline.AddVertexAt(0, Point2d.FromPoint3d(result.Value), 0.0, _startWidth, _endWidth);
             _lastCommittedPoint = result.Value;
 
             RegisterNextPointPrompt();
@@ -71,8 +83,8 @@ namespace NormalCAD.Controller.Commands
         private void RegisterNextPointPrompt()
         {
             var keywords = CommittedCount >= 2
-                ? new[] { KeyUndo, KeyClose }
-                : new[] { KeyUndo };
+                ? new[] { KeyArc, KeyWidth, KeyHalfwidth, KeyLength, KeyUndo, KeyClose }
+                : new[] { KeyArc, KeyWidth, KeyHalfwidth, KeyLength, KeyUndo };
 
             _controller!.InputManager.RegisterGetPoint(
                 new PromptPointOptions
@@ -88,6 +100,28 @@ namespace NormalCAD.Controller.Commands
         {
             if (result.Status == PromptStatus.Keyword)
             {
+                if (result.StringResult == KeyArc)
+                {
+                    _controller!.InputManager.SetPromptMessage(MsgNotImpl);
+                    RegisterNextPointPrompt();
+                    return;
+                }
+                if (result.StringResult == KeyWidth)
+                {
+                    RegisterWidthStart();
+                    return;
+                }
+                if (result.StringResult == KeyHalfwidth)
+                {
+                    RegisterHalfwidth();
+                    return;
+                }
+                if (result.StringResult == KeyLength)
+                {
+                    _controller!.InputManager.SetPromptMessage(MsgNotImpl);
+                    RegisterNextPointPrompt();
+                    return;
+                }
                 if (result.StringResult == KeyClose && CommittedCount >= 2)
                 {
                     Finish(closed: true);
@@ -95,15 +129,9 @@ namespace NormalCAD.Controller.Commands
                 }
                 if (result.StringResult == KeyUndo && _polyline.NumberOfVertices >= 2)
                 {
-                    _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 2);
-                    _lastCommittedPoint = _polyline.NumberOfVertices >= 2
-                        ? _polyline.GetPoint3dAt(_polyline.NumberOfVertices - 2)
-                        : (Point3d?)null;
-                    _controller!.Viewport.InvalidateVisual();
-                    if (_polyline.NumberOfVertices == 0)
-                        RegisterFirstPointPrompt();
-                    else
-                        RegisterNextPointPrompt();
+                    _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 1);
+                    _lastCommittedPoint = _polyline.GetPoint3dAt(_polyline.NumberOfVertices - 1);
+                    RegisterNextPointPrompt();
                     return;
                 }
             }
@@ -111,38 +139,76 @@ namespace NormalCAD.Controller.Commands
             if (result.Status != PromptStatus.OK) { Finish(closed: false); return; }
 
             var worldPt = result.Value;
-            _polyline.SetPointAt(_polyline.NumberOfVertices - 1,
-                Point2d.FromPoint3d(worldPt));
             _polyline.AddVertexAt(_polyline.NumberOfVertices,
-                Point2d.FromPoint3d(worldPt), 0.0, 0.0, 0.0);
+                Point2d.FromPoint3d(worldPt), 0.0, _startWidth, _endWidth);
             _lastCommittedPoint = worldPt;
 
             RegisterNextPointPrompt();
         }
 
-        private void OnMouseMove(Point3d worldPt)
+        private void RegisterWidthStart()
         {
-            if (_controller == null || _polyline.NumberOfVertices == 0) return;
+            _controller!.InputManager.RegisterGetDistance(
+                new PromptDistanceOptions
+                {
+                    Message = PromptStartWidth,
+                    BasePoint = _lastCommittedPoint
+                },
+                w =>
+                {
+                    if (w.Status != PromptStatus.OK)
+                    {
+                        RegisterNextPointPrompt();
+                        return;
+                    }
+                    _startWidth = w.Value;
+                    _controller.InputManager.RegisterGetDistance(
+                        new PromptDistanceOptions
+                        {
+                            Message = PromptEndWidth,
+                            BasePoint = _lastCommittedPoint
+                        },
+                        w2 =>
+                        {
+                            if (w2.Status == PromptStatus.OK)
+                                _endWidth = w2.Value;
+                            RegisterNextPointPrompt();
+                        });
+                });
+        }
 
-            _polyline.SetPointAt(_polyline.NumberOfVertices - 1,
-                Point2d.FromPoint3d(worldPt));
-            _controller.Viewport.InvalidateVisual();
+        private void RegisterHalfwidth()
+        {
+            _controller!.InputManager.RegisterGetDistance(
+                new PromptDistanceOptions
+                {
+                    Message = PromptHalfWidth,
+                    BasePoint = _lastCommittedPoint
+                },
+                w =>
+                {
+                    if (w.Status == PromptStatus.OK)
+                    {
+                        _startWidth = w.Value * 2;
+                        _endWidth = w.Value * 2;
+                    }
+                    RegisterNextPointPrompt();
+                });
         }
 
         private void Finish(bool closed)
         {
             if (_controller == null || CommittedCount < 2)
             {
-                _controller!.SetCommand(new BaseCommand());
+                _controller!.FinishCommand();
                 return;
             }
 
-            _polyline.RemoveVertexAt(_polyline.NumberOfVertices - 1);
             _polyline.Closed = closed;
             _polyline.Layer = _controller.ActiveLayer;
             _polyline.Color = _controller.ActiveColor;
             CadCoreHelper.AddNewEntityToCurrentSpace(_polyline);
-            _controller.SetCommand(new BaseCommand());
+            _controller.FinishCommand();
         }
     }
 }

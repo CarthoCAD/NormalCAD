@@ -19,6 +19,7 @@ namespace NormalCAD.Controller
         private const int MaxHistory = 50;
 
         public IReadOnlyList<string> CommandHistory => _commandHistory;
+        public bool IsIdle => _controller.ActiveCommand == null;
 
         public CmdManager(CadController cadController)
         {
@@ -31,8 +32,7 @@ namespace NormalCAD.Controller
         {
             var commandTypes = typeof(ICadCommand).Assembly.GetTypes()
                 .Where(t => !t.IsAbstract && !t.IsInterface
-                    && typeof(ICadCommand).IsAssignableFrom(t)
-                    && t != typeof(BaseCommand));
+                    && typeof(ICadCommand).IsAssignableFrom(t));
 
             foreach (var type in commandTypes)
             {

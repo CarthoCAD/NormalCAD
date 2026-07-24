@@ -1,13 +1,11 @@
-using System;
-using System.Threading.Tasks;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.EditorInput;
 using NormalCAD.Resources;
 using NormalCAD.View.Controls;
 
-namespace NormalCAD.Controller.Commands
+namespace NormalCAD.Controller
 {
-    public class BaseCommand : ICadCommand
+    internal class IdleState
     {
         private static string MsgFound => CommandResources.Get("CMD.MSG.FOUND");
         private static string MsgRemoved => CommandResources.Get("CMD.MSG.REMOVED");
@@ -16,20 +14,15 @@ namespace NormalCAD.Controller.Commands
 
         private CadController? _controller;
 
-        public string Name => "*BASECOMMAND";
-        public string LocalName => CommandResources.Get("CMD.LOCALNAME");
-        public CommandType Type => CommandType.Interactive;
-        public CommandFlags Flags => CommandFlags.None;
-        public string Alias => "";
-
-        public Task ActivateAsync(CadController controller)
+        public void Activate(CadController controller)
         {
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
             _controller.Viewport.SelectionStartPoint = null;
             _controller.Viewport.SelectionEndPoint = null;
-            RegisterGetEntity();
-            return Task.CompletedTask;
+            _controller.InputManager.RegisterGetEntity(
+                new PromptEntityOptions(),
+                OnEntityPick);
         }
 
         public void Deactivate()
@@ -48,6 +41,7 @@ namespace NormalCAD.Controller.Commands
             _controller!.InputManager.RegisterGetEntity(
                 new PromptEntityOptions(),
                 OnEntityPick);
+            _controller.InputManager.ResetPromptToIdle();
         }
 
         private void OnEntityPick(PromptEntityResult result)

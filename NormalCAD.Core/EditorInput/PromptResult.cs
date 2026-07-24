@@ -45,6 +45,6 @@ namespace NormalCAD.Core.EditorInput
         public string Message { get; set; } = string.Empty;
         public Geometry.Point3d? BasePoint { get; set; }
         public string[] Keywords { get; set; } = Array.Empty<string>();
-        public bool UseBasePoint => BasePoint.HasValue;
+        public bool UseBasePoint { get; set; } = true;
     }
 }

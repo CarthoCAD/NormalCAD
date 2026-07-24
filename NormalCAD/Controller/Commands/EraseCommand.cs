@@ -31,7 +31,7 @@ namespace NormalCAD.Controller.Commands
                 controller.ClearSelection();
             }
 
-            controller.SetCommand(new BaseCommand());
+            controller.FinishCommand();
             return Task.CompletedTask;
         }
 

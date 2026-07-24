@@ -11,15 +11,19 @@ namespace NormalCAD.Controller.Commands
 {
     public class DrawArcCommand : ICadCommand
     {
-        private static string PromptCenterPoint => CommandResources.Get("ARC.PROMPT.CENTERPOINT");
-        private static string PromptRadius => CommandResources.Get("ARC.PROMPT.RADIUS");
-        private static string PromptStartAngle => CommandResources.Get("ARC.PROMPT.STARTANGLE");
-        private static string PromptEndAngle => CommandResources.Get("ARC.PROMPT.ENDANGLE");
+        private static string PromptStartPoint => CommandResources.Get("ARC.PROMPT.STARTPOINT");
+        private static string PromptCenter => CommandResources.Get("ARC.PROMPT.CENTER");
+        private static string PromptSecondPoint => CommandResources.Get("ARC.PROMPT.SECONDPOINT");
+        private static string PromptEndPoint => CommandResources.Get("ARC.PROMPT.ENDPOINT");
+        private static string PromptStartPointC => CommandResources.Get("ARC.PROMPT.STARTPOINT_C");
+        private static string PromptEndPointC => CommandResources.Get("ARC.PROMPT.ENDPOINT_C");
+        private static string KeyCenter => CommandResources.Get("ARC.KEY.CENTER");
+        private static string KeyEnd => CommandResources.Get("ARC.KEY.END");
 
         private CadController? _controller;
-        private Point3d? _center;
-        private double _radius;
-        private double _startAngle;
+        private Point3d _startPt, _midPt;
+        private enum ArcState { StartPoint, SecondPoint, EndPoint, Center_Center, Center_Start, Center_End }
+        private ArcState _state;
 
         public string Name => "_.ARC";
         public string LocalName => CommandResources.Get("ARC.LOCALNAME");
@@ -31,10 +35,11 @@ namespace NormalCAD.Controller.Commands
         {
             _controller = controller;
             _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
-            _center = null;
-            _radius = 0;
             _controller.InputManager.RegisterMouseMove(OnMouseMove);
-            RegisterCenterPrompt();
+            _state = ArcState.StartPoint;
+            _controller.InputManager.RegisterGetPoint(
+                new PromptPointOptions { Message = PromptStartPoint, Keywords = new[] { KeyCenter } },
+                OnStep);
             return Task.CompletedTask;
         }
 
@@ -47,101 +52,236 @@ namespace NormalCAD.Controller.Commands
             }
         }
 
-        private void RegisterCenterPrompt()
+        private void OnStep(PromptPointResult result)
         {
-            _controller!.InputManager.RegisterGetPoint(
-                new PromptPointOptions { Message = PromptCenterPoint },
-                OnCenterPoint);
+            if (result.Status == PromptStatus.Keyword)
+            {
+                if (_state == ArcState.StartPoint && result.StringResult == KeyCenter)
+                {
+                    _state = ArcState.Center_Center;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions { Message = PromptCenter },
+                        OnStep);
+                    return;
+                }
+                if (_state == ArcState.SecondPoint && result.StringResult == KeyCenter)
+                {
+                    _state = ArcState.Center_Center;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions { Message = PromptCenter },
+                        OnStep);
+                    return;
+                }
+                if (_state == ArcState.SecondPoint && result.StringResult == KeyEnd)
+                {
+                    _state = ArcState.EndPoint;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions { Message = PromptEndPoint },
+                        OnStep);
+                    return;
+                }
+                return;
+            }
+
+            if (result.Status != PromptStatus.OK) { _controller!.FinishCommand(); return; }
+
+            switch (_state)
+            {
+                case ArcState.StartPoint:
+                    _startPt = result.Value;
+                    _state = ArcState.SecondPoint;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions
+                        {
+                            Message = PromptSecondPoint,
+                            Keywords = new[] { KeyCenter, KeyEnd },
+                            BasePoint = _startPt
+                        },
+                        OnStep);
+                    break;
+
+                case ArcState.SecondPoint:
+                    _midPt = result.Value;
+                    _state = ArcState.EndPoint;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions
+                        {
+                            Message = PromptEndPoint,
+                            BasePoint = _midPt,
+                            UseBasePoint = false
+                        },
+                        OnStep);
+                    break;
+
+                case ArcState.EndPoint:
+                    CreateArc3Point(_startPt, _midPt, result.Value);
+                    _controller!.FinishCommand();
+                    break;
+
+                case ArcState.Center_Center:
+                    _startPt = result.Value;
+                    _state = ArcState.Center_Start;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions
+                        {
+                            Message = PromptStartPointC,
+                            BasePoint = _startPt
+                        },
+                        OnStep);
+                    break;
+
+                case ArcState.Center_Start:
+                    _midPt = result.Value;
+                    _state = ArcState.Center_End;
+                    _controller!.InputManager.RegisterGetPoint(
+                        new PromptPointOptions { Message = PromptEndPointC },
+                        OnStep);
+                    break;
+
+                case ArcState.Center_End:
+                    CreateArcCenterStartEnd(_startPt, _midPt, result.Value);
+                    _controller!.FinishCommand();
+                    break;
+            }
         }
 
-        private void OnCenterPoint(PromptPointResult result)
+        private void CreateArc3Point(Point3d p1, Point3d p2, Point3d p3)
         {
-            if (result.Status != PromptStatus.OK) { Finish(); return; }
-            _center = result.Value;
-            RegisterRadiusPrompt();
-        }
+            if (!TryComputeArc3Point(p1, p2, p3, out var center, out var radius,
+                    out var startAngle, out var endAngle))
+                return;
 
-        private void RegisterRadiusPrompt()
-        {
-            _controller!.InputManager.RegisterGetPoint(
-                new PromptPointOptions { Message = PromptRadius, BasePoint = _center },
-                OnRadiusPoint);
-        }
-
-        private void OnRadiusPoint(PromptPointResult result)
-        {
-            if (result.Status != PromptStatus.OK) { Finish(); return; }
-
-            _radius = _center!.Value.DistanceTo(result.Value);
-            if (_radius < 1e-6) { Finish(); return; }
-
-            _startAngle = Math.Atan2(
-                result.Value.Y - _center.Value.Y,
-                result.Value.X - _center.Value.X);
-            if (_startAngle < 0) _startAngle += 2 * Math.PI;
-
-            RegisterEndAnglePrompt();
-        }
-
-        private void RegisterEndAnglePrompt()
-        {
-            _controller!.InputManager.RegisterGetPoint(
-                new PromptPointOptions { Message = PromptEndAngle, BasePoint = _center },
-                OnEndAnglePoint);
-        }
-
-        private void OnEndAnglePoint(PromptPointResult result)
-        {
-            if (result.Status != PromptStatus.OK) { Finish(); return; }
-
-            double endAngle = Math.Atan2(
-                result.Value.Y - _center!.Value.Y,
-                result.Value.X - _center.Value.X);
-            if (endAngle < 0) endAngle += 2 * Math.PI;
-
-            var arc = new Arc(_center.Value, _radius, _startAngle, endAngle)
+            var arc = new Arc(center, radius, startAngle, endAngle)
             {
                 Layer = _controller!.ActiveLayer,
                 Color = _controller.ActiveColor
             };
-
             CadCoreHelper.AddNewEntityToCurrentSpace(arc);
-            Finish();
+        }
+
+        private void CreateArcCenterStartEnd(Point3d center, Point3d start, Point3d end)
+        {
+            double radius = center.DistanceTo(start);
+            if (radius < 1e-6) return;
+
+            double startAngle = Math.Atan2(start.Y - center.Y, start.X - center.X);
+            double endAngle = Math.Atan2(end.Y - center.Y, end.X - center.X);
+
+            var arc = new Arc(center, radius, startAngle, endAngle)
+            {
+                Layer = _controller!.ActiveLayer,
+                Color = _controller.ActiveColor
+            };
+            CadCoreHelper.AddNewEntityToCurrentSpace(arc);
+        }
+
+        private static bool TryComputeArc3Point(Point3d p1, Point3d p2, Point3d p3,
+            out Point3d center, out double radius, out double startAngle, out double endAngle)
+        {
+            center = Point3d.Origin;
+            radius = 0;
+            startAngle = 0;
+            endAngle = 0;
+
+            if (AreNearlyCollinear(p1, p2, p3))
+                return false;
+
+            (center, radius) = ComputeArcFrom3Points(p1, p2, p3);
+            if (radius < 1e-6)
+                return false;
+
+            double a1 = NormalizeAngle(Math.Atan2(p1.Y - center.Y, p1.X - center.X));
+            double a2 = NormalizeAngle(Math.Atan2(p2.Y - center.Y, p2.X - center.X));
+            double a3 = NormalizeAngle(Math.Atan2(p3.Y - center.Y, p3.X - center.X));
+
+            if (IsAngleBetween(a2, a1, a3))
+            {
+                startAngle = a1;
+                endAngle = a3;
+            }
+            else
+            {
+                startAngle = a3;
+                endAngle = a1;
+            }
+
+            return true;
+        }
+
+        private static (Point3d center, double radius) ComputeArcFrom3Points(
+            Point3d p1, Point3d p2, Point3d p3)
+        {
+            double d = 2 * (p1.X * (p2.Y - p3.Y) + p2.X * (p3.Y - p1.Y) + p3.X * (p1.Y - p2.Y));
+
+            double ux = ((p1.X * p1.X + p1.Y * p1.Y) * (p2.Y - p3.Y)
+                       + (p2.X * p2.X + p2.Y * p2.Y) * (p3.Y - p1.Y)
+                       + (p3.X * p3.X + p3.Y * p3.Y) * (p1.Y - p2.Y)) / d;
+            double uy = ((p1.X * p1.X + p1.Y * p1.Y) * (p3.X - p2.X)
+                       + (p2.X * p2.X + p2.Y * p2.Y) * (p1.X - p3.X)
+                       + (p3.X * p3.X + p3.Y * p3.Y) * (p2.X - p1.X)) / d;
+
+            var center = new Point3d(ux, uy, 0);
+            double radius = center.DistanceTo(p1);
+            return (center, radius);
+        }
+
+        private static bool AreNearlyCollinear(Point3d p1, Point3d p2, Point3d p3)
+        {
+            double d = 2 * (p1.X * (p2.Y - p3.Y) + p2.X * (p3.Y - p1.Y) + p3.X * (p1.Y - p2.Y));
+            return Math.Abs(d) < 1e-9;
+        }
+
+        private static double NormalizeAngle(double angle)
+        {
+            double result = angle % (2 * Math.PI);
+            if (result < 0) result += 2 * Math.PI;
+            return result;
+        }
+
+        private static bool IsAngleBetween(double angle, double start, double end)
+        {
+            if (start <= end)
+                return angle >= start && angle <= end;
+            return angle >= start || angle <= end;
         }
 
         private void OnMouseMove(Point3d worldPt)
         {
-            if (_controller == null || !_center.HasValue) return;
+            if (_controller == null) return;
 
-            if (_radius == 0)
+            if (_state == ArcState.EndPoint)
             {
-                double r = _center.Value.DistanceTo(worldPt);
-                _controller.InputManager.SetPreview("arcRadius",
-                    new Circle(_center.Value, Vector3d.ZAxis, r)
-                    {
-                        Layer = _controller.ActiveLayer,
-                        Color = _controller.ActiveColor
-                    });
+                if (TryComputeArc3Point(_startPt, _midPt, worldPt, out var center,
+                        out var radius, out var startAngle, out var endAngle))
+                {
+                    _controller.InputManager.SetPreview("arc",
+                        new Arc(center, radius, startAngle, endAngle)
+                        {
+                            Layer = _controller.ActiveLayer,
+                            Color = _controller.ActiveColor
+                        });
+                }
+                else
+                {
+                    _controller.InputManager.RemovePreview("arc");
+                }
             }
-            else
+            else if (_state == ArcState.Center_End)
             {
-                double endAngle = Math.Atan2(
-                    worldPt.Y - _center.Value.Y, worldPt.X - _center.Value.X);
-                if (endAngle < 0) endAngle += 2 * Math.PI;
-
-                _controller.InputManager.SetPreview("arc",
-                    new Arc(_center.Value, _radius, _startAngle, endAngle)
-                    {
-                        Layer = _controller.ActiveLayer,
-                        Color = _controller.ActiveColor
-                    });
+                double radius = _startPt.DistanceTo(_midPt);
+                if (radius > 1e-6)
+                {
+                    double startAngle = Math.Atan2(_midPt.Y - _startPt.Y, _midPt.X - _startPt.X);
+                    double endAngle = Math.Atan2(worldPt.Y - _startPt.Y, worldPt.X - _startPt.X);
+                    _controller.InputManager.SetPreview("arc",
+                        new Arc(_startPt, radius, startAngle, endAngle)
+                        {
+                            Layer = _controller.ActiveLayer,
+                            Color = _controller.ActiveColor
+                        });
+                }
             }
             _controller.Viewport.InvalidateVisual();
-        }
-
-        private void Finish()
-        {
-            _controller!.SetCommand(new BaseCommand());
         }
     }
 }
