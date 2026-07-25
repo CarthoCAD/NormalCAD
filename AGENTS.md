@@ -31,6 +31,7 @@ Keep Core UI-agnostic and ACadSharp-agnostic. UI concerns (property metadata, re
 - Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `chore`, `i18n`, `ci`, `build`, `revert`
 - Scopes: `commands`, `viewport`, `palettes`, `geometry`, `database`, `io`, `themes`, `ui`, `tests`, `i18n`, `build`, `release`
 - Keep commit message lines under **100 characters** to satisfy commitlint.
+- **Commit message composition:** write the message to a temporary file first (e.g. `$env:TEMP\commit-msg.txt`), then use `git commit -F $env:TEMP\commit-msg.txt`. This avoids shell-quoting issues with `-m` flags and ensures multi-line bodies are preserved correctly for commitlint validation.
 - **Human-in-the-loop workflow:**
   1. User requests changes.
   2. Assistant makes the changes and reports the result.
