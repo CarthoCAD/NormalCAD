@@ -24,7 +24,6 @@ namespace NormalCAD.Controller.Commands
         private static string PromptHalfWidth => CommandResources.Get("PLINE.PROMPT.HALFWIDTH");
         private static string PromptLength => CommandResources.Get("PLINE.PROMPT.LENGTH");
 
-        private CadController? _controller;
         private Polyline _polyline = new();
         private Point3d? _lastCommittedPoint;
         private double _startWidth;
@@ -38,33 +37,29 @@ namespace NormalCAD.Controller.Commands
 
         private int CommittedCount => _polyline.NumberOfVertices;
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
-            _controller = controller;
-            _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _polyline = new Polyline
             {
-                Layer = _controller.ActiveLayer,
-                Color = _controller.ActiveColor
+                Layer = CadController.Current.ActiveLayer,
+                Color = CadController.Current.ActiveColor
             };
             _lastCommittedPoint = null;
-            _controller.InputManager.SetPreview("polyline", _polyline);
+            CadController.Current.InputManager.SetPreview("polyline", _polyline);
             RegisterFirstPointPrompt();
             return Task.CompletedTask;
         }
 
         public void Deactivate()
         {
-            if (_controller != null)
-            {
-                _controller.InputManager.ClearAllRegistrations();
-                _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
-            }
+            CadController.Current.InputManager.ClearAllRegistrations();
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
         }
 
         private void RegisterFirstPointPrompt()
         {
-            _controller!.InputManager.RegisterGetPoint(
+            CadController.Current.InputManager.RegisterGetPoint(
                 new PromptPointOptions { Message = PromptFirstPoint },
                 OnFirstPoint);
         }
@@ -86,7 +81,7 @@ namespace NormalCAD.Controller.Commands
                 ? new[] { KeyArc, KeyWidth, KeyHalfwidth, KeyLength, KeyUndo, KeyClose }
                 : new[] { KeyArc, KeyWidth, KeyHalfwidth, KeyLength, KeyUndo };
 
-            _controller!.InputManager.RegisterGetPoint(
+            CadController.Current.InputManager.RegisterGetPoint(
                 new PromptPointOptions
                 {
                     Message = PromptNextPoint,
@@ -102,7 +97,7 @@ namespace NormalCAD.Controller.Commands
             {
                 if (result.StringResult == KeyArc)
                 {
-                    _controller!.InputManager.SetPromptMessage(MsgNotImpl);
+                    CadController.Current.InputManager.SetPromptMessage(MsgNotImpl);
                     RegisterNextPointPrompt();
                     return;
                 }
@@ -118,7 +113,7 @@ namespace NormalCAD.Controller.Commands
                 }
                 if (result.StringResult == KeyLength)
                 {
-                    _controller!.InputManager.SetPromptMessage(MsgNotImpl);
+                    CadController.Current.InputManager.SetPromptMessage(MsgNotImpl);
                     RegisterNextPointPrompt();
                     return;
                 }
@@ -148,7 +143,7 @@ namespace NormalCAD.Controller.Commands
 
         private void RegisterWidthStart()
         {
-            _controller!.InputManager.RegisterGetDistance(
+            CadController.Current.InputManager.RegisterGetDistance(
                 new PromptDistanceOptions
                 {
                     Message = PromptStartWidth,
@@ -162,7 +157,7 @@ namespace NormalCAD.Controller.Commands
                         return;
                     }
                     _startWidth = w.Value;
-                    _controller.InputManager.RegisterGetDistance(
+                    CadController.Current.InputManager.RegisterGetDistance(
                         new PromptDistanceOptions
                         {
                             Message = PromptEndWidth,
@@ -179,7 +174,7 @@ namespace NormalCAD.Controller.Commands
 
         private void RegisterHalfwidth()
         {
-            _controller!.InputManager.RegisterGetDistance(
+            CadController.Current.InputManager.RegisterGetDistance(
                 new PromptDistanceOptions
                 {
                     Message = PromptHalfWidth,
@@ -198,17 +193,17 @@ namespace NormalCAD.Controller.Commands
 
         private void Finish(bool closed)
         {
-            if (_controller == null || CommittedCount < 2)
+            if (CommittedCount < 2)
             {
-                _controller!.FinishCommand();
+                CadController.Current.FinishCommand();
                 return;
             }
 
             _polyline.Closed = closed;
-            _polyline.Layer = _controller.ActiveLayer;
-            _polyline.Color = _controller.ActiveColor;
+            _polyline.Layer = CadController.Current.ActiveLayer;
+            _polyline.Color = CadController.Current.ActiveColor;
             CadCoreHelper.AddNewEntityToCurrentSpace(_polyline);
-            _controller.FinishCommand();
+            CadController.Current.FinishCommand();
         }
     }
 }

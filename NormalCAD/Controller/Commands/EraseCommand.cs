@@ -14,9 +14,9 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.UsePickSet;
         public string Alias => CommandResources.Get("ERASE.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
-            var selected = controller.SelectedEntityIds;
+            var selected = CadController.Current.SelectedEntityIds;
 
             if (selected.Count > 0)
             {
@@ -28,10 +28,10 @@ namespace NormalCAD.Controller.Commands
                     }
                 });
 
-                controller.ClearSelection();
+                CadController.Current.ClearSelection();
             }
 
-            controller.FinishCommand();
+            CadController.Current.FinishCommand();
             return Task.CompletedTask;
         }
 

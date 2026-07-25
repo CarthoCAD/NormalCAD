@@ -20,12 +20,12 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
 
-        public async Task ActivateAsync(CadController controller)
+        public async Task ActivateAsync()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null)
             {
-                controller.FinishCommand();
+                CadController.Current.FinishCommand();
                 return;
             }
 
@@ -36,24 +36,24 @@ namespace NormalCAD.Controller.Commands
             {
                 try
                 {
-                    controller.SaveViewportState();
+                    CadController.Current.SaveViewportState();
                     Services.FileService.Save(db, filePath);
-                    controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(filePath)));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(filePath)));
                 }
                 catch (Exception ex)
                 {
-                    controller.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
                 }
             }
             else
             {
-                await ShowSaveDialog(controller);
+                await ShowSaveDialog();
             }
 
-            controller.FinishCommand();
+            CadController.Current.FinishCommand();
         }
 
-        public static async Task ShowSaveDialog(CadController controller)
+        public static async Task ShowSaveDialog()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
@@ -79,14 +79,14 @@ namespace NormalCAD.Controller.Commands
                 string path = file.Path.LocalPath;
                 try
                 {
-                    controller.SaveViewportState();
+                    CadController.Current.SaveViewportState();
                     Services.FileService.Save(db, path);
                     db.Filename = path;
-                    controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(path)));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(path)));
                 }
                 catch (Exception ex)
                 {
-                    controller.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
                 }
             }
         }

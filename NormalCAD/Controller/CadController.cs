@@ -15,6 +15,8 @@ namespace NormalCAD.Controller
 {
     public class CadController
     {
+        public static CadController Current { get; private set; } = null!;
+
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
         public InputManager InputManager { get; }
@@ -37,6 +39,8 @@ namespace NormalCAD.Controller
 
         public CadController(CadViewport viewport)
         {
+            Current = this;
+
             if (Application.Host == null)
             {
                 Application.Host = new Host.ApplicationHost();
@@ -45,14 +49,14 @@ namespace NormalCAD.Controller
             Application.Host.CreateDocument();
             Viewport = viewport;
             Viewport.Controller = this;
-            CmdManager = new CmdManager(this);
-            InputManager = new InputManager(this);
-            EntityPropertyManager = new EntityPropertyManager(this);
+            CmdManager = new CmdManager();
+            InputManager = new InputManager();
+            EntityPropertyManager = new EntityPropertyManager();
 
             SubscribeToDatabaseEvents(
                 Application.DocumentManager.MdiActiveDocument!.Database);
 
-            _idleState.Activate(this);
+            _idleState.Activate();
         }
 
         private void SubscribeToDatabaseEvents(Database db)
@@ -136,7 +140,7 @@ namespace NormalCAD.Controller
             _activeCommand?.Deactivate();
             _activeCommand = command;
             InputManager.SetCurrentPrompt(_activeCommand.LocalName);
-            _activeCommand.ActivateAsync(this);
+            _activeCommand.ActivateAsync();
             ActiveCommandChanged?.Invoke(_activeCommand.LocalName);
             Viewport.InvalidateVisual();
         }
@@ -145,7 +149,7 @@ namespace NormalCAD.Controller
         {
             _activeCommand?.Deactivate();
             _activeCommand = null;
-            _idleState.Activate(this);
+            _idleState.Activate();
             InputManager.ResetPromptToIdle();
             ActiveCommandChanged?.Invoke("");
             Viewport.InvalidateVisual();

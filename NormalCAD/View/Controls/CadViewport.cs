@@ -203,7 +203,7 @@ public class CadViewport : Control
 
         // 4. Draw Database Entities
         if (Controller != null)
-            _drawingService.DrawDatabase(context, Controller, WorldToScreen, Zoom);
+            _drawingService.DrawDatabase(context, WorldToScreen, Zoom);
 
         // 5. Draw Active Command Previews
         if (Controller != null)
@@ -213,7 +213,7 @@ public class CadViewport : Control
                 if (kvp.Value != null)
                 {
                     bool isRubberBand = kvp.Key.StartsWith("$");
-                    _drawingService.DrawEntity(context, kvp.Value, Controller,
+                    _drawingService.DrawEntity(context, kvp.Value,
                         isSelected: false, isPreview: true, isRubberBand,
                         WorldToScreen, Zoom);
                 }

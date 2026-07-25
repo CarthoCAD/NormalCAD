@@ -21,9 +21,6 @@ namespace NormalCAD.Controller
         private static string MsgRemovedN => CommandResources.Get("CMD.MSG.REMOVED_N");
         private static string PromptOppositeCorner => CommandResources.Get("CMD.PROMPT.OPPOSITECORNER");
 
-        private readonly CadController _controller;
-        private readonly InputManager _inputManager;
-
         private SelState _state;
         private Action<PromptEntityResult>? _entityCallback;
         private Action<PromptSelectionResult>? _selectionCallback;
@@ -33,10 +30,8 @@ namespace NormalCAD.Controller
         public bool IsActive => _state != SelState.Idle;
         public bool IsShiftPressed => _isShift;
 
-        public SelectionManager(CadController controller, InputManager inputManager)
+        public SelectionManager()
         {
-            _controller = controller;
-            _inputManager = inputManager;
         }
 
         public void BeginGetEntity(PromptEntityOptions options, Action<PromptEntityResult> callback)
@@ -44,7 +39,7 @@ namespace NormalCAD.Controller
             _state = SelState.Picking;
             _entityCallback = callback;
             _selectionCallback = null;
-            _inputManager.ResetPromptToCommand();
+            CadController.Current.InputManager.ResetPromptToCommand();
         }
 
         public void BeginGetSelection(PromptSelectionOptions options, Action<PromptSelectionResult> callback)
@@ -53,7 +48,7 @@ namespace NormalCAD.Controller
             _selectionCallback = callback;
             _entityCallback = null;
 
-            var viewport = _controller.Viewport;
+            var viewport = CadController.Current.Viewport;
             _boxStart = options.BasePoint.HasValue
                 ? viewport.WorldToScreen(options.BasePoint.Value)
                 : default;
@@ -62,7 +57,7 @@ namespace NormalCAD.Controller
 
             viewport.SelectionStartPoint = _boxStart;
             viewport.SelectionEndPoint = _boxEnd;
-            _inputManager.SetCurrentPrompt("", PromptOppositeCorner);
+            CadController.Current.InputManager.SetCurrentPrompt("", PromptOppositeCorner);
             viewport.InvalidateVisual();
         }
 
@@ -73,7 +68,7 @@ namespace NormalCAD.Controller
             if (_state == SelState.Boxing)
             {
                 _boxEnd = screenPos;
-                _controller.Viewport.SelectionEndPoint = _boxEnd;
+                CadController.Current.Viewport.SelectionEndPoint = _boxEnd;
                 FinishBox();
                 return;
             }
@@ -88,7 +83,7 @@ namespace NormalCAD.Controller
         {
             if (_state != SelState.Boxing) return;
 
-            var viewport = _controller.Viewport;
+            var viewport = CadController.Current.Viewport;
             _boxEnd = viewport.WorldToScreen(worldPt);
             viewport.SelectionEndPoint = _boxEnd;
             viewport.InvalidateVisual();
@@ -99,13 +94,13 @@ namespace NormalCAD.Controller
             _state = SelState.Idle;
             _entityCallback = null;
             _selectionCallback = null;
-            _controller.Viewport.SelectionStartPoint = null;
-            _controller.Viewport.SelectionEndPoint = null;
+            CadController.Current.Viewport.SelectionStartPoint = null;
+            CadController.Current.Viewport.SelectionEndPoint = null;
         }
 
         private void TryPickOrStartBox(Point3d worldPt, Point screenPos)
         {
-            var viewport = _controller.Viewport;
+            var viewport = CadController.Current.Viewport;
             var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
 
             ObjectId selectedId = ObjectId.Null;
@@ -161,7 +156,7 @@ namespace NormalCAD.Controller
 
         private void FinishBox()
         {
-            var viewport = _controller.Viewport;
+            var viewport = CadController.Current.Viewport;
             var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
             if (db == null)
             {
@@ -203,8 +198,8 @@ namespace NormalCAD.Controller
                 }
             }
 
-            _controller.Viewport.SelectionStartPoint = null;
-            _controller.Viewport.SelectionEndPoint = null;
+            CadController.Current.Viewport.SelectionStartPoint = null;
+            CadController.Current.Viewport.SelectionEndPoint = null;
 
             _selectionCallback?.Invoke(PromptSelectionResult.OK(toSelect));
         }

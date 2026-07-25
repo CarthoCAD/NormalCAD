@@ -11,7 +11,6 @@ namespace NormalCAD
 {
     public partial class MainWindow : Window
     {
-        private readonly CadController _controller;
         private readonly PropertyPalette _propertyPalette;
         private readonly LayerPalette _layerPalette;
 
@@ -33,16 +32,17 @@ namespace NormalCAD
             BtnTabProps.SetValue(ToolTip.TipProperty, PanelResources.Get("SIDEBAR.TOOLTIP.PROPERTIES"));
             BtnTabLayers.SetValue(ToolTip.TipProperty, PanelResources.Get("SIDEBAR.TOOLTIP.LAYERS"));
 
-            _controller = new CadController(Viewport);
-            _controller.ApplyTheme(Controller.Services.ConfigService.Current.Theme == "Light");
+            new CadController(Viewport);
+            CadController.Current.ApplyTheme(Controller.Services.ConfigService.Current.Theme == "Light");
 
-            _propertyPalette = new PropertyPalette { Controller = _controller };
-            _layerPalette = new LayerPalette { Controller = _controller };
+            _propertyPalette = new PropertyPalette();
+            _layerPalette = new LayerPalette();
+
+            BottomBar.AttachCadController();
+            _propertyPalette.AttachCadController();
+            _layerPalette.AttachCadController();
 
             _propertyPalette.DropDownClosed += OnPropertyDropDownClosed;
-
-            MenuBar.Controller = _controller;
-            BottomBar.Controller = _controller;
 
             BtnTabProps.PointerEntered += (s, e) => ShowDrawer(_propertyPalette);
             BtnTabLayers.PointerEntered += (s, e) => ShowDrawer(_layerPalette);
@@ -162,7 +162,7 @@ namespace NormalCAD
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
-            _controller?.OnKeyDown(e);
+            CadController.Current.OnKeyDown(e);
         }
 
         protected override void OnTextInput(TextInputEventArgs e)

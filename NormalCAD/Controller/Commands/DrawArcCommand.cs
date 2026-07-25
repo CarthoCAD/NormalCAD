@@ -20,7 +20,6 @@ namespace NormalCAD.Controller.Commands
         private static string KeyCenter => CommandResources.Get("ARC.KEY.CENTER");
         private static string KeyEnd => CommandResources.Get("ARC.KEY.END");
 
-        private CadController? _controller;
         private Point3d _startPt, _midPt;
         private enum ArcState { StartPoint, SecondPoint, EndPoint, Center_Center, Center_Start, Center_End }
         private ArcState _state;
@@ -31,13 +30,12 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("ARC.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
-            _controller = controller;
-            _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
-            _controller.InputManager.RegisterMouseMove(OnMouseMove);
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.Crosshair;
+            CadController.Current.InputManager.RegisterMouseMove(OnMouseMove);
             _state = ArcState.StartPoint;
-            _controller.InputManager.RegisterGetPoint(
+            CadController.Current.InputManager.RegisterGetPoint(
                 new PromptPointOptions { Message = PromptStartPoint, Keywords = new[] { KeyCenter } },
                 OnStep);
             return Task.CompletedTask;
@@ -45,11 +43,8 @@ namespace NormalCAD.Controller.Commands
 
         public void Deactivate()
         {
-            if (_controller != null)
-            {
-                _controller.InputManager.ClearAllRegistrations();
-                _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
-            }
+            CadController.Current.InputManager.ClearAllRegistrations();
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
         }
 
         private void OnStep(PromptPointResult result)
@@ -59,7 +54,7 @@ namespace NormalCAD.Controller.Commands
                 if (_state == ArcState.StartPoint && result.StringResult == KeyCenter)
                 {
                     _state = ArcState.Center_Center;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions { Message = PromptCenter },
                         OnStep);
                     return;
@@ -67,7 +62,7 @@ namespace NormalCAD.Controller.Commands
                 if (_state == ArcState.SecondPoint && result.StringResult == KeyCenter)
                 {
                     _state = ArcState.Center_Center;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions { Message = PromptCenter },
                         OnStep);
                     return;
@@ -75,7 +70,7 @@ namespace NormalCAD.Controller.Commands
                 if (_state == ArcState.SecondPoint && result.StringResult == KeyEnd)
                 {
                     _state = ArcState.EndPoint;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions { Message = PromptEndPoint },
                         OnStep);
                     return;
@@ -83,14 +78,14 @@ namespace NormalCAD.Controller.Commands
                 return;
             }
 
-            if (result.Status != PromptStatus.OK) { _controller!.FinishCommand(); return; }
+            if (result.Status != PromptStatus.OK) { CadController.Current.FinishCommand(); return; }
 
             switch (_state)
             {
                 case ArcState.StartPoint:
                     _startPt = result.Value;
                     _state = ArcState.SecondPoint;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions
                         {
                             Message = PromptSecondPoint,
@@ -103,7 +98,7 @@ namespace NormalCAD.Controller.Commands
                 case ArcState.SecondPoint:
                     _midPt = result.Value;
                     _state = ArcState.EndPoint;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions
                         {
                             Message = PromptEndPoint,
@@ -115,13 +110,13 @@ namespace NormalCAD.Controller.Commands
 
                 case ArcState.EndPoint:
                     CreateArc3Point(_startPt, _midPt, result.Value);
-                    _controller!.FinishCommand();
+                    CadController.Current.FinishCommand();
                     break;
 
                 case ArcState.Center_Center:
                     _startPt = result.Value;
                     _state = ArcState.Center_Start;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions
                         {
                             Message = PromptStartPointC,
@@ -133,14 +128,14 @@ namespace NormalCAD.Controller.Commands
                 case ArcState.Center_Start:
                     _midPt = result.Value;
                     _state = ArcState.Center_End;
-                    _controller!.InputManager.RegisterGetPoint(
+                    CadController.Current.InputManager.RegisterGetPoint(
                         new PromptPointOptions { Message = PromptEndPointC },
                         OnStep);
                     break;
 
                 case ArcState.Center_End:
                     CreateArcCenterStartEnd(_startPt, _midPt, result.Value);
-                    _controller!.FinishCommand();
+                    CadController.Current.FinishCommand();
                     break;
             }
         }
@@ -153,8 +148,8 @@ namespace NormalCAD.Controller.Commands
 
             var arc = new Arc(center, radius, startAngle, endAngle)
             {
-                Layer = _controller!.ActiveLayer,
-                Color = _controller.ActiveColor
+                Layer = CadController.Current.ActiveLayer,
+                Color = CadController.Current.ActiveColor
             };
             CadCoreHelper.AddNewEntityToCurrentSpace(arc);
         }
@@ -169,8 +164,8 @@ namespace NormalCAD.Controller.Commands
 
             var arc = new Arc(center, radius, startAngle, endAngle)
             {
-                Layer = _controller!.ActiveLayer,
-                Color = _controller.ActiveColor
+                Layer = CadController.Current.ActiveLayer,
+                Color = CadController.Current.ActiveColor
             };
             CadCoreHelper.AddNewEntityToCurrentSpace(arc);
         }
@@ -247,23 +242,22 @@ namespace NormalCAD.Controller.Commands
 
         private void OnMouseMove(Point3d worldPt)
         {
-            if (_controller == null) return;
 
             if (_state == ArcState.EndPoint)
             {
                 if (TryComputeArc3Point(_startPt, _midPt, worldPt, out var center,
                         out var radius, out var startAngle, out var endAngle))
                 {
-                    _controller.InputManager.SetPreview("arc",
+                    CadController.Current.InputManager.SetPreview("arc",
                         new Arc(center, radius, startAngle, endAngle)
                         {
-                            Layer = _controller.ActiveLayer,
-                            Color = _controller.ActiveColor
+                            Layer = CadController.Current.ActiveLayer,
+                            Color = CadController.Current.ActiveColor
                         });
                 }
                 else
                 {
-                    _controller.InputManager.RemovePreview("arc");
+                    CadController.Current.InputManager.RemovePreview("arc");
                 }
             }
             else if (_state == ArcState.Center_End)
@@ -273,15 +267,15 @@ namespace NormalCAD.Controller.Commands
                 {
                     double startAngle = Math.Atan2(_midPt.Y - _startPt.Y, _midPt.X - _startPt.X);
                     double endAngle = Math.Atan2(worldPt.Y - _startPt.Y, worldPt.X - _startPt.X);
-                    _controller.InputManager.SetPreview("arc",
+                    CadController.Current.InputManager.SetPreview("arc",
                         new Arc(_startPt, radius, startAngle, endAngle)
                         {
-                            Layer = _controller.ActiveLayer,
-                            Color = _controller.ActiveColor
+                            Layer = CadController.Current.ActiveLayer,
+                            Color = CadController.Current.ActiveColor
                         });
                 }
             }
-            _controller.Viewport.InvalidateVisual();
+            CadController.Current.Viewport.InvalidateVisual();
         }
     }
 }

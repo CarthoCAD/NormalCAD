@@ -12,10 +12,10 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
 
-        public async Task ActivateAsync(CadController controller)
+        public async Task ActivateAsync()
         {
-            await SaveCommand.ShowSaveDialog(controller);
-            controller.FinishCommand();
+            await SaveCommand.ShowSaveDialog();
+            CadController.Current.FinishCommand();
         }
 
         public void Deactivate() { }

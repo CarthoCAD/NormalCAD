@@ -17,7 +17,7 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("CLEANALL.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
             CadCoreHelper.EditCurrentSpace((trans, currentSpace) =>
             {
@@ -28,10 +28,10 @@ namespace NormalCAD.Controller.Commands
                 }
             });
 
-            controller.ClearSelection();
-            controller.InputManager.SetPromptMessage(MsgCleared);
+            CadController.Current.ClearSelection();
+            CadController.Current.InputManager.SetPromptMessage(MsgCleared);
 
-            controller.FinishCommand();
+            CadController.Current.FinishCommand();
             return Task.CompletedTask;
         }
 

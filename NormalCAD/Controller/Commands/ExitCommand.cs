@@ -13,7 +13,7 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("QUIT.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
             var window = (Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             window?.Close();

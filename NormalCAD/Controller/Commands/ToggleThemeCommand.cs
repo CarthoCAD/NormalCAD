@@ -16,16 +16,16 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("THEME.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
-            var isLight = !controller.IsLightTheme;
-            controller.ApplyTheme(isLight);
+            var isLight = !CadController.Current.IsLightTheme;
+            CadController.Current.ApplyTheme(isLight);
             Services.ConfigService.Update(c => c.Theme = isLight ? "Light" : "Dark");
 
             var themeName = isLight ? MsgLight : MsgDark;
-            controller.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));
+            CadController.Current.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));
 
-            controller.FinishCommand();
+            CadController.Current.FinishCommand();
             return Task.CompletedTask;
         }
 

@@ -26,7 +26,7 @@ namespace NormalCAD.View.Drawing
             _renderers[typeof(T)] = renderer;
         }
 
-        public void DrawDatabase(DrawingContext context, Controller.CadController controller,
+        public void DrawDatabase(DrawingContext context,
                                   Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
             EnsureSubscribed();
@@ -46,12 +46,12 @@ namespace NormalCAD.View.Drawing
                 if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                     continue;
 
-                DrawEntity(context, ent, controller, controller.IsSelected(entId),
+                DrawEntity(context, ent, Controller.CadController.Current.IsSelected(entId),
                            isPreview: false, isRubberBand: false, worldToScreen, zoom);
             }
         }
 
-        public void DrawEntity(DrawingContext context, Entity ent, Controller.CadController controller,
+        public void DrawEntity(DrawingContext context, Entity ent,
                                bool isSelected, bool isPreview, bool isRubberBand,
                                Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
@@ -59,7 +59,7 @@ namespace NormalCAD.View.Drawing
 
             var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
             var baseColor = db != null
-                ? ResolveEntityColor(ent, db, controller.IsLightTheme)
+                ? ResolveEntityColor(ent, db, Controller.CadController.Current.IsLightTheme)
                 : Colors.White;
             Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
             if (isPreview && isRubberBand)

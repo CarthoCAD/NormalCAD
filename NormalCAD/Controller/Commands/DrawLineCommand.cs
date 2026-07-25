@@ -16,7 +16,6 @@ namespace NormalCAD.Controller.Commands
         private static string KeyUndo => CommandResources.Get("LINE.KEY.UNDO");
         private static string KeyClose => CommandResources.Get("LINE.KEY.CLOSE");
 
-        private CadController? _controller;
         private Point3d? _startPoint;
         private Point3d _firstPoint;
         private readonly List<ObjectId> _createdLines = new();
@@ -28,10 +27,9 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("LINE.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
-            _controller = controller;
-            _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _segmentCount = 0;
             _createdLines.Clear();
             _startPoint = null;
@@ -41,23 +39,20 @@ namespace NormalCAD.Controller.Commands
 
         public void Deactivate()
         {
-            if (_controller != null)
-            {
-                _controller.InputManager.ClearAllRegistrations();
-                _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
-            }
+            CadController.Current.InputManager.ClearAllRegistrations();
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
         }
 
         private void RegisterFirstPointPrompt()
         {
-            _controller!.InputManager.RegisterGetPoint(
+            CadController.Current.InputManager.RegisterGetPoint(
                 new PromptPointOptions { Message = PromptFirstPoint },
                 OnFirstPoint);
         }
 
         private void OnFirstPoint(PromptPointResult result)
         {
-            if (result.Status != PromptStatus.OK) { _controller!.FinishCommand(); return; }
+            if (result.Status != PromptStatus.OK) { CadController.Current.FinishCommand(); return; }
 
             _startPoint = result.Value;
             _firstPoint = result.Value;
@@ -71,7 +66,7 @@ namespace NormalCAD.Controller.Commands
                 ? new[] { KeyUndo, KeyClose }
                 : new[] { KeyUndo };
 
-            _controller!.InputManager.RegisterGetPoint(
+            CadController.Current.InputManager.RegisterGetPoint(
                 new PromptPointOptions
                 {
                     Message = PromptNextPoint,
@@ -88,7 +83,7 @@ namespace NormalCAD.Controller.Commands
                 if (result.StringResult == KeyClose && _segmentCount >= 2)
                 {
                     AddLine(_startPoint!.Value, _firstPoint);
-                    _controller!.FinishCommand();
+                    CadController.Current.FinishCommand();
                     return;
                 }
                 if (result.StringResult == KeyUndo && _segmentCount >= 1)
@@ -99,7 +94,7 @@ namespace NormalCAD.Controller.Commands
                 return;
             }
 
-            if (result.Status != PromptStatus.OK) { _controller!.FinishCommand(); return; }
+            if (result.Status != PromptStatus.OK) { CadController.Current.FinishCommand(); return; }
 
             AddLine(_startPoint!.Value, result.Value);
             _segmentCount++;
@@ -111,8 +106,8 @@ namespace NormalCAD.Controller.Commands
         {
             var line = new Line(start, end)
             {
-                Layer = _controller!.ActiveLayer,
-                Color = _controller.ActiveColor
+                Layer = CadController.Current.ActiveLayer,
+                Color = CadController.Current.ActiveColor
             };
             CadCoreHelper.AddNewEntityToCurrentSpace(line);
             _createdLines.Add(line.ObjectId);

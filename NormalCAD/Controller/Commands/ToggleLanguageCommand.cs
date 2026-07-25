@@ -14,7 +14,7 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("LANGUAGE.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
             var current = Services.LanguageService.CurrentCulture.Name;
             var next = current == "pt-BR" ? "" : "pt-BR";
@@ -22,9 +22,9 @@ namespace NormalCAD.Controller.Commands
             Services.LanguageService.SetCulture(next);
 
             var label = Services.LanguageService.GetDisplayLabel();
-            controller.InputManager.SetPromptMessage(string.Format(MsgChanged, label));
+            CadController.Current.InputManager.SetPromptMessage(string.Format(MsgChanged, label));
 
-            controller.FinishCommand();
+            CadController.Current.FinishCommand();
             return Task.CompletedTask;
         }
 

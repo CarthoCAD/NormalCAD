@@ -11,7 +11,6 @@ namespace NormalCAD.Controller.Providers
     {
         private readonly Dictionary<Type, IEntityPropertyProvider> _providers = [];
         private readonly EntityPropertyProvider _entity = new();
-        private readonly CadController _controller;
 
         private static string VariesValue => PanelResources.Get("PROPERTYPALETTE.VALUE.VARIES");
         private static string InvalidValueFormat => PanelResources.Get("PROPERTYPALETTE.MSG.INVALID_VALUE");
@@ -19,13 +18,10 @@ namespace NormalCAD.Controller.Providers
         private static string BooleanYes => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.YES");
         private static string BooleanNo => PanelResources.Get("PROPERTYPALETTE.BOOLEAN.NO");
 
-        // Raised after a property edit is committed, so consumers (the palette)
-        // can re-project the current values.
         public event Action? PropertiesInvalidated;
 
-        public EntityPropertyManager(CadController controller)
+        public EntityPropertyManager()
         {
-            _controller = controller;
             Register<Line>(new LinePropertyProvider());
             Register<Circle>(new CirclePropertyProvider());
             Register<Arc>(new ArcPropertyProvider());
@@ -113,7 +109,7 @@ namespace NormalCAD.Controller.Providers
 
         public SelectionProperties GetPropertiesForSelection()
         {
-            var selection = _controller.SelectedEntityIds;
+            var selection = CadController.Current.SelectedEntityIds;
             if (selection.Count == 0)
                 return new SelectionProperties();
 
@@ -224,7 +220,7 @@ namespace NormalCAD.Controller.Providers
                     // inside the active transaction. At that point this block becomes
                     // dead code — the transaction will already track the entity via
                     // the object's own open-state, not through a bulk pre-registration.
-                    foreach (var id in _controller.SelectedEntityIds)
+                    foreach (var id in CadController.Current.SelectedEntityIds)
                     {
                         trans.GetObject(id, OpenMode.ForWrite);
                     }
@@ -235,7 +231,7 @@ namespace NormalCAD.Controller.Providers
                         return PropertyEditResult.Committed;
                     }
 
-                    _controller.InputManager.SetPromptMessage(string.Format(InvalidValueFormat, descriptor.DisplayName));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(InvalidValueFormat, descriptor.DisplayName));
                     return PropertyEditResult.Rejected;
                 }
             }

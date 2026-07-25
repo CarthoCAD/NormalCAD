@@ -21,7 +21,6 @@ namespace NormalCAD.Controller.Commands
         private static string KeyTtr => CommandResources.Get("CIRCLE.KEY.TTR");
         private static string MsgNotImpl => CommandResources.Get("CMD.MSG.NOTIMPL");
 
-        private CadController? _controller;
         private Point3d? _center;
         private bool _isDiameter;
         private Point3d _lastWorldPoint;
@@ -32,29 +31,25 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("CIRCLE.ALIAS");
 
-        public Task ActivateAsync(CadController controller)
+        public Task ActivateAsync()
         {
-            _controller = controller;
-            _controller.Viewport.CurrentCursorState = CadCursorState.Crosshair;
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _center = null;
             _isDiameter = false;
-            _controller.InputManager.RegisterMouseMove(OnMouseMove);
+            CadController.Current.InputManager.RegisterMouseMove(OnMouseMove);
             RegisterCenterPrompt();
             return Task.CompletedTask;
         }
 
         public void Deactivate()
         {
-            if (_controller != null)
-            {
-                _controller.InputManager.ClearAllRegistrations();
-                _controller.Viewport.CurrentCursorState = CadCursorState.PickCross;
-            }
+            CadController.Current.InputManager.ClearAllRegistrations();
+            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
         }
 
         private void RegisterCenterPrompt()
         {
-            _controller!.InputManager.RegisterGetPoint(
+            CadController.Current.InputManager.RegisterGetPoint(
                 new PromptPointOptions
                 {
                     Message = PromptCenterPoint,
@@ -67,7 +62,7 @@ namespace NormalCAD.Controller.Commands
         {
             if (result.Status == PromptStatus.Keyword)
             {
-                _controller!.InputManager.SetPromptMessage(MsgNotImpl);
+                CadController.Current.InputManager.SetPromptMessage(MsgNotImpl);
                 RegisterCenterPrompt();
                 return;
             }
@@ -78,7 +73,7 @@ namespace NormalCAD.Controller.Commands
 
         private void RegisterRadiusPrompt()
         {
-            _controller!.InputManager.RegisterGetDistance(
+            CadController.Current.InputManager.RegisterGetDistance(
                 new PromptDistanceOptions
                 {
                     Message = _isDiameter ? PromptDiameter : PromptRadius,
@@ -104,8 +99,8 @@ namespace NormalCAD.Controller.Commands
             {
                 var circle = new Circle(_center!.Value, Vector3d.ZAxis, radius)
                 {
-                    Layer = _controller!.ActiveLayer,
-                    Color = _controller.ActiveColor
+                    Layer = CadController.Current.ActiveLayer,
+                    Color = CadController.Current.ActiveColor
                 };
                 CadCoreHelper.AddNewEntityToCurrentSpace(circle);
             }
@@ -116,26 +111,26 @@ namespace NormalCAD.Controller.Commands
         private void OnMouseMove(Point3d worldPt)
         {
             _lastWorldPoint = worldPt;
-            if (_controller == null || !_center.HasValue) return;
+            if (!_center.HasValue) return;
 
             double dist = _center.Value.DistanceTo(worldPt);
             double radius = _isDiameter ? dist / 2.0 : dist;
 
             if (radius > 1e-6)
             {
-                _controller.InputManager.SetPreview("circle",
+                CadController.Current.InputManager.SetPreview("circle",
                     new Circle(_center.Value, Vector3d.ZAxis, radius)
                     {
-                        Layer = _controller.ActiveLayer,
-                        Color = _controller.ActiveColor
+                        Layer = CadController.Current.ActiveLayer,
+                        Color = CadController.Current.ActiveColor
                     });
             }
-            _controller.Viewport.InvalidateVisual();
+            CadController.Current.Viewport.InvalidateVisual();
         }
 
         private void Finish()
         {
-            _controller!.FinishCommand();
+            CadController.Current.FinishCommand();
         }
     }
 }

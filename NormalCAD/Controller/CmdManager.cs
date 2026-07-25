@@ -13,17 +13,15 @@ namespace NormalCAD.Controller
         private static string MsgEcho => CommandResources.Get("CMD.MSG.ECHO");
         private static string MsgUnknownCommand => CommandResources.Get("CMD.MSG.UNKNOWN_COMMAND");
 
-        private readonly CadController _controller;
         private readonly Dictionary<string, ICadCommand> _commands = [];
         private readonly List<string> _commandHistory = new();
         private const int MaxHistory = 50;
 
         public IReadOnlyList<string> CommandHistory => _commandHistory;
-        public bool IsIdle => _controller.ActiveCommand == null;
+        public bool IsIdle => CadController.Current.ActiveCommand == null;
 
-        public CmdManager(CadController cadController)
+        public CmdManager()
         {
-            _controller = cadController;
             DiscoverCommands();
             Services.LanguageService.LanguageChanged += RebuildIndex;
         }
@@ -72,12 +70,12 @@ namespace NormalCAD.Controller
                         _commandHistory.RemoveAt(_commandHistory.Count - 1);
                 }
 
-                _controller.InputManager.SetPromptMessage(string.Format(MsgEcho, cmd.LocalName));
-                _controller.SetCommand(cmd);
+                CadController.Current.InputManager.SetPromptMessage(string.Format(MsgEcho, cmd.LocalName));
+                CadController.Current.SetCommand(cmd);
             }
             else
             {
-                _controller.InputManager.SetPromptMessage(string.Format(MsgUnknownCommand, input));
+                CadController.Current.InputManager.SetPromptMessage(string.Format(MsgUnknownCommand, input));
             }
 
             await Task.CompletedTask;

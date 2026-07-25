@@ -10,7 +10,6 @@ namespace NormalCAD.View.Controls;
 
 public partial class MenuBar : UserControl
 {
-    public Controller.CadController? Controller { get; set; }
 
 
     public MenuBar()
@@ -133,11 +132,11 @@ public partial class MenuBar : UserControl
                 var cmdName = item?.Tag as string;
                 if (cmdName is not null)
                 {
-                    _ = Controller!.CmdManager.ExecuteCommand(cmdName);
+                    _ = Controller.CadController.Current.CmdManager.ExecuteCommand(cmdName);
                 }
                 else
                 {
-                    Controller?.CancelCurrentCommand();
+                    Controller.CadController.Current.CancelCurrentCommand();
                 }
             };
         }

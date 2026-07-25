@@ -20,7 +20,7 @@ namespace NormalCAD.Controller.Commands
         public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
 
-        public async Task ActivateAsync(CadController controller)
+        public async Task ActivateAsync()
         {
             var window = (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (window != null)
@@ -43,16 +43,16 @@ namespace NormalCAD.Controller.Commands
                     try
                     {
                         var db = Services.FileService.Load(path);
-                        controller.SetDatabase(db, path);
-                        controller.InputManager.SetPromptMessage(string.Format(MsgLoaded, System.IO.Path.GetFileName(path)));
+                        CadController.Current.SetDatabase(db, path);
+                        CadController.Current.InputManager.SetPromptMessage(string.Format(MsgLoaded, System.IO.Path.GetFileName(path)));
                     }
                     catch (Exception ex)
                     {
-                        controller.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
+                        CadController.Current.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
                     }
                 }
             }
-            controller.FinishCommand();
+            CadController.Current.FinishCommand();
         }
 
         public void Deactivate() { }

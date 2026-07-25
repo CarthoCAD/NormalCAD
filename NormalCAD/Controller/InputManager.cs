@@ -36,7 +36,6 @@ namespace NormalCAD.Controller
 
         public event Action<string?>? NavigateToPromptRequested;
 
-        private readonly CadController _controller;
         private readonly SelectionManager _selectionManager;
         private readonly List<string> _promptHistory = new();
         private const int MaxPromptHistory = 100;
@@ -62,10 +61,9 @@ namespace NormalCAD.Controller
 
         public string CurrentPrompt { get; private set; } = DefaultPrompt;
 
-        public InputManager(CadController controller)
+        public InputManager()
         {
-            _controller = controller;
-            _selectionManager = new SelectionManager(controller, this);
+            _selectionManager = new SelectionManager();
         }
 
         public void SetCurrentPrompt(string cmdName)
@@ -272,8 +270,8 @@ namespace NormalCAD.Controller
 
         public void ResetPromptToCommand()
         {
-            if (_controller.ActiveCommand != null)
-                SetCurrentPrompt(_controller.ActiveCommand.LocalName);
+            if (CadController.Current.ActiveCommand != null)
+                SetCurrentPrompt(CadController.Current.ActiveCommand!.LocalName);
         }
 
         public void ResetPromptToIdle()
@@ -296,10 +294,10 @@ namespace NormalCAD.Controller
 
         public void RefreshCurrentInput()
         {
-            var worldPt = _controller.Viewport.GetCurrentMouseWorldPosition();
+            var worldPt = CadController.Current.Viewport.GetCurrentMouseWorldPosition();
             UpdateRubberband(worldPt);
             _mouseMoveCallback?.Invoke(worldPt);
-            _controller.Viewport.InvalidateVisual();
+            CadController.Current.Viewport.InvalidateVisual();
         }
 
         public void ClearAllRegistrations()
@@ -317,9 +315,9 @@ namespace NormalCAD.Controller
         }
 
         private string ActiveLocalName =>
-            _controller.CmdManager.IsIdle
+            CadController.Current.CmdManager.IsIdle
                 ? ""
-                : _controller.ActiveCommand?.LocalName ?? "";
+                : CadController.Current.ActiveCommand?.LocalName ?? "";
 
         private string BuildPromptText(string message, string[] keywords)
         {
@@ -340,7 +338,7 @@ namespace NormalCAD.Controller
             if (_selectionManager.IsActive)
             {
                 _selectionManager.OnPointerPressed(worldPt,
-                    e.GetPosition(_controller.Viewport),
+                    e.GetPosition(CadController.Current.Viewport),
                     (e.KeyModifiers & KeyModifiers.Shift) != 0);
                 return;
             }
@@ -377,7 +375,7 @@ namespace NormalCAD.Controller
         {
             if (e.Key == Key.Delete)
             {
-                _controller.SetCommand(new EraseCommand());
+                CadController.Current.SetCommand(new EraseCommand());
                 e.Handled = true;
                 return;
             }
@@ -433,7 +431,7 @@ namespace NormalCAD.Controller
             else if (_keywordCallback != null)
                 _keywordCallback(new PromptKeywordResult(status));
             else
-                _controller.CancelCurrentCommand();
+                CadController.Current.CancelCurrentCommand();
         }
 
         private void FinishActivePrompt(PromptStatus status)
@@ -499,7 +497,7 @@ namespace NormalCAD.Controller
 
         public string? NavigateHistory(int delta)
         {
-            var history = _controller.CmdManager.CommandHistory;
+            var history = CadController.Current.CmdManager.CommandHistory;
             if (history.Count == 0) return null;
 
             _historyIndex += delta;
@@ -518,10 +516,10 @@ namespace NormalCAD.Controller
 
         public bool TryRepeatLastCommand()
         {
-            var history = _controller.CmdManager.CommandHistory;
+            var history = CadController.Current.CmdManager.CommandHistory;
             if (history.Count == 0) return false;
 
-            _ = _controller.CmdManager.ExecuteCommand(history[0]);
+            _ = CadController.Current.CmdManager.ExecuteCommand(history[0]);
             return true;
         }
 

@@ -16,7 +16,7 @@ namespace NormalCAD.Controller.Commands
             .ToList();
         CommandType Type { get; }
         CommandFlags Flags { get; }
-        Task ActivateAsync(CadController controller);
+        Task ActivateAsync();
         void Deactivate();
     }
 }
