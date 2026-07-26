@@ -179,19 +179,22 @@ Lets the user create the entity interactively.
      default implementation of `Aliases` parses it automatically; prefer
      declaring aliases through `Commands.resx` and reading them with
      `CommandResources.Get(...)`.
-   - Use `CadCursorState.Crosshair` while active and restore `PickCross` in
-     `Deactivate`.
-   - Drive the interactive flow with `InputManager.RegisterGetPoint`,
-     `RegisterGetDistance`, etc. These methods return a `PromptResult` and
-     accept `PromptPointOptions` with keywords and an optional base point.
-   - Drive a live preview via `_controller.Viewport.ActiveCommandPreview`
-     (assign a Core entity instance; reuse a single instance and mutate it
-     rather than recreating each frame). For rubberband lines to the cursor,
-     add temporary entries with the `$*` prefix through
-     `_controller.Viewport.AddRubberBandEntity`.
-   - On completion, add the entity with
-     `_controller.AddNewEntityToActiveSpace(entity)` and return to idle with
-     `_controller.FinishCommand()`.
+    - Cursor management is handled automatically by `InputManager`:
+      `RegisterGetPoint`/`RegisterGetDistance` sets `Crosshair`, and
+      `RegisterGetEntity` sets `TargetBox`. `ClearAllRegistrations` (called
+      by `SetCommand`/`FinishCommand`) resets to `Crosshair`. No manual cursor
+      transitions are needed in `ActivateAsync` or `Deactivate`.
+    - Drive the interactive flow with `InputManager.RegisterGetPoint`,
+      `RegisterGetDistance`, etc. These methods return a `PromptResult` and
+      accept `PromptPointOptions` with keywords and an optional base point.
+    - Drive a live preview via `CadController.Current.InputManager.SetPreview`
+      (assign a Core entity instance; reuse a single instance and mutate it
+      rather than recreating each frame). The rubberband line from base point
+      to cursor is handled automatically by `RegisterGetPoint` with
+      `UseBasePoint`.
+    - On completion, add the entity with
+      `CadCoreHelper.AddNewEntityToCurrentSpace(entity)` and return to idle with
+      `CadController.Current.FinishCommand()`.
 2. Command discovery is automatic: `CmdManager.DiscoverCommands` reflects over
    every `ICadCommand` in the assembly and registers `Name`, `LocalName`, and
    `Aliases`. No manual registration is needed.

@@ -38,9 +38,10 @@ NormalCAD.sln
 │   │   ├── Intersect.cs         # Enum Intersect (OnBothOperands, ExtendThis, ExtendArgument, ExtendBoth)
 │   │   ├── LineWeight.cs        # Enum LineWeight (ByLayer, ByBlock, Default, W0..W211)
 │   │   └── Transparency.cs      # Struct Transparency (ByLayer / alpha 0-255)
-│   ├── EditorInput/             # Editor, PromptPointResult, PromptPointOptions, PromptStatus
-│   │   ├── Editor.cs            # GetPoint(string), GetPoint(PromptPointOptions) — temporary shell
-│   │   └── PromptResult.cs      # PromptStatus (OK/Cancel/Keyword/Error)
+    │   ├── EditorInput/             # Editor, PromptPointResult, PromptPointOptions, PromptStatus, CursorType
+    │   │   ├── Editor.cs            # GetPoint(string), GetPoint(PromptPointOptions) — temporary shell
+    │   │   ├── CursorType.cs        # CursorType enum (Crosshair, TargetBox, EntitySelect, etc.)
+    │   │   └── PromptResult.cs      # PromptStatus (OK/Cancel/Keyword/Error)
 │   ├── Geometry/                # Geometric primitives and math
 │   │   ├── Point2d.cs, Point3d.cs, Vector3d.cs, Matrix3d.cs, Extents3d.cs, Point3dCollection.cs
 │   │   ├── Curve3d.cs           # Abstract class — base for geometric curves

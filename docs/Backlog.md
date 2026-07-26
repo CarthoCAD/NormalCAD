@@ -2,16 +2,6 @@
 
 Completed items are removed from this backlog. See git history and closed issues for delivered work.
 
-## Centralize Command Lifecycle and Cursor Management (priority: high)
-
-The command lifecycle is currently scattered across individual `ICadCommand` implementations. Every drawing command duplicates cursor transitions (`PickCross` ↔ `Crosshair`), `InputManager` cleanup on deactivate, and null-checked access to `CadController`. Refactor this into centralized infrastructure:
-
-- Make `CadController` a true singleton exposed via `CadController.Current`, so commands and subsystems no longer need to store their own nullable `_controller` reference or receive it through constructors.
-- Move cursor state management into `InputManager`: each prompt registration (`RegisterGetPoint`, `RegisterGetDistance`, `RegisterGetString`, etc.) sets the appropriate cursor automatically based on the input type being requested.
-- Move `InputManager.ClearAllRegistrations()` into `CadController.SetCommand()` / `FinishCommand()`, since cleaning up the previous command's input state is a lifecycle responsibility of the controller, not of each command's `Deactivate()`.
-
-This eliminates the duplicated `Activate()`/`Deactivate()` boilerplate in `DrawLineCommand`, `DrawCircleCommand`, `DrawArcCommand`, and `DrawPolylineCommand`. It also removes the circular dependencies caused by passing `CadController` instances into `CmdManager`, `InputManager`, and `EntityPropertyManager`. An abstract `DrawingCommandBase` is **not** required; any shared helpers (e.g., adding an entity with current layer/color) can be provided as static helpers or extension methods if needed after this refactor.
-
 ## Complete `BlockReference` Entity Pipeline (priority: high)
 
 `BlockReference` exists in `NormalCAD.Core` but is not yet a fully selectable, drawable entity — it must be wired through the complete entity pipeline (see `AddingNewEntities.md` for the full step-by-step). Currently `BlockReference` and its nested sub-entities are not rendered in the viewport, making block insertion functionally invisible. Deliver every stage of the pipeline for this entity:
@@ -26,6 +16,19 @@ This is the first end-to-end exercise of the "add a new entity" pipeline against
 ## Undo System (priority: high)
 
 Implement a full undo/redo stack using the AutoCAD command-group model: each interactive command or immediate action registers an `UndoGroup` that wraps the set of database modifications it performs. The `TransactionManager` must track object state snapshots (before/after values for modified properties, or pre-modification clones for structural changes like adding/removing entities) so that undo can restore them. The undo stack is managed per-document by the `Database`, with `Undo()` and `Redo()` methods exposed through the `Editor`. A `NoUndoMarker` flag on commands (already reserved in the planned `CommandFlags`) should suppress undo recording for non-destructive operations like ZOOM, REGEN, or inquiry commands. Depends on the `ICadCommand` refactoring (to add `CommandFlags.NoUndoMarker`) and on the idle state extraction (so `BaseCommand` doesn't interfere with undo group boundaries).
+
+## Complete Default Grip System (priority: high)
+
+Entities already report their grip points via `GetGripPoints()` and the idle state already handles entity selection, but grips are not yet rendered or interactive. Implement the full AutoCAD-style grip system:
+
+- **Grip rendering** — when an entity is selected (grip-mode / idle state with a selection), render small colored squares at each grip point returned by `GetGripPoints()`. Line endpoints, circle center/quadrants, arc endpoints/midpoint, and polyline vertices are the baseline. Grips should be drawn on top of all entities, with the hovered grip rendering in a distinct color (pink → red, matching the AutoCAD convention).
+- **Grip hover detection** — on pointer move, hit-test against the screen-space rectangles of all visible grips. Update the hovered grip index and redraw.
+- **Grip drag (stretch)** — on pointer-press over a grip, enter a stretch mode where pointer-move updates the entity geometry in real time through the transaction system, committing on pointer-release. Stretching a line endpoint, circle radius change via quadrant grip, and polyline vertex relocation are the essential first set.
+- **Multi-grip selection** — holding Shift while clicking a grip adds it to a hot-grip set; the stretch operation then deforms the entity from all hot grips simultaneously.
+- **Grip-mode cursor** — switch to `PickfirstOrGrips` cursor when grips are visible (no active command, entity selected).
+- **Right-click grip menu** — (future / stub) a context popup offering stretch/move/rotate/scale/mirror options for the selected grip set.
+
+The `GetGripPoints()` API, the idle selection infrastructure, and the `CadCursorState` → `CursorType` migration are already in place, so this item is about rendering, hit-testing, and the stretch transaction loop.
 
 ## Fix i18n of `PropertyPalette` Combo Box Display Values (priority: high)
 
@@ -88,7 +91,6 @@ Allow users to toggle between model space and paper space layouts within a docum
 Break it down:
 
 - **Theme** — extract `ApplyTheme` into a `ThemeService`. `MainWindow` calls it directly; `CadController` drops `IsLightTheme` and `ApplyTheme`.
-- **Subsystem circular dependency** — `CmdManager`, `InputManager`, `EntityPropertyManager` receive `CadController` in their constructors only to call 1-2 methods each. Replace with targeted delegates or a minimal `ICadController` interface.
 - **Viewport persistence** — move `SaveViewportState`/`RestoreViewportState` into `CadCoreHelper` or trigger automatically on `SetDocument`.
 - **Selection + session state** — migrate `_selectedEntityIds`, `ActiveLayer`, `ActiveColor`, and selection events to `Editor` (depends on "Extract Idle State from `BaseCommand`").
 - **Input pass-through** — remove `OnPointerPressed`/`OnPointerMoved`/`OnKeyDown` indirection (depends on "Refactor Command Input System").
@@ -99,17 +101,15 @@ After decomposition, `CadController` should be a thin facade coordinating `CmdMa
 
 Decouple visual state (selection highlight, preview, rubberband) from `DrawingService.DrawEntity` by introducing `ApplySelection` and `ApplyPreview` helpers that return modified entity clones. `DrawEntity` should then render entities purely from their own properties (`Color`, `Layer`, `LineWeight`, `Linetype`) without boolean flags for selection/preview. This aligns with the AutoCAD .NET API where visual overrides are applied to temporary clones rather than passed as render flags. Depends on `LineWeight` being honored by the renderer and `Linetype` supporting dashed patterns; until then, keep the current flag-based approach.
 
-## Move `CadCursorState` to Controller (priority: low)
-
-The `CadCursorState` enum (`PickCross`, `Crosshair`) is defined in the `View.Controls` namespace alongside UI controls, but it is referenced by every `ICadCommand` implementation in the `Controller` namespace — inverting the dependency direction (Controller should not depend on View). Move it to the Controller namespace or a shared enums location so that the Controller layer does not import View types.
-
 ## Rename Inconsistencies (priority: low)
 
 Three naming issues create unnecessary confusion: `CmdManager` abbreviates "Command" while `InputManager` in the same namespace does not abbreviate — rename to `CommandManager` for consistency. `CleanAllCommand` uses "Clean" while `EraseCommand` uses "Erase" — the AutoCAD convention is ERASE, so rename to `EraseAllCommand` to keep the family consistent (future `WipeoutCommand`, `DeleteCommand`, etc. will benefit from clear naming). `NormalCAD.Core.DatabaseServices.Culture` is a static geometry parse utility that has no dependency on the database layer and shadows `System.Globalization.CultureInfo` — move it to the Core root namespace or a `Utilities` sub-namespace and rename to something unambiguous like `ParseUtility` or `InvariantParseHelper`.
 
-## Change `Alias` to `IReadOnlyList<string>` (priority: low)
+## Make PLINE Command Use Database-Resident Polyline (priority: low)
 
-Currently `ICadCommand.Alias` is a comma-separated string (`"C,CI"`, `"EXIT,Q"`, `"TEMA,TH"`) parsed by `CmdManager.RegisterCommand` via `Split(',')`, `Trim()`, and empty-string filtering. This pushes parsing and validation logic into the command manager instead of keeping it with the command that defines the aliases. Change the property type to `IReadOnlyList<string>` so each command provides a clean, pre-parsed list. The `CmdManager` simply iterates the list without string manipulation.
+Currently `DrawPolylineCommand` builds a transient `Polyline` object that is only committed to the database after the command finishes. This prevents the in-progress polyline from being interactive — snap points on its own geometry are unavailable, and the entity is invisible to spatial queries during editing. The `LINE` command does not have this limitation because it consolidates each segment as a database-resident entity immediately.
+
+Change the PLINE command so that the polyline is added to the database as soon as the first vertex is placed, and updated in-place (vertex add/remove) through the transaction system as the command progresses. This makes the polyline discoverable by snap, grip, and spatial queries for its own geometry during construction, matching the AutoCAD behavior where PLINE offers endpoint/intersection osnap to its own segments while the command is still active.
 
 ## Remove Unused `IConverter` Properties (priority: low)
 
