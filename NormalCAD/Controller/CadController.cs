@@ -15,12 +15,15 @@ namespace NormalCAD.Controller
 {
     public class CadController
     {
+        public static CadController Current { get; private set; } = null!;
+
         public CadViewport Viewport { get; }
         public CmdManager CmdManager { get; }
         public InputManager InputManager { get; }
         public EntityPropertyManager EntityPropertyManager { get; }
 
         private ICadCommand? _activeCommand;
+        private readonly IdleState _idleState = new();
         public ICadCommand? ActiveCommand => _activeCommand;
 
         public string ActiveLayer { get; set; } = "0";
@@ -36,6 +39,8 @@ namespace NormalCAD.Controller
 
         public CadController(CadViewport viewport)
         {
+            Current = this;
+
             if (Application.Host == null)
             {
                 Application.Host = new Host.ApplicationHost();
@@ -43,15 +48,14 @@ namespace NormalCAD.Controller
 
             Application.Host.CreateDocument();
             Viewport = viewport;
-            Viewport.Controller = this;
-            CmdManager = new CmdManager(this);
-            InputManager = new InputManager(this);
-            EntityPropertyManager = new EntityPropertyManager(this);
+            CmdManager = new CmdManager();
+            InputManager = new InputManager();
+            EntityPropertyManager = new EntityPropertyManager();
 
             SubscribeToDatabaseEvents(
                 Application.DocumentManager.MdiActiveDocument!.Database);
 
-            SetCommand(new BaseCommand());
+            _idleState.Activate();
         }
 
         private void SubscribeToDatabaseEvents(Database db)
@@ -84,8 +88,7 @@ namespace NormalCAD.Controller
             SubscribeToDatabaseEvents(document.Database);
 
             ClearSelection();
-            Viewport.ActiveCommandPreview = null;
-            SetCommand(new BaseCommand());
+            FinishCommand();
             RestoreViewportState();
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
@@ -132,12 +135,24 @@ namespace NormalCAD.Controller
 
         public void SetCommand(ICadCommand command)
         {
+            InputManager.ClearAllRegistrations();
+            _idleState.Deactivate();
             _activeCommand?.Deactivate();
-            Viewport.ActiveCommandPreview = null;
             _activeCommand = command;
             InputManager.SetCurrentPrompt(_activeCommand.LocalName);
-            _activeCommand.Activate(this);            
+            _activeCommand.ActivateAsync();
             ActiveCommandChanged?.Invoke(_activeCommand.LocalName);
+            Viewport.InvalidateVisual();
+        }
+
+        public void FinishCommand()
+        {
+            InputManager.ClearAllRegistrations();
+            _activeCommand?.Deactivate();
+            _activeCommand = null;
+            _idleState.Activate();
+            InputManager.ResetPromptToIdle();
+            ActiveCommandChanged?.Invoke("");
             Viewport.InvalidateVisual();
         }
 
@@ -145,7 +160,7 @@ namespace NormalCAD.Controller
         {
             ClearKeywords();
             ClearSelection();
-            SetCommand(new BaseCommand());
+            FinishCommand();
         }
 
         public void ClearKeywords()

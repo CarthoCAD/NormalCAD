@@ -18,7 +18,7 @@ The internal architecture was modeled after the **AutoCAD .NET API** (ObjectARX/
 
 - **Line** — Chain drawing with dashed dynamic preview during placement.
 - **Circle** — Center + radius, with `Radius`/`Diameter` toggle via keyword at the prompt.
-- **Arc** — Center + radius + start/end angle, with dynamic preview.
+- **Arc** — 3-point arc (start, second point, end) with optional Center/Radius/Angle modes, with dynamic preview.
 - **Polyline** — Successive clicks add vertices; `Undo` and `Close` keywords with prefix matching.
 - **Selection** — Click to add, `Shift + Click` to remove. Drag left→right for Window Select, right→left for Crossing Select. Uses R*-tree spatial index for performance on large drawings.
 - **Deletion** — `Delete` key removes all selected objects.

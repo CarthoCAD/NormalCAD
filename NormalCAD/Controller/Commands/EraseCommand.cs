@@ -1,4 +1,4 @@
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -10,12 +10,13 @@ namespace NormalCAD.Controller.Commands
     {
         public string Name => "_.ERASE";
         public string LocalName => CommandResources.Get("ERASE.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.UsePickSet;
         public string Alias => CommandResources.Get("ERASE.ALIAS");
-        public bool IsInternal => false;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync()
         {
-            var selected = controller.SelectedEntityIds;
+            var selected = CadController.Current.SelectedEntityIds;
 
             if (selected.Count > 0)
             {
@@ -27,25 +28,14 @@ namespace NormalCAD.Controller.Commands
                     }
                 });
 
-                controller.ClearSelection();
+                CadController.Current.ClearSelection();
             }
 
-            controller.SetCommand(new BaseCommand());
+            CadController.Current.FinishCommand();
+            return Task.CompletedTask;
         }
 
         public void Deactivate()
-        {
-        }
-
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e)
-        {
-        }
-
-        public void OnPointerMoved(Point3d worldPt)
-        {
-        }
-
-        public void OnKeyDown(KeyEventArgs e)
         {
         }
     }

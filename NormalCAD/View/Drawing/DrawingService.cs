@@ -26,7 +26,7 @@ namespace NormalCAD.View.Drawing
             _renderers[typeof(T)] = renderer;
         }
 
-        public void DrawDatabase(DrawingContext context, Controller.CadController controller,
+        public void DrawDatabase(DrawingContext context,
                                   Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
             EnsureSubscribed();
@@ -46,28 +46,28 @@ namespace NormalCAD.View.Drawing
                 if (!db.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
                     continue;
 
-                DrawEntity(context, ent, controller, controller.IsSelected(entId),
-                           isPreview: false, worldToScreen, zoom);
+                DrawEntity(context, ent, Controller.CadController.Current.IsSelected(entId),
+                           isPreview: false, isRubberBand: false, worldToScreen, zoom);
             }
         }
 
-        public void DrawEntity(DrawingContext context, Entity ent, Controller.CadController controller,
-                               bool isSelected, bool isPreview,
+        public void DrawEntity(DrawingContext context, Entity ent,
+                               bool isSelected, bool isPreview, bool isRubberBand,
                                Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
         {
             EnsureSubscribed();
 
             var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
             var baseColor = db != null
-                ? ResolveEntityColor(ent, db, controller.IsLightTheme)
+                ? ResolveEntityColor(ent, db, Controller.CadController.Current.IsLightTheme)
                 : Colors.White;
             Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
-            if (isPreview)
+            if (isPreview && isRubberBand)
                 renderColor = Color.Parse("#FF9900");
 
             var brush = new SolidColorBrush(renderColor);
-            var pen = new Pen(brush, isSelected ? 3.0 : (isPreview ? 1.0 : 1.5));
-            if (isPreview)
+            var pen = new Pen(brush, isSelected ? 3.0 : (isPreview && isRubberBand ? 1.0 : 1.5));
+            if (isPreview && isRubberBand)
                 pen.DashStyle = DashStyle.Dash;
 
             var type = ent.GetType();

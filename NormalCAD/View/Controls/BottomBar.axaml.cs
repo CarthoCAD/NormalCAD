@@ -14,7 +14,6 @@ namespace NormalCAD.View.Controls
         private static string CmdLabelText => PanelResources.Get("BOTTOMBAR.LABEL.CMD");
         private static string CommandPlaceholder => PanelResources.Get("BOTTOMBAR.PLACEHOLDER.COMMAND");
         private static string NotImplementedMsg => PanelResources.Get("BOTTOMBAR.MSG.NOTIMPLEMENTED");
-        private Controller.CadController? _controller;
         private TextBox? _txtPrompt;
         private TextBlock? _txtPromptPrefix;
         private Popup? _promptPopup;
@@ -22,29 +21,6 @@ namespace NormalCAD.View.Controls
         private TextBlock? _txtPromptPopup;
         private DispatcherTimer? _promptHideTimer;
         private DispatcherTimer? _promptCloseTimer;
-
-        public Controller.CadController? Controller
-        {
-            get => _controller;
-            set
-            {
-                if (_controller != null)
-                {
-                    _controller.Viewport.PointerMoved -= OnViewportPointerMoved;
-                    _controller.InputManager.PromptMessageChanged -= OnPromptMessageChanged;
-                    _controller.InputManager.CurrentPromptChanged -= OnCurrentPromptChanged;
-                }
-                _controller = value;
-                if (_controller != null)
-                {
-                    _controller.Viewport.PointerMoved += OnViewportPointerMoved;
-                    _controller.InputManager.PromptMessageChanged += OnPromptMessageChanged;
-                    _controller.InputManager.CurrentPromptChanged += OnCurrentPromptChanged;
-
-                    OnCurrentPromptChanged(_controller.InputManager.CurrentPrompt);
-                }
-            }
-        }
 
         public BottomBar()
         {
@@ -87,6 +63,16 @@ namespace NormalCAD.View.Controls
             global::NormalCAD.Controller.Services.LanguageService.LanguageChanged += RelocalizeUi;
         }
 
+        public void AttachCadController()
+        {
+            Controller.CadController.Current.Viewport.PointerMoved += OnViewportPointerMoved;
+            Controller.CadController.Current.InputManager.PromptMessageChanged += OnPromptMessageChanged;
+            Controller.CadController.Current.InputManager.CurrentPromptChanged += OnCurrentPromptChanged;
+            Controller.CadController.Current.InputManager.NavigateToPromptRequested += OnNavigateToPromptRequested;
+
+            OnCurrentPromptChanged(Controller.CadController.Current.InputManager.CurrentPrompt);
+        }
+
         private void RelocalizeUi()
         {
             var btnModel = this.FindControl<Button>("BtnModel");
@@ -97,17 +83,36 @@ namespace NormalCAD.View.Controls
                 _txtPrompt.PlaceholderText = CommandPlaceholder;
 
             if (_txtPromptPrefix != null)
-                _txtPromptPrefix.Text = _controller?.InputManager.CurrentPrompt ?? CmdLabelText;
+                _txtPromptPrefix.Text = Controller.CadController.Current.InputManager.CurrentPrompt ?? CmdLabelText;
         }
 
         private async void OnTxtPromptKeyDown(object? sender, KeyEventArgs e)
         {
-            if (_controller == null || _txtPrompt == null) return;
+            if (_txtPrompt == null) return;
+
+            if (e.Key == Key.Up)
+            {
+                var text = Controller.CadController.Current.InputManager.NavigateHistory(1);
+                if (text != null) _txtPrompt.Text = text;
+                _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Down)
+            {
+                var text = Controller.CadController.Current.InputManager.NavigateHistory(-1);
+                _txtPrompt.Text = text ?? "";
+                _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+                e.Handled = true;
+                return;
+            }
 
             if (e.Key == Key.Escape)
             {
                 _txtPrompt.Text = "";
-                _controller.CancelCurrentCommand();
+                Controller.CadController.Current.InputManager.ResetHistoryIndex();
+                Controller.CadController.Current.CancelCurrentCommand();
                 HideFloatingPrompt();
                 e.Handled = true;
                 return;
@@ -117,17 +122,24 @@ namespace NormalCAD.View.Controls
             {
                 string commandText = _txtPrompt.Text?.Trim() ?? "";
                 _txtPrompt.Text = "";
+                Controller.CadController.Current.InputManager.ResetHistoryIndex();
+
                 if (!string.IsNullOrEmpty(commandText))
                 {
-                    if (_controller.InputManager.HasKeywords)
+                    if (!Controller.CadController.Current.InputManager.TryProcessTextInput(commandText))
                     {
-                        _controller.TryHandleKeyword(commandText);
-                    }
-                    else
-                    {
-                        await _controller.CmdManager.ExecuteCommand(commandText);
+                        await Controller.CadController.Current.CmdManager.ExecuteCommand(commandText);
                     }
                 }
+                else if (Controller.CadController.Current.InputManager.HasEditingPrompt)
+                {
+                    Controller.CadController.Current.InputManager.AcceptPrompt();
+                }
+                else
+                {
+                    Controller.CadController.Current.InputManager.TryRepeatLastCommand();
+                }
+
                 e.Handled = true;
             }
         }
@@ -138,6 +150,14 @@ namespace NormalCAD.View.Controls
             {
                 _txtPromptPrefix.Text = prompt;
             }
+        }
+
+        private void OnNavigateToPromptRequested(string? text)
+        {
+            if (_txtPrompt == null) return;
+            _txtPrompt.Text = text ?? "";
+            _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+            _txtPrompt.Focus();
         }
 
         private void OnPromptMessageChanged(string message)
@@ -154,8 +174,7 @@ namespace NormalCAD.View.Controls
 
         private void OnViewportPointerMoved(object? sender, PointerEventArgs e)
         {
-            if (_controller == null) return;
-            var viewport = _controller.Viewport;
+            var viewport = Controller.CadController.Current.Viewport;
             var screenPos = e.GetPosition(viewport);
             var worldPos = viewport.ScreenToWorld(screenPos);
 
@@ -167,7 +186,7 @@ namespace NormalCAD.View.Controls
         }
         private void OnBtnModelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            _controller?.InputManager.SetPromptMessage(NotImplementedMsg);
+            Controller.CadController.Current.InputManager.SetPromptMessage(NotImplementedMsg);
         }
 
         public void ShowFloatingPrompt(string message, int autoHideMs = 3000)

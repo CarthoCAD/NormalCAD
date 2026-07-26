@@ -1,4 +1,4 @@
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 
@@ -12,24 +12,23 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.THEME";
         public string LocalName => CommandResources.Get("THEME.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => CommandResources.Get("THEME.ALIAS");
-        public bool IsInternal => false;
 
-        public void Activate(CadController controller)
+        public Task ActivateAsync()
         {
-            var isLight = !controller.IsLightTheme;
-            controller.ApplyTheme(isLight);
+            var isLight = !CadController.Current.IsLightTheme;
+            CadController.Current.ApplyTheme(isLight);
             Services.ConfigService.Update(c => c.Theme = isLight ? "Light" : "Dark");
 
             var themeName = isLight ? MsgLight : MsgDark;
-            controller.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));
+            CadController.Current.InputManager.SetPromptMessage(string.Format(MsgChanged, themeName));
 
-            controller.SetCommand(new BaseCommand());
+            CadController.Current.FinishCommand();
+            return Task.CompletedTask;
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

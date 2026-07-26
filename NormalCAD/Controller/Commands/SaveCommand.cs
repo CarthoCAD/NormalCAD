@@ -1,5 +1,5 @@
 using System;
-using Avalonia.Input;
+using System.Threading.Tasks;
 using NormalCAD.Core.ApplicationServices;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
@@ -16,15 +16,16 @@ namespace NormalCAD.Controller.Commands
 
         public string Name => "_.SAVE";
         public string LocalName => CommandResources.Get("SAVE.LOCALNAME");
+        public CommandType Type => CommandType.Immediate;
+        public CommandFlags Flags => CommandFlags.None;
         public string Alias => "";
-        public bool IsInternal => false;
 
-        public async void Activate(CadController controller)
+        public async Task ActivateAsync()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null)
             {
-                controller.SetCommand(new BaseCommand());
+                CadController.Current.FinishCommand();
                 return;
             }
 
@@ -35,24 +36,24 @@ namespace NormalCAD.Controller.Commands
             {
                 try
                 {
-                    controller.SaveViewportState();
+                    CadController.Current.SaveViewportState();
                     Services.FileService.Save(db, filePath);
-                    controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(filePath)));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(filePath)));
                 }
                 catch (Exception ex)
                 {
-                    controller.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
                 }
             }
             else
             {
-                await ShowSaveDialog(controller);
+                await ShowSaveDialog();
             }
 
-            controller.SetCommand(new BaseCommand());
+            CadController.Current.FinishCommand();
         }
 
-        public static async System.Threading.Tasks.Task ShowSaveDialog(CadController controller)
+        public static async Task ShowSaveDialog()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
@@ -78,21 +79,18 @@ namespace NormalCAD.Controller.Commands
                 string path = file.Path.LocalPath;
                 try
                 {
-                    controller.SaveViewportState();
+                    CadController.Current.SaveViewportState();
                     Services.FileService.Save(db, path);
                     db.Filename = path;
-                    controller.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(path)));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgSaved, System.IO.Path.GetFileName(path)));
                 }
                 catch (Exception ex)
                 {
-                    controller.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
+                    CadController.Current.InputManager.SetPromptMessage(string.Format(MsgError, ex.Message));
                 }
             }
         }
 
         public void Deactivate() { }
-        public void OnPointerPressed(Point3d worldPt, PointerPressedEventArgs e) { }
-        public void OnPointerMoved(Point3d worldPt) { }
-        public void OnKeyDown(KeyEventArgs e) { }
     }
 }

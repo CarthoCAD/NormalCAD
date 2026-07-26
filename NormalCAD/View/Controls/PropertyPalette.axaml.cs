@@ -15,7 +15,6 @@ namespace NormalCAD.View.Controls
         private static string SelectedFormat => PanelResources.Get("PROPERTYPALETTE.MSG.SELECTED");
         private static string UnknownObjectText => PanelResources.Get("PROPERTYPALETTE.MSG.UNKNOWN");
 
-        private Controller.CadController? _controller;
         private EntityPropertyManager? _propertyManager;
 
         private TextBlock? _txtPropsTitle;
@@ -24,28 +23,6 @@ namespace NormalCAD.View.Controls
         public bool IsDropDownOpen { get; private set; }
 
         public event Action? DropDownClosed;
-
-        public Controller.CadController? Controller
-        {
-            get => _controller;
-            set
-            {
-                if (_controller != null)
-                    _controller.SelectionChanged -= OnSelectionChanged;
-                if (_propertyManager != null)
-                    _propertyManager.PropertiesInvalidated -= OnPropertiesInvalidated;
-
-                _controller = value;
-
-                if (_controller != null)
-                {
-                    _propertyManager = _controller.EntityPropertyManager;
-                    _propertyManager.PropertiesInvalidated += OnPropertiesInvalidated;
-                    _controller.SelectionChanged += OnSelectionChanged;
-                    OnSelectionChanged();
-                }
-            }
-        }
 
         public PropertyPalette()
         {
@@ -58,6 +35,15 @@ namespace NormalCAD.View.Controls
             AddHandler(LostFocusEvent, OnEditorLostFocus, RoutingStrategies.Bubble);
 
             global::NormalCAD.Controller.Services.LanguageService.LanguageChanged += Refresh;
+        }
+
+        public void AttachCadController()
+        {
+            _propertyManager = Controller.CadController.Current.EntityPropertyManager;
+            _propertyManager.PropertiesInvalidated += OnPropertiesInvalidated;
+            Controller.CadController.Current.SelectionChanged += OnSelectionChanged;
+
+            OnSelectionChanged();
         }
 
         public void Refresh() => OnSelectionChanged();

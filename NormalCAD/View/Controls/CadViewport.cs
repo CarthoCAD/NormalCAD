@@ -22,15 +22,10 @@ public class CadViewport : Control
         set => SetValue(IsLightThemeProperty, value);
     }
 
-    public CadCursorState CurrentCursorState {get; set;} = CadCursorState.PickCross;
     private Point _currentMouseScreenPos;
-
-    public Controller.CadController? Controller { get; set; }
 
     public Point3d WorldCenter { get; set; } = Point3d.Origin;
     public double Zoom { get; set; } = 1.0;
-
-    public Entity? ActiveCommandPreview { get; set; }
 
     public void RestoreViewport(ViewportTableRecord vtr)
     {
@@ -104,6 +99,11 @@ public class CadViewport : Control
         return new Point3d(worldX, worldY, 0.0);
     }
 
+    public Point3d GetCurrentMouseWorldPosition()
+    {
+        return GetSnappedPoint(_currentMouseScreenPos, out _, out _);
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -120,7 +120,7 @@ public class CadViewport : Control
         else if (properties.IsLeftButtonPressed)
         {
             var snappedPt = GetSnappedPoint(pos, out var snapType, out var snapPt);
-            Controller?.OnPointerPressed(snappedPt, e);
+            Controller.CadController.Current.OnPointerPressed(snappedPt, e);
             e.Handled = true;
         }
     }
@@ -144,7 +144,7 @@ public class CadViewport : Control
             ActiveSnapType = snapType;
             ActiveSnapPoint = snapType != SnapType.None ? snapPt : null;
 
-            Controller?.OnPointerMoved(snappedPt);
+            Controller.CadController.Current.OnPointerMoved(snappedPt);
             InvalidateVisual();
         }
     }
@@ -199,15 +199,18 @@ public class CadViewport : Control
         DrawSystemAxes(context);
 
         // 4. Draw Database Entities
-        if (Controller != null)
-            _drawingService.DrawDatabase(context, Controller, WorldToScreen, Zoom);
+        _drawingService.DrawDatabase(context, WorldToScreen, Zoom);
 
-        // 5. Draw Active Command Preview
-        if (ActiveCommandPreview != null && Controller != null)
+        // 5. Draw Active Command Previews
+        foreach (var kvp in Controller.CadController.Current.InputManager.ActivePreviews)
         {
-            _drawingService.DrawEntity(context, ActiveCommandPreview, Controller,
-                                    isSelected: false, isPreview: true,
-                                    WorldToScreen, Zoom);
+            if (kvp.Value != null)
+            {
+                bool isRubberBand = kvp.Key.StartsWith('$');
+                _drawingService.DrawEntity(context, kvp.Value,
+                    isSelected: false, isPreview: true, isRubberBand,
+                    WorldToScreen, Zoom);
+            }
         }
 
         // 6. Draw Snap Indicator
@@ -255,12 +258,14 @@ public class CadViewport : Control
 
         var pen = new Pen(IsLightTheme ? Brushes.Black : Brushes.White, 1.0);
         double pickBoxSize = 10;
-        double crossSize = 100; // porcentagem da largura ou altura do viewport
+        double crossSize = 100;
         double size = Math.Max(Bounds.Width, Bounds.Height) * crossSize / 100;
 
-        if (CurrentCursorState == CadCursorState.PickCross || CurrentCursorState == CadCursorState.Crosshair)
+        var cursorType = Controller.CadController.Current.InputManager.CurrentCursorType;
+
+        if (cursorType == NormalCAD.Core.EditorInput.CursorType.Crosshair
+            || cursorType == NormalCAD.Core.EditorInput.CursorType.EntitySelect)
         {
-            // Cross with pickbox
             context.DrawLine(pen, new Point(_currentMouseScreenPos.X - size, _currentMouseScreenPos.Y), new Point(_currentMouseScreenPos.X + size, _currentMouseScreenPos.Y));
             context.DrawLine(pen, new Point(_currentMouseScreenPos.X, _currentMouseScreenPos.Y - size), new Point(_currentMouseScreenPos.X, _currentMouseScreenPos.Y + size));
         }
@@ -268,9 +273,9 @@ public class CadViewport : Control
         Application.Current!.Resources.TryGetResource("Theme.ViewportBg", Application.Current.ActualThemeVariant, out var resource);
         var pickBoxBg = resource as SolidColorBrush;
 
-        if (CurrentCursorState == CadCursorState.PickCross || CurrentCursorState == CadCursorState.Pickbox)
+        if (cursorType == NormalCAD.Core.EditorInput.CursorType.TargetBox
+            || cursorType == NormalCAD.Core.EditorInput.CursorType.EntitySelect)
         {
-            // Pickbox
             context.DrawRectangle(pickBoxBg, pen, new Rect(_currentMouseScreenPos.X - pickBoxSize / 2, _currentMouseScreenPos.Y - pickBoxSize / 2, pickBoxSize, pickBoxSize));
         }
     }
@@ -384,7 +389,7 @@ public class CadViewport : Control
         snapPoint = Point3d.Origin;
 
         var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
-        if (db == null || CurrentCursorState != CadCursorState.Crosshair)
+        if (db == null || !Controller.CadController.Current.InputManager.IsPromptingForPoint)
             return ScreenToWorld(screenMousePos);
 
         double snapAperturePixels = 15;
@@ -434,12 +439,4 @@ public class CadViewport : Control
             snapPoint = worldCandidate;
         }
     }
-}
-
-
-public enum CadCursorState
-{
-    PickCross,  // Selection mode (Cross with pickbox)
-    Crosshair,  // Drawing mode (Cross)
-    Pickbox    // Selection mode (Square)
 }

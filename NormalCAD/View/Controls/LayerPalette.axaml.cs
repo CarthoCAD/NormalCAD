@@ -14,26 +14,6 @@ namespace NormalCAD.View.Controls
     {
         private static string PlaceholderNewLayer => PanelResources.Get("LAYERPALETTE.PLACEHOLDER.NEWLAYER");
 
-        private Controller.CadController? _controller;
-
-        public Controller.CadController? Controller
-        {
-            get => _controller;
-            set
-            {
-                if (_controller != null)
-                {
-                    _controller.DatabaseChanged -= OnDatabaseChanged;
-                }
-                _controller = value;
-                if (_controller != null)
-                {
-                    _controller.DatabaseChanged += OnDatabaseChanged;
-                    OnDatabaseChanged(); // Initial update
-                }
-            }
-        }
-
         public LayerPalette()
         {
             InitializeComponent();
@@ -43,6 +23,12 @@ namespace NormalCAD.View.Controls
 
             var lstLayers = this.FindControl<ListBox>("LstLayers");
             if (lstLayers != null) lstLayers.SelectionChanged += LstLayers_SelectionChanged;
+        }
+
+        public void AttachCadController()
+        {
+            Controller.CadController.Current.DatabaseChanged += OnDatabaseChanged;
+            OnDatabaseChanged();
         }
 
         private void InitializeComponent()
@@ -65,7 +51,6 @@ namespace NormalCAD.View.Controls
 
         private void OnDatabaseChanged()
         {
-            if (_controller == null) return;
             var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
             if (db == null) return;
 
@@ -85,7 +70,7 @@ namespace NormalCAD.View.Controls
                 lstLayers.ItemsSource = list;
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (list[i].Name == _controller.ActiveLayer)
+                    if (list[i].Name == Controller.CadController.Current.ActiveLayer)
                     {
                         lstLayers.SelectedIndex = i;
                         break;
@@ -96,7 +81,6 @@ namespace NormalCAD.View.Controls
 
         private void BtnAddLayer_Click(object? sender, RoutedEventArgs e)
         {
-            if (_controller == null) return;
             var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
             if (db == null) return;
 
@@ -131,11 +115,10 @@ namespace NormalCAD.View.Controls
 
         private void LstLayers_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (_controller == null) return;
             var lstLayers = sender as ListBox;
             if (lstLayers?.SelectedItem is LayerItem item)
             {
-                _controller.ActiveLayer = item.Name;
+                Controller.CadController.Current.ActiveLayer = item.Name;
             }
         }
     }
