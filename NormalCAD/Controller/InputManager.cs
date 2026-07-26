@@ -34,6 +34,9 @@ namespace NormalCAD.Controller
             _pointCallback != null || _distanceCallback != null ||
             _stringCallback != null || _keywordCallback != null;
 
+        public bool IsPromptingForPoint =>
+            _pointCallback != null || _distanceCallback != null;
+
         public event Action<string?>? NavigateToPromptRequested;
 
         private readonly SelectionManager _selectionManager;
@@ -60,6 +63,8 @@ namespace NormalCAD.Controller
         public event Action<string>? CurrentPromptChanged;
 
         public string CurrentPrompt { get; private set; } = DefaultPrompt;
+
+        public CursorType CurrentCursorType { get; set; } = CursorType.Crosshair;
 
         public InputManager()
         {
@@ -190,6 +195,7 @@ namespace NormalCAD.Controller
             _keywordCallback = null;
             _distanceCallback = null;
             _stringCallback = null;
+            CurrentCursorType = CursorType.Crosshair;
 
             var prompt = BuildPromptText(options.Message, _keywords);
             if (CurrentPrompt != prompt)
@@ -209,6 +215,7 @@ namespace NormalCAD.Controller
             _keywords = options.Keywords ?? Array.Empty<string>();
             _keywordCallback = null;
             _stringCallback = null;
+            CurrentCursorType = CursorType.Crosshair;
 
             var prompt = BuildPromptText(options.Message, _keywords);
             if (CurrentPrompt != prompt)
@@ -256,6 +263,7 @@ namespace NormalCAD.Controller
             _distanceCallback = null;
             _stringCallback = null;
             _keywordCallback = null;
+            CurrentCursorType = CursorType.TargetBox;
             _selectionManager.BeginGetEntity(options, callback);
         }
 
@@ -265,6 +273,7 @@ namespace NormalCAD.Controller
             _distanceCallback = null;
             _stringCallback = null;
             _keywordCallback = null;
+            CurrentCursorType = CursorType.Crosshair;
             _selectionManager.BeginGetSelection(options, callback);
         }
 
@@ -312,6 +321,7 @@ namespace NormalCAD.Controller
             _keywords = Array.Empty<string>();
             _previews.Clear();
             _selectionManager.Cancel();
+            CurrentCursorType = CursorType.Crosshair;
         }
 
         private string ActiveLocalName =>

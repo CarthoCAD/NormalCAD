@@ -48,7 +48,6 @@ namespace NormalCAD.Controller
 
             Application.Host.CreateDocument();
             Viewport = viewport;
-            Viewport.Controller = this;
             CmdManager = new CmdManager();
             InputManager = new InputManager();
             EntityPropertyManager = new EntityPropertyManager();
@@ -136,6 +135,7 @@ namespace NormalCAD.Controller
 
         public void SetCommand(ICadCommand command)
         {
+            InputManager.ClearAllRegistrations();
             _idleState.Deactivate();
             _activeCommand?.Deactivate();
             _activeCommand = command;
@@ -147,6 +147,7 @@ namespace NormalCAD.Controller
 
         public void FinishCommand()
         {
+            InputManager.ClearAllRegistrations();
             _activeCommand?.Deactivate();
             _activeCommand = null;
             _idleState.Activate();

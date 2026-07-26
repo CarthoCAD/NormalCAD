@@ -4,7 +4,6 @@ using NormalCAD.Core.EditorInput;
 using NormalCAD.Core.Geometry;
 using NormalCAD.Resources;
 using NormalCAD.Utilities;
-using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller.Commands
 {
@@ -39,7 +38,6 @@ namespace NormalCAD.Controller.Commands
 
         public Task ActivateAsync()
         {
-            CadController.Current.Viewport.CurrentCursorState = CadCursorState.Crosshair;
             _polyline = new Polyline
             {
                 Layer = CadController.Current.ActiveLayer,
@@ -53,8 +51,6 @@ namespace NormalCAD.Controller.Commands
 
         public void Deactivate()
         {
-            CadController.Current.InputManager.ClearAllRegistrations();
-            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
         }
 
         private void RegisterFirstPointPrompt()

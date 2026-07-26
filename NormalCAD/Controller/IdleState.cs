@@ -1,7 +1,6 @@
 using NormalCAD.Core.DatabaseServices;
 using NormalCAD.Core.EditorInput;
 using NormalCAD.Resources;
-using NormalCAD.View.Controls;
 
 namespace NormalCAD.Controller
 {
@@ -14,18 +13,16 @@ namespace NormalCAD.Controller
 
         public void Activate()
         {
-            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
             CadController.Current.Viewport.SelectionStartPoint = null;
             CadController.Current.Viewport.SelectionEndPoint = null;
             CadController.Current.InputManager.RegisterGetEntity(
                 new PromptEntityOptions(),
                 OnEntityPick);
+            CadController.Current.InputManager.CurrentCursorType = CursorType.EntitySelect;
         }
 
         public void Deactivate()
         {
-            CadController.Current.InputManager.ClearAllRegistrations();
-            CadController.Current.Viewport.CurrentCursorState = CadCursorState.PickCross;
             CadController.Current.Viewport.SelectionStartPoint = null;
             CadController.Current.Viewport.SelectionEndPoint = null;
         }
@@ -35,6 +32,7 @@ namespace NormalCAD.Controller
             CadController.Current.InputManager.RegisterGetEntity(
                 new PromptEntityOptions(),
                 OnEntityPick);
+            CadController.Current.InputManager.CurrentCursorType = CursorType.EntitySelect;
             CadController.Current.InputManager.ResetPromptToIdle();
         }
 
