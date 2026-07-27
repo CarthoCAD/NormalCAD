@@ -38,9 +38,11 @@ The combo box editors in the property palette (LineWeight, Linetype, the boolean
 
 `DrawingService.DrawEntity` allocates a new `SolidColorBrush` and a new `Pen` for every entity on every frame. With 1000 entities at 60fps, that is approximately 120,000 allocations per second just for rendering brushes and pens, driving significant GC pressure. Cache brushes and pens in a `ConcurrentDictionary` keyed by `(Avalonia.Media.Color, double thickness, DashStyle?)` or similar tuple. Invalidate and clear the cache on theme change (Light ↔ Dark), since theme tokens resolve to different colors.
 
+Additionally: the layer color cache in `ResolveEntityColor` keys by layer name (`ent.Layer`), but `ent.Layer` triggers a database lookup on every read — cache should key by `ent.LayerId` instead. The rubberband preview in `InputManager.UpdateRubberband` allocates a new `Line` entity every frame during drag; reuse a single instance and mutate its endpoints.
+
 ## DBObject API Compatibility (priority: medium)
 
-The `DBObject` class in `NormalCAD.Core` currently exposes only 7 of the 16 properties and 1 of the 11 methods defined in the AutoCAD .NET `DBObject` base class. The most impactful gap is `UpgradeOpen()` (promote from `ForRead` to `ForWrite` within a transaction) — without it, any code that obtains an object as read-only must re-open it for write access, adding boilerplate and risking stale references. Also missing: `DowngradeOpen()`, `Cancel()`, `HandOverTo(ObjectId)` (transfer ownership, needed for moving entities between block records), `DeepClone(...)` (needed for copy/paste between documents), and state-tracking properties like `IsWriteEnabled`, `IsTransactionResident`, `IsUndoing`, and `IsCancelling`. Implement the critical subset (`UpgradeOpen`, `DowngradeOpen`, `HandOverTo`, `Cancel`, `IsWriteEnabled`) and leave the rest as stubs for future undo/wblock support.
+The `DBObject` class in `NormalCAD.Core` currently exposes only 7 of the 16 properties and 1 of the 11 methods defined in the AutoCAD .NET `DBObject` base class. The most impactful gap is `UpgradeOpen()` (promote from `ForRead` to `ForWrite` within a transaction) — without it, any code that obtains an object as read-only must re-open it for write access, adding boilerplate and risking stale references. Also missing: `DowngradeOpen()`, `Cancel()`, `HandOverTo(ObjectId)` (transfer ownership, needed for moving entities between block records), `DeepClone(...)` (needed for copy/paste between documents), and state-tracking properties like `IsWriteEnabled`, `IsTransactionResident`, `IsUndoing`, and `IsCancelling`. Implement the critical subset (`UpgradeOpen`, `DowngradeOpen`, `HandOverTo`, `Cancel`, `IsWriteEnabled`) and leave the rest as stubs for future undo/wblock support. Also fix `ObjectId.Null` which uses `null!` for its `Database` field — accessing `.Database` on a null ObjectId throws `NullReferenceException` at runtime instead of returning a well-known null sentinel.
 
 ## Implement `LinetypeTable` and `LinetypeTableRecord` (priority: medium)
 
@@ -60,6 +62,14 @@ The provider palette fields for bulge/width already exist, so this item is purel
 ## Fix `DispatcherTimer` Leaks (priority: medium)
 
 `MainWindow.OnSidebarPointerExited` creates a new `DispatcherTimer` instance every time the pointer leaves the sidebar area, and `BottomBar.ShowFloatingPrompt` / `HideFloatingPrompt` each create new timers on every call. Over a single editing session, dozens of orphaned timer instances accumulate — each still wired to its Tick handler via closure, preventing garbage collection. Create the timers once in the constructor of each class, store them as instance fields, and reuse them via `Start()` / `Stop()` with updated intervals or callbacks as needed.
+
+## Fix Static Event Handler Leaks (priority: medium)
+
+`LanguageService.LanguageChanged` is a static event subscribed by four UI controls — `MenuBar` (line 19), `PropertyPalette` (line 37), `LayerPalette` (line 42), and `BottomBar` (line 63) — but none of them unsubscribe in a destructor or `Unloaded` handler. If any of these controls were ever removed from the visual tree and recreated, the old instance would remain referenced by the static event, leaking memory. Add `DetachedFromVisualTree` overrides to unsubscribe.
+
+## Fix Floating-Point Equality and Redundant Computation (priority: medium)
+
+Two precision issues in geometry: `Point2d.Equals` uses direct `==` on doubles which can fail for values that differ only in the least significant bit — use epsilon-based comparison. `DrawArcCommand.AreNearlyCollinear` computes the same determinant already calculated by `ComputeArcFrom3Points` denominator — extract the determinant into a shared helper to avoid redundant computation.
 
 ## Active Document Switching (priority: medium)
 
@@ -100,6 +110,22 @@ After decomposition, `CadController` should be a thin facade coordinating `CmdMa
 ## Refactor `DrawingService.DrawEntity` Preview/Selection Handling (priority: low)
 
 Decouple visual state (selection highlight, preview, rubberband) from `DrawingService.DrawEntity` by introducing `ApplySelection` and `ApplyPreview` helpers that return modified entity clones. `DrawEntity` should then render entities purely from their own properties (`Color`, `Layer`, `LineWeight`, `Linetype`) without boolean flags for selection/preview. This aligns with the AutoCAD .NET API where visual overrides are applied to temporary clones rather than passed as render flags. Depends on `LineWeight` being honored by the renderer and `Linetype` supporting dashed patterns; until then, keep the current flag-based approach.
+
+## Dead Code Cleanup (priority: low)
+
+Remove several unused or stub-only code artifacts throughout the codebase:
+
+- `Entity.Draw()` and `SetDatabaseDefaults()` — empty methods never called by any code path.
+- `Database.TryGetObjectId(Handle, out ObjectId)` — always returns false, unimplemented placeholder.
+- `BlockReference.SetScaleFactor()` — private method never called anywhere.
+- `BlockReference.UpdateBlockTransform()` — three `Matrix3d` instances (translation, rotation, scale) are constructed then immediately discarded when `_blockTransform` is overwritten.
+- `SelectionManager` — four resource string fields (`MsgFound`, `MsgRemoved`, `MsgFoundN`, `MsgRemovedN`) are fetched but never used (they are only referenced in `IdleState`).
+- `IdleState` — `MsgRemovedN` is fetched but never referenced.
+- `IdMapping` — entire class is empty (no members), used only as a type parameter in an unimplemented stub.
+
+## Clean Up Unused Imports (priority: low)
+
+Remove unused `using` directives across the codebase: `using NormalCAD.Core;` appears in `CadController.cs`, `EntityPropertyProvider.cs`, and `ApplicationHost.cs` with nothing consumed from that namespace. `using NormalCAD.Core.Geometry;` is imported by 8 immediate commands (`EraseCommand`, `CleanAllCommand`, `ToggleThemeCommand`, `ToggleLanguageCommand`, `SaveCommand`, `SaveAsCommand`, `OpenCommand`, `ExitCommand`) that do not reference any geometry types.
 
 ## Rename Inconsistencies (priority: low)
 
