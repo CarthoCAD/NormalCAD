@@ -16,8 +16,6 @@ namespace NormalCAD.Core.DatabaseServices
             set { _rotation = value; UpdateBlockTransform(); }
         }
 
-        public string BlockName { get; set; } = string.Empty;
-
         
         public Point3d Position
         {
@@ -33,44 +31,34 @@ namespace NormalCAD.Core.DatabaseServices
         }
 
         
-        public ObjectId BlockTableRecordId { get; set; }
+        public ObjectId BlockTableRecord { get; set; }
+
+        public string Name
+        {
+            get
+            {
+                if (!BlockTableRecord.IsNull && Database != null
+                    && Database.TryGetObject(BlockTableRecord, out var obj) && obj is BlockTableRecord btr)
+                    return btr.Name;
+                return string.Empty;
+            }
+        }
+
+        public Vector3d Normal { get; set; } = Vector3d.ZAxis;
 
         private Matrix3d _blockTransform = Matrix3d.Identity;
         public override Matrix3d BlockTransform => _blockTransform;
 
-        public BlockReference()
-        {
-            _position = Point3d.Origin;
-            _rotation = 0.0;
-            _scaleFactors = new Vector3d(1, 1, 1);
-        }
-
-        public BlockReference(Point3d position, ObjectId blockTableRecordId)
+        public BlockReference(Point3d position, ObjectId blockTableRecord)
         {
             _position = position;
             _rotation = 0.0;
             _scaleFactors = new Vector3d(1, 1, 1);
-            BlockTableRecordId = blockTableRecordId;
-        }
-
-        public BlockReference(Point3d position, double rotation, Vector3d scaleFactors, ObjectId blockTableRecordId)
-        {
-            _position = position;
-            _rotation = rotation;
-            _scaleFactors = scaleFactors;
-            BlockTableRecordId = blockTableRecordId;
-            UpdateBlockTransform();
+            BlockTableRecord = blockTableRecord;
         }
 
         private void UpdateBlockTransform()
         {
-            var translation = Matrix3d.Translation(new Vector3d(_position.X, _position.Y, _position.Z));
-            var rotationMatrix = Matrix3d.Rotation(_rotation, new Vector3d(0, 0, 1), Point3d.Origin);
-            var scaleMatrix = Matrix3d.Scaling(1.0, Point3d.Origin);
-
-            _blockTransform = translation;
-
-            // Apply rotation at insertion point
             var cos = Math.Cos(_rotation);
             var sin = Math.Sin(_rotation);
 
@@ -94,7 +82,11 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Entity Clone()
         {
-            var clone = new BlockReference(_position, _rotation, _scaleFactors, BlockTableRecordId);
+            var clone = new BlockReference(_position, BlockTableRecord)
+            {
+                Rotation = _rotation,
+                ScaleFactors = _scaleFactors
+            };
             CopyEntityPropertiesTo(clone);
             return clone;
         }
@@ -103,10 +95,10 @@ namespace NormalCAD.Core.DatabaseServices
         {
             get
             {
-                if (BlockTableRecordId.IsNull || Database == null)
+                if (BlockTableRecord.IsNull || Database == null)
                     return new Extents3d(_position, _position);
 
-                if (Database.TryGetObject(BlockTableRecordId, out var obj) && obj is BlockTableRecord btr)
+                if (Database.TryGetObject(BlockTableRecord, out var obj) && obj is BlockTableRecord btr)
                 {
                     double minX = _position.X, minY = _position.Y, maxX = _position.X, maxY = _position.Y;
                     bool hasEntities = false;
@@ -148,12 +140,46 @@ namespace NormalCAD.Core.DatabaseServices
         public override void TransformBy(Matrix3d transform)
         {
             _position = transform.TransformPoint(_position);
+
+            double sx = Math.Sqrt(transform[0, 0] * transform[0, 0] + transform[1, 0] * transform[1, 0]);
+            double sy = Math.Sqrt(transform[0, 1] * transform[0, 1] + transform[1, 1] * transform[1, 1]);
+            double sz = Math.Abs(transform[2, 2]);
+
+            if (sx > 1e-9)
+            {
+                double cos = transform[0, 0] / sx;
+                double sin = transform[1, 0] / sx;
+                _rotation += Math.Atan2(sin, cos);
+            }
+
+            _scaleFactors = new Vector3d(
+                _scaleFactors.X * sx,
+                _scaleFactors.Y * sy,
+                _scaleFactors.Z * sz);
+
             UpdateBlockTransform();
         }
 
         public override IEnumerable<(Point3d Point, SnapType Type)> GetOsnapPoints()
         {
             yield return (_position, SnapType.Endpoint);
+
+            if (BlockTableRecord.IsNull || Database == null)
+                yield break;
+
+            if (!Database.TryGetObject(BlockTableRecord, out var obj) || obj is not BlockTableRecord btr)
+                yield break;
+
+            foreach (var entId in btr.GetEntityIds())
+            {
+                if (!Database.TryGetObject(entId, out var entObj) || entObj is not Entity ent)
+                    continue;
+
+                foreach (var (pt, type) in ent.GetOsnapPoints())
+                {
+                    yield return (_blockTransform.TransformPoint(pt), type);
+                }
+            }
         }
 
         public override IEnumerable<Point3d> GetGripPoints()
@@ -186,10 +212,10 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override Curve3d? GetGeometricCurve()
         {
-            if (BlockTableRecordId.IsNull || Database == null)
+            if (BlockTableRecord.IsNull || Database == null)
                 return null;
 
-            if (!Database.TryGetObject(BlockTableRecordId, out var obj) || obj is not BlockTableRecord btr)
+            if (!Database.TryGetObject(BlockTableRecord, out var obj) || obj is not BlockTableRecord btr)
                 return null;
 
             var segments = new List<Curve3d>();

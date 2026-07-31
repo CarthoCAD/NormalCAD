@@ -55,29 +55,57 @@ namespace NormalCAD.Controller.Services.Converters
             }
         }
 
-        public static void LoadEntities(CadDocument cadDoc, Database db, Transaction trans, ConverterService converters)
+        public static void LoadBlockTable(CadDocument cadDoc, Database db, Transaction trans, ConverterService converters)
         {
             if (!db.TryGetObject(db.BlockTableId, out var btObj) || btObj is not BlockTable bt)
                 return;
 
-            var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-            if (!db.TryGetObject(modelSpaceId, out var btrObj) || btrObj is not BlockTableRecord btr)
+            foreach (var acadBlockRec in cadDoc.BlockRecords)
+            {
+                if (!bt.Has(acadBlockRec.Name))
+                    bt.Add(new BlockTableRecord(acadBlockRec.Name));
+            }
+
+            foreach (var acadBlockRec in cadDoc.BlockRecords)
+            {
+                var btr = bt.GetRecord(bt[acadBlockRec.Name]);
+                
+                foreach (var acadEntity in acadBlockRec.Entities)
+                {
+                    var normalEntity = converters.ConvertToNormal(acadEntity);
+                    if (normalEntity == null) continue;
+
+                    btr.AppendEntity(normalEntity);
+                    trans.AddNewlyCreatedDBObject(normalEntity, true);
+                }
+            }
+        }
+
+        public static void SaveBlockTable(Database db, CadDocument cadDoc, ConverterService converters)
+        {
+            if (!db.TryGetObject(db.BlockTableId, out var btObj) || btObj is not BlockTable bt)
                 return;
 
-            foreach (var acadEntity in cadDoc.Entities)
+            foreach (var record in bt)
             {
-                var normalEntity = converters.ConvertToNormal(acadEntity);
-                if (normalEntity == null) continue;
+                if (!cadDoc.BlockRecords.TryGetValue(record.Name, out _))
+                    cadDoc.BlockRecords.Add(new ACadSharp.Tables.BlockRecord(record.Name));
+            }
 
-                if (normalEntity is BlockReference blockRef && !string.IsNullOrEmpty(blockRef.BlockName))
+            foreach (var record in bt)
+            {
+                if (!cadDoc.BlockRecords.TryGetValue(record.Name, out var acadBlockRec))
+                    continue;
+
+                foreach (var entId in record.GetEntityIds())
                 {
-                    var blockRecId = bt[blockRef.BlockName];
-                    if (!blockRecId.IsNull)
-                        blockRef.BlockTableRecordId = blockRecId;
-                }
+                    if (!db.TryGetObject(entId, out var entObj) || entObj is not NormalCAD.Core.DatabaseServices.Entity normalEnt)
+                        continue;
 
-                btr.AppendEntity(normalEntity);
-                trans.AddNewlyCreatedDBObject(normalEntity, true);
+                    var acadEntity = converters.ConvertToAcad(normalEnt, cadDoc);
+                    if (acadEntity != null)
+                        acadBlockRec.Entities.Add(acadEntity);
+                }
             }
         }
 
@@ -117,24 +145,5 @@ namespace NormalCAD.Controller.Services.Converters
             }
         }
 
-        public static void SaveEntities(Database db, CadDocument cadDoc, ConverterService converters)
-        {
-            if (!db.TryGetObject(db.BlockTableId, out var btObj) || btObj is not BlockTable bt)
-                return;
-
-            var modelSpaceId = bt[BlockTableRecord.ModelSpace];
-            if (modelSpaceId.IsNull || !db.TryGetObject(modelSpaceId, out var btrObj) || btrObj is not BlockTableRecord btr)
-                return;
-
-            foreach (var entId in btr.GetEntityIds())
-            {
-                if (!db.TryGetObject(entId, out var entObj) || entObj is not NormalCAD.Core.DatabaseServices.Entity normalEnt)
-                    continue;
-
-                var acadEntity = converters.ConvertToAcad(normalEnt, cadDoc);
-                if (acadEntity != null)
-                    cadDoc.Entities.Add(acadEntity);
-            }
-        }
     }
 }

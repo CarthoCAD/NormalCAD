@@ -88,8 +88,7 @@ namespace NormalCAD.Controller
             SubscribeToDatabaseEvents(document.Database);
 
             ClearSelection();
-            FinishCommand();
-            RestoreViewportState();
+            
             DatabaseChanged?.Invoke();
             Viewport.InvalidateVisual();
         }

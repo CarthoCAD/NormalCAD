@@ -43,7 +43,6 @@ namespace NormalCAD.Controller.Commands
                     try
                     {
                         var db = Services.FileService.Load(path);
-                        CadController.Current.SetDatabase(db, path);
                         CadController.Current.InputManager.SetPromptMessage(string.Format(MsgLoaded, System.IO.Path.GetFileName(path)));
                     }
                     catch (Exception ex)
