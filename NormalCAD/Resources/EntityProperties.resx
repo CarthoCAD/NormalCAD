@@ -197,4 +197,37 @@
   <data name="POLYLINE.DISPLAYNAME" xml:space="preserve">
     <value>Polyline</value>
   </data>
+
+  <!-- ===== BLOCKREFERENCE Display Name ===== -->
+  <data name="BLOCKREFERENCE.DISPLAYNAME" xml:space="preserve">
+    <value>Block Reference</value>
+  </data>
+
+  <!-- ===== BLOCKREFERENCE Geometry ===== -->
+  <data name="BLOCKREFERENCE.GEOMETRY.POSITIONX" xml:space="preserve">
+    <value>Position X</value>
+  </data>
+  <data name="BLOCKREFERENCE.GEOMETRY.POSITIONY" xml:space="preserve">
+    <value>Position Y</value>
+  </data>
+  <data name="BLOCKREFERENCE.GEOMETRY.POSITIONZ" xml:space="preserve">
+    <value>Position Z</value>
+  </data>
+  <data name="BLOCKREFERENCE.GEOMETRY.SCALEX" xml:space="preserve">
+    <value>Scale X</value>
+  </data>
+  <data name="BLOCKREFERENCE.GEOMETRY.SCALEY" xml:space="preserve">
+    <value>Scale Y</value>
+  </data>
+  <data name="BLOCKREFERENCE.GEOMETRY.SCALEZ" xml:space="preserve">
+    <value>Scale Z</value>
+  </data>
+
+  <!-- ===== BLOCKREFERENCE Misc ===== -->
+  <data name="BLOCKREFERENCE.MISC.NAME" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="BLOCKREFERENCE.MISC.ROTATION" xml:space="preserve">
+    <value>Rotation</value>
+  </data>
 </root>

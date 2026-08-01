@@ -109,6 +109,9 @@ namespace NormalCAD.Controller.Services.Converters
             if (color.IsByLayer)
                 return EntityColor.ByLayer;
 
+            if (color.IsByBlock)
+                return EntityColor.ByBlock;
+
             return new EntityColor(color.R, color.G, color.B);
         }
 
@@ -116,6 +119,9 @@ namespace NormalCAD.Controller.Services.Converters
         {
             if (color.IsByLayer)
                 return Color.ByLayer;
+
+            if (color.IsByBlock)
+                return Color.ByBlock;
 
             return new Color(color.R, color.G, color.B);
         }
