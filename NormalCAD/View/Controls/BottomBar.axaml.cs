@@ -88,13 +88,13 @@ namespace NormalCAD.View.Controls
 
         private async void OnTxtPromptKeyDown(object? sender, KeyEventArgs e)
         {
-            if (_txtPrompt == null) return;
+            if (_txtPrompt is not { } txtPrompt) return;
 
             if (e.Key == Key.Up)
             {
                 var text = Controller.CadController.Current.InputManager.NavigateHistory(1);
-                if (text != null) _txtPrompt.Text = text;
-                _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+                if (text != null) txtPrompt.Text = text;
+                txtPrompt.CaretIndex = txtPrompt.Text?.Length ?? 0;
                 e.Handled = true;
                 return;
             }
@@ -102,15 +102,15 @@ namespace NormalCAD.View.Controls
             if (e.Key == Key.Down)
             {
                 var text = Controller.CadController.Current.InputManager.NavigateHistory(-1);
-                _txtPrompt.Text = text ?? "";
-                _txtPrompt.CaretIndex = _txtPrompt.Text.Length;
+                txtPrompt.Text = text ?? "";
+                txtPrompt.CaretIndex = txtPrompt.Text?.Length ?? 0;
                 e.Handled = true;
                 return;
             }
 
             if (e.Key == Key.Escape)
             {
-                _txtPrompt.Text = "";
+                txtPrompt.Text = "";
                 Controller.CadController.Current.InputManager.ResetHistoryIndex();
                 Controller.CadController.Current.CancelCurrentCommand();
                 HideFloatingPrompt();
@@ -120,8 +120,8 @@ namespace NormalCAD.View.Controls
 
             if (e.Key == Key.Enter || e.Key == Key.Space)
             {
-                string commandText = _txtPrompt.Text?.Trim() ?? "";
-                _txtPrompt.Text = "";
+                string commandText = txtPrompt.Text?.Trim() ?? "";
+                txtPrompt.Text = "";
                 Controller.CadController.Current.InputManager.ResetHistoryIndex();
 
                 if (!string.IsNullOrEmpty(commandText))

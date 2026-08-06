@@ -122,6 +122,9 @@
   <data name="MENUBAR.ITEM.DRAW.POLYLINE" xml:space="preserve">
     <value>Polilinha</value>
   </data>
+  <data name="MENUBAR.ITEM.DRAW.INSERT" xml:space="preserve">
+    <value>Inserir</value>
+  </data>
   <data name="MENUBAR.ITEM.HELP.ABOUT" xml:space="preserve">
     <value>Sobre</value>
   </data>
