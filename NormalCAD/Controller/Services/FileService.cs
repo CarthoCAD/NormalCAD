@@ -37,14 +37,18 @@ namespace NormalCAD.Controller.Services
 
             var db = new Database(true, false);
 
+            Controller.CadController.Current.SetDatabase(db, filePath);
+
             using (var trans = db.TransactionManager.StartTransaction())
             {
                 TableParsers.LoadLayers(cadDoc, db, _converters);
                 TableParsers.LoadViewports(cadDoc, db, _converters);
-                TableParsers.LoadEntities(cadDoc, db, trans, _converters);
+                TableParsers.LoadBlockTable(cadDoc, db, trans, _converters);
 
                 trans.Commit();
             }
+
+            CadController.Current.RestoreViewportState();
 
             return db;
         }
@@ -62,7 +66,7 @@ namespace NormalCAD.Controller.Services
 
             TableParsers.SaveLayers(db, cadDoc, _converters);
             TableParsers.SaveViewports(db, cadDoc, _converters);
-            TableParsers.SaveEntities(db, cadDoc, _converters);
+            TableParsers.SaveBlockTable(db, cadDoc, _converters);
 
             switch (ext)
             {

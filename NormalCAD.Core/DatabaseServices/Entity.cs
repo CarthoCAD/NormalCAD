@@ -64,10 +64,8 @@ namespace NormalCAD.Core.DatabaseServices
 
         protected void CopyEntityPropertiesTo(Entity target)
         {
-            target.Layer = this.Layer;
             target.LayerId = this.LayerId;
             target.Color = this.Color;
-            target.Linetype = this.Linetype;
             target.LinetypeId = this.LinetypeId;
             target.LineWeight = this.LineWeight;
             target.LinetypeScale = this.LinetypeScale;

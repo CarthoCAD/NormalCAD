@@ -26,6 +26,7 @@ namespace NormalCAD.Controller.Providers
             Register<Circle>(new CirclePropertyProvider());
             Register<Arc>(new ArcPropertyProvider());
             Register<Polyline>(new PolylinePropertyProvider());
+            Register<BlockReference>(new BlockReferencePropertyProvider());
         }
 
         private void Register<T>(IEntityPropertyProvider provider) where T : Entity

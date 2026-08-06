@@ -2,17 +2,6 @@
 
 Completed items are removed from this backlog. See git history and closed issues for delivered work.
 
-## Complete `BlockReference` Entity Pipeline (priority: high)
-
-`BlockReference` exists in `NormalCAD.Core` but is not yet a fully selectable, drawable entity — it must be wired through the complete entity pipeline (see `AddingNewEntities.md` for the full step-by-step). Currently `BlockReference` and its nested sub-entities are not rendered in the viewport, making block insertion functionally invisible. Deliver every stage of the pipeline for this entity:
-
-- **Renderer** — add a `BlockReferenceRenderer : IEntityRenderer` and register it in `DrawingService`, transforming and drawing each nested sub-entity through the block transform. Investigate the current failure: the cause could be in `DrawingService.DrawEntity` (entity type dispatch may not handle `BlockReference`), in `BlockReference.GetGeometricCurve()` / `GeometricExtents` (computing empty bounds that get culled), or in the renderer's coordinate transform chain for nested entities.
-- **Provider** — add a `BlockReferencePropertyProvider : IEntityPropertyProvider` and register it in `EntityPropertyManager`, exposing the AutoCAD INSERT palette properties (Position X/Y/Z, Scale X/Y/Z, Rotation, Block Name, etc.).
-- **Converter** — verify/fix `BlockReferenceConverter` so the DWG/DXF reader correctly populates sub-entities and the block transform on round-trip.
-- **Draw command** — implement the `INSERT` command (`InsertCommand : ICadCommand`) that lets the user pick a block, place it interactively (with live preview), and set rotation/scale, following the same interactive pattern as the other drawing commands.
-
-This is the first end-to-end exercise of the "add a new entity" pipeline against an already-modeled Core entity, so it doubles as validation of `AddingNewEntities.md`.
-
 ## Undo System (priority: high)
 
 Implement a full undo/redo stack using the AutoCAD command-group model: each interactive command or immediate action registers an `UndoGroup` that wraps the set of database modifications it performs. The `TransactionManager` must track object state snapshots (before/after values for modified properties, or pre-modification clones for structural changes like adding/removing entities) so that undo can restore them. The undo stack is managed per-document by the `Database`, with `Undo()` and `Redo()` methods exposed through the `Editor`. A `NoUndoMarker` flag on commands (already reserved in the planned `CommandFlags`) should suppress undo recording for non-destructive operations like ZOOM, REGEN, or inquiry commands. Depends on the `ICadCommand` refactoring (to add `CommandFlags.NoUndoMarker`) and on the idle state extraction (so `BaseCommand` doesn't interfere with undo group boundaries).
@@ -38,9 +27,11 @@ The combo box editors in the property palette (LineWeight, Linetype, the boolean
 
 `DrawingService.DrawEntity` allocates a new `SolidColorBrush` and a new `Pen` for every entity on every frame. With 1000 entities at 60fps, that is approximately 120,000 allocations per second just for rendering brushes and pens, driving significant GC pressure. Cache brushes and pens in a `ConcurrentDictionary` keyed by `(Avalonia.Media.Color, double thickness, DashStyle?)` or similar tuple. Invalidate and clear the cache on theme change (Light ↔ Dark), since theme tokens resolve to different colors.
 
+Additionally: the layer color cache in `ResolveEntityColor` keys by layer name (`ent.Layer`), but `ent.Layer` triggers a database lookup on every read — cache should key by `ent.LayerId` instead. The rubberband preview in `InputManager.UpdateRubberband` allocates a new `Line` entity every frame during drag; reuse a single instance and mutate its endpoints.
+
 ## DBObject API Compatibility (priority: medium)
 
-The `DBObject` class in `NormalCAD.Core` currently exposes only 7 of the 16 properties and 1 of the 11 methods defined in the AutoCAD .NET `DBObject` base class. The most impactful gap is `UpgradeOpen()` (promote from `ForRead` to `ForWrite` within a transaction) — without it, any code that obtains an object as read-only must re-open it for write access, adding boilerplate and risking stale references. Also missing: `DowngradeOpen()`, `Cancel()`, `HandOverTo(ObjectId)` (transfer ownership, needed for moving entities between block records), `DeepClone(...)` (needed for copy/paste between documents), and state-tracking properties like `IsWriteEnabled`, `IsTransactionResident`, `IsUndoing`, and `IsCancelling`. Implement the critical subset (`UpgradeOpen`, `DowngradeOpen`, `HandOverTo`, `Cancel`, `IsWriteEnabled`) and leave the rest as stubs for future undo/wblock support.
+The `DBObject` class in `NormalCAD.Core` currently exposes only 7 of the 16 properties and 1 of the 11 methods defined in the AutoCAD .NET `DBObject` base class. The most impactful gap is `UpgradeOpen()` (promote from `ForRead` to `ForWrite` within a transaction) — without it, any code that obtains an object as read-only must re-open it for write access, adding boilerplate and risking stale references. Also missing: `DowngradeOpen()`, `Cancel()`, `HandOverTo(ObjectId)` (transfer ownership, needed for moving entities between block records), `DeepClone(...)` (needed for copy/paste between documents), and state-tracking properties like `IsWriteEnabled`, `IsTransactionResident`, `IsUndoing`, and `IsCancelling`. Implement the critical subset (`UpgradeOpen`, `DowngradeOpen`, `HandOverTo`, `Cancel`, `IsWriteEnabled`) and leave the rest as stubs for future undo/wblock support. Also fix `ObjectId.Null` which uses `null!` for its `Database` field — accessing `.Database` on a null ObjectId throws `NullReferenceException` at runtime instead of returning a well-known null sentinel.
 
 ## Implement `LinetypeTable` and `LinetypeTableRecord` (priority: medium)
 
@@ -60,6 +51,25 @@ The provider palette fields for bulge/width already exist, so this item is purel
 ## Fix `DispatcherTimer` Leaks (priority: medium)
 
 `MainWindow.OnSidebarPointerExited` creates a new `DispatcherTimer` instance every time the pointer leaves the sidebar area, and `BottomBar.ShowFloatingPrompt` / `HideFloatingPrompt` each create new timers on every call. Over a single editing session, dozens of orphaned timer instances accumulate — each still wired to its Tick handler via closure, preventing garbage collection. Create the timers once in the constructor of each class, store them as instance fields, and reuse them via `Start()` / `Stop()` with updated intervals or callbacks as needed.
+
+## Fix Static Event Handler Leaks (priority: medium)
+
+`LanguageService.LanguageChanged` is a static event subscribed by four UI controls — `MenuBar` (line 19), `PropertyPalette` (line 37), `LayerPalette` (line 42), and `BottomBar` (line 63) — but none of them unsubscribe in a destructor or `Unloaded` handler. If any of these controls were ever removed from the visual tree and recreated, the old instance would remain referenced by the static event, leaking memory. Add `DetachedFromVisualTree` overrides to unsubscribe.
+
+## Fix Floating-Point Equality and Redundant Computation (priority: medium)
+
+Two precision issues in geometry: `Point2d.Equals` uses direct `==` on doubles which can fail for values that differ only in the least significant bit — use epsilon-based comparison. `DrawArcCommand.AreNearlyCollinear` computes the same determinant already calculated by `ComputeArcFrom3Points` denominator — extract the determinant into a shared helper to avoid redundant computation.
+
+## Produce API and Application Documentation (priority: medium)
+
+Document both the `NormalCAD.Core` API and the `NormalCAD` application behavior using the .NET-native documentation stack.
+
+- **XML doc comments** — add `///` documentation to all public members of `NormalCAD.Core` (the plugin-facing API that mirrors the AutoCAD .NET API) and the key public surface of `NormalCAD`. `dotnet build` already emits the `.xml` file for free; comments stay co-located with code so they never drift out of sync.
+- **DocFX** — set up a `docfx.json` that consumes the compiled assemblies + XML docs to auto-generate the API reference site (classes, methods, properties, enums, including inherited members — valuable for verifying AutoCAD API compatibility). A single CLI tool (`dotnet tool install -g docfx`); filter out `internal`/`private` members.
+- **Conceptual Markdown pages** — document the application's behavior (not API): getting-started, command catalog and input flows, viewport rendering/cursor/snap, theming, and localization. Reuse the existing `/docs` Markdown files (ARCHITECTURE.md, AddingNewEntities.md, etc.) so one DocFX site covers both the Core API reference and the app's conceptual documentation.
+- **Generation command** — document a simple command (e.g. `docfx docfx.json`) or CI step so docs can be regenerated on demand without manual steps.
+
+Approach: begin with XML doc comments on `NormalCAD.Core` first, since it is the public API surface; the application documentation is primarily Markdown conceptual pages, with DocFX unifying both into a single site.
 
 ## Active Document Switching (priority: medium)
 
@@ -100,6 +110,21 @@ After decomposition, `CadController` should be a thin facade coordinating `CmdMa
 ## Refactor `DrawingService.DrawEntity` Preview/Selection Handling (priority: low)
 
 Decouple visual state (selection highlight, preview, rubberband) from `DrawingService.DrawEntity` by introducing `ApplySelection` and `ApplyPreview` helpers that return modified entity clones. `DrawEntity` should then render entities purely from their own properties (`Color`, `Layer`, `LineWeight`, `Linetype`) without boolean flags for selection/preview. This aligns with the AutoCAD .NET API where visual overrides are applied to temporary clones rather than passed as render flags. Depends on `LineWeight` being honored by the renderer and `Linetype` supporting dashed patterns; until then, keep the current flag-based approach.
+
+## Dead Code Cleanup (priority: low)
+
+Remove several unused or stub-only code artifacts throughout the codebase:
+
+- `Entity.Draw()` and `SetDatabaseDefaults()` — empty methods never called by any code path.
+- `Database.TryGetObjectId(Handle, out ObjectId)` — always returns false, unimplemented placeholder.
+- `BlockReference.SetScaleFactor()` — private method never called anywhere.
+- `SelectionManager` — four resource string fields (`MsgFound`, `MsgRemoved`, `MsgFoundN`, `MsgRemovedN`) are fetched but never used (they are only referenced in `IdleState`).
+- `IdleState` — `MsgRemovedN` is fetched but never referenced.
+- `IdMapping` — entire class is empty (no members), used only as a type parameter in an unimplemented stub.
+
+## Clean Up Unused Imports (priority: low)
+
+Remove unused `using` directives across the codebase: `using NormalCAD.Core;` appears in `CadController.cs`, `EntityPropertyProvider.cs`, and `ApplicationHost.cs` with nothing consumed from that namespace. `using NormalCAD.Core.Geometry;` is imported by 8 immediate commands (`EraseCommand`, `CleanAllCommand`, `ToggleThemeCommand`, `ToggleLanguageCommand`, `SaveCommand`, `SaveAsCommand`, `OpenCommand`, `ExitCommand`) that do not reference any geometry types.
 
 ## Rename Inconsistencies (priority: low)
 

@@ -45,6 +45,7 @@ public partial class MenuBar : UserControl
     private static string ItemDrawCircle => PanelResources.Get("MENUBAR.ITEM.DRAW.CIRCLE");
     private static string ItemDrawArc => PanelResources.Get("MENUBAR.ITEM.DRAW.ARC");
     private static string ItemDrawPolyline => PanelResources.Get("MENUBAR.ITEM.DRAW.POLYLINE");
+    private static string ItemDrawInsert => PanelResources.Get("MENUBAR.ITEM.DRAW.INSERT");
     private static string ItemHelpAbout => PanelResources.Get("MENUBAR.ITEM.HELP.ABOUT");
 
     private static List<MenuEntry> GetMenuStructure() =>
@@ -78,7 +79,8 @@ public partial class MenuBar : UserControl
             new(ItemDrawLine, "_.LINE", null),
             new(ItemDrawCircle, "_.CIRCLE", null),
             new(ItemDrawArc, "_.ARC", null),
-            new(ItemDrawPolyline, "_.PLINE", null)
+            new(ItemDrawPolyline, "_.PLINE", null),
+            new(ItemDrawInsert, "_.INSERT", null)
         ]),
         new(MenuHelp, null, null,
         [

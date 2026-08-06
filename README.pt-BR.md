@@ -20,6 +20,7 @@ A arquitetura interna foi modelada com base na **API .NET do AutoCAD** (ObjectAR
 - **Círculo** — Centro + raio, com alternância `Raio`/`Diâmetro` via palavra-chave no prompt.
 - **Arco** — Arco de 3 pontos (início, segundo ponto, fim) com modos opcionais Centro/Raio/Ângulo, com preview dinâmico.
 - **Polilinha** — Cliques sucessivos adicionam vértices; palavras-chave `Desfazer` e `Fechar` com correspondência de prefixo.
+- **Inserir Bloco** — `INSERIR` baseado em prompts (nome do bloco, ponto de inserção, escala, rotação) com preview ao vivo.
 - **Seleção** — Clique para adicionar, `Shift + Clique` para remover. Arraste esquerda→direita para Seleção por Janela, direita→esquerda para Seleção por Cruzamento. Utiliza índice espacial R*-tree para performance em desenhos grandes.
 - **Exclusão** — Tecla `Delete` remove todos os objetos selecionados.
 - **Limpar** — Apaga todo o desenho atual.
@@ -136,6 +137,7 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Desenhar Círculo | `CIRCULO` | `C`, `CI` | Desenhar → Círculo |
 | Desenhar Arco | `ARCO` | `A` | Desenhar → Arco |
 | Desenhar Polilinha | `PLINHA` | `PL` | Desenhar → Polilinha |
+| Inserir Bloco | `INSERIR` | `I` | Desenhar → Inserir |
 | Excluir Selecionados | `APAGAR` | `E` | Editar → Apagar |
 | Limpar Tudo | `LIMPARTUDO` | `LTD` | Editar → Limpar Tudo |
 | Abrir Arquivo | `ABRIR` | — | Arquivo → Abrir... |

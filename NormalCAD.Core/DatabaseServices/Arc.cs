@@ -75,8 +75,20 @@ namespace NormalCAD.Core.DatabaseServices
 
         public override void TransformBy(Matrix3d transform)
         {
+            var startPt = new Point3d(
+                Center.X + Radius * Math.Cos(StartAngle),
+                Center.Y + Radius * Math.Sin(StartAngle), 0);
+            var endPt = new Point3d(
+                Center.X + Radius * Math.Cos(EndAngle),
+                Center.Y + Radius * Math.Sin(EndAngle), 0);
+
             Center = transform.TransformPoint(Center);
-            Radius = transform.TransformVector(new Vector3d(Radius, 0, 0)).Length;
+            var tfStart = transform.TransformPoint(startPt);
+            var tfEnd = transform.TransformPoint(endPt);
+
+            Radius = new Vector3d(tfStart.X - Center.X, tfStart.Y - Center.Y, 0).Length;
+            StartAngle = Math.Atan2(tfStart.Y - Center.Y, tfStart.X - Center.X);
+            EndAngle = Math.Atan2(tfEnd.Y - Center.Y, tfEnd.X - Center.X);
         }
 
         public override IEnumerable<(Point3d Point, SnapType Type)> GetOsnapPoints()

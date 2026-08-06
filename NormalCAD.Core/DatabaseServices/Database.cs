@@ -36,6 +36,7 @@ namespace NormalCAD.Core.DatabaseServices
 
         public ObjectId CurrentSpaceId { get; set; }
         public ObjectId CurrentViewportTableRecordId { get; set; }
+        public ObjectId LayerZero { get; private set; }
         public int TileMode { get; set; }
 
         #endregion
@@ -107,6 +108,7 @@ namespace NormalCAD.Core.DatabaseServices
 
                 var layerZero = new LayerTableRecord("0", EntityColor.White);
                 layerTable.Add(layerZero);
+                LayerZero = layerZero.ObjectId;
 
                 var viewportTable = new ViewportTable(this);
                 ViewportTableId = viewportTable.ObjectId;

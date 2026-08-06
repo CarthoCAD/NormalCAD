@@ -19,6 +19,7 @@ namespace NormalCAD.View.Drawing
             Register<Circle>(new CircleRenderer());
             Register<Arc>(new ArcRenderer());
             Register<Polyline>(new PolylineRenderer());
+            Register<BlockReference>(new BlockReferenceRenderer());
         }
 
         public void Register<T>(IEntityRenderer renderer) where T : Entity
@@ -53,26 +54,46 @@ namespace NormalCAD.View.Drawing
 
         public void DrawEntity(DrawingContext context, Entity ent,
                                bool isSelected, bool isPreview, bool isRubberBand,
-                               Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom)
+                               Func<Core.Geometry.Point3d, Point> worldToScreen, double zoom,
+                               Pen? pen = null)
         {
             EnsureSubscribed();
 
-            var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
-            var baseColor = db != null
-                ? ResolveEntityColor(ent, db, Controller.CadController.Current.IsLightTheme)
-                : Colors.White;
-            Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
-            if (isPreview && isRubberBand)
-                renderColor = Color.Parse("#FF9900");
+            if (pen != null && !isSelected && !isPreview && !isRubberBand
+                && !ent.Color.IsByBlock)
+            {
+                pen = null;
+            }
 
-            var brush = new SolidColorBrush(renderColor);
-            var pen = new Pen(brush, isSelected ? 3.0 : (isPreview && isRubberBand ? 1.0 : 1.5));
-            if (isPreview && isRubberBand)
-                pen.DashStyle = DashStyle.Dash;
+            if (pen == null)
+            {
+                var db = CoreApp.DocumentManager.MdiActiveDocument?.Database;
+                var baseColor = db != null
+                    ? ResolveEntityColor(ent, db, Controller.CadController.Current.IsLightTheme)
+                    : Colors.White;
+                Color renderColor = isSelected ? Color.Parse("#007ACC") : baseColor;
+                if (isPreview && isRubberBand)
+                    renderColor = Color.Parse("#FF9900");
+
+                var brush = new SolidColorBrush(renderColor);
+                pen = new Pen(brush, isSelected ? 3.0 : (isPreview && isRubberBand ? 1.0 : 1.5));
+                if (isPreview && isRubberBand)
+                    pen.DashStyle = DashStyle.Dash;
+            }
 
             var type = ent.GetType();
             if (_renderers.TryGetValue(type, out var renderer))
-                renderer.Render(context, ent, pen, worldToScreen, zoom);
+            {
+                if (renderer.IsCompound)
+                {
+                    foreach (var sub in renderer.ExpandForRender(ent))
+                        DrawEntity(context, sub, isSelected, isPreview, isRubberBand, worldToScreen, zoom, pen);
+                }
+                else
+                {
+                    renderer.Render(context, ent, pen, worldToScreen, zoom);
+                }
+            }
         }
 
         private void EnsureSubscribed()
@@ -94,6 +115,9 @@ namespace NormalCAD.View.Drawing
 
         private Color ResolveEntityColor(Entity ent, Database database, bool isLightTheme)
         {
+            if (ent.Color.IsByBlock)
+                return isLightTheme ? Colors.Black : Colors.White;
+
             if (!ent.Color.IsByLayer)
             {
                 var final = Color.FromArgb(ent.Color.A, ent.Color.R, ent.Color.G, ent.Color.B);

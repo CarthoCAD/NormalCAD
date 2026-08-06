@@ -1,3 +1,4 @@
+using System;
 using ACadSharp;
 using ACadSharp.Entities;
 using ACadSharp.Tables;
@@ -11,13 +12,12 @@ namespace NormalCAD.Controller.Services.Converters
     {
         public override Insert ConvertToAcad(BlockReference source, CadDocument cadDoc)
         {
-            var blockName = !string.IsNullOrEmpty(source.BlockName)
-                ? source.BlockName
-                : ResolveBlockName(source.BlockTableRecordId);
+            var blockName = ResolveBlockName(source.BlockTableRecord);
+            if (string.IsNullOrEmpty(blockName))
+                throw new InvalidOperationException("BlockReference has no associated BlockTableRecord.");
 
-            var blockRecord = !string.IsNullOrEmpty(blockName)
-                ? ResolveBlockRecord(blockName, cadDoc)
-                : new BlockRecord("_Empty");
+            if (!cadDoc.BlockRecords.TryGetValue(blockName, out var blockRecord))
+                throw new InvalidOperationException($"BlockRecord '{blockName}' not found in target document.");
 
             var result = new Insert(blockRecord)
             {
@@ -35,15 +35,20 @@ namespace NormalCAD.Controller.Services.Converters
         public override BlockReference ConvertToNormal(Insert source)
         {
             var blockName = source.Block?.Name ?? string.Empty;
+            var btrId = ObjectId.Null;
 
-            var result = new BlockReference
+            var db = Core.ApplicationServices.Application.DocumentManager.MdiActiveDocument?.Database;
+            if (db != null && !string.IsNullOrEmpty(blockName)
+                && db.TryGetObject(db.BlockTableId, out var btObj) && btObj is BlockTable bt)
             {
-                Position = new Point3d(source.InsertPoint.X, source.InsertPoint.Y, source.InsertPoint.Z),
-                Rotation = source.Rotation,
-                ScaleFactors = new Vector3d(source.XScale, source.YScale, source.ZScale),
-                BlockName = blockName
-            };
+                btrId = bt[blockName];
+            }
 
+            var result = new BlockReference(
+                new Point3d(source.InsertPoint.X, source.InsertPoint.Y, source.InsertPoint.Z),
+                btrId);
+            result.Rotation = source.Rotation;
+            result.ScaleFactors = new Vector3d(source.XScale, source.YScale, source.ZScale);
             ApplyEntityPropertiesToNormal(result, source);
             return result;
         }
@@ -56,16 +61,6 @@ namespace NormalCAD.Controller.Services.Converters
             if (!db.TryGetObject(blockId, out var obj) || obj is not BlockTableRecord btr)
                 return string.Empty;
             return btr.Name;
-        }
-
-        private static BlockRecord ResolveBlockRecord(string blockName, CadDocument cadDoc)
-        {
-            if (cadDoc.BlockRecords.TryGetValue(blockName, out var existing))
-                return existing;
-
-            var newBlock = new BlockRecord(blockName);
-            cadDoc.BlockRecords.Add(newBlock);
-            return newBlock;
         }
     }
 }
