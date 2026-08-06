@@ -2,17 +2,6 @@
 
 Completed items are removed from this backlog. See git history and closed issues for delivered work.
 
-## Complete `BlockReference` Entity Pipeline (priority: high)
-
-`BlockReference` exists in `NormalCAD.Core` but is not yet a fully selectable, drawable entity — it must be wired through the complete entity pipeline (see `AddingNewEntities.md` for the full step-by-step). Currently `BlockReference` and its nested sub-entities are not rendered in the viewport, making block insertion functionally invisible. Deliver every stage of the pipeline for this entity:
-
-- **Renderer** — add a `BlockReferenceRenderer : IEntityRenderer` and register it in `DrawingService`, transforming and drawing each nested sub-entity through the block transform. Investigate the current failure: the cause could be in `DrawingService.DrawEntity` (entity type dispatch may not handle `BlockReference`), in `BlockReference.GetGeometricCurve()` / `GeometricExtents` (computing empty bounds that get culled), or in the renderer's coordinate transform chain for nested entities.
-- **Provider** — add a `BlockReferencePropertyProvider : IEntityPropertyProvider` and register it in `EntityPropertyManager`, exposing the AutoCAD INSERT palette properties (Position X/Y/Z, Scale X/Y/Z, Rotation, Block Name, etc.).
-- **Converter** — verify/fix `BlockReferenceConverter` so the DWG/DXF reader correctly populates sub-entities and the block transform on round-trip.
-- **Draw command** — implement the `INSERT` command (`InsertCommand : ICadCommand`) that lets the user pick a block, place it interactively (with live preview), and set rotation/scale, following the same interactive pattern as the other drawing commands.
-
-This is the first end-to-end exercise of the "add a new entity" pipeline against an already-modeled Core entity, so it doubles as validation of `AddingNewEntities.md`.
-
 ## Undo System (priority: high)
 
 Implement a full undo/redo stack using the AutoCAD command-group model: each interactive command or immediate action registers an `UndoGroup` that wraps the set of database modifications it performs. The `TransactionManager` must track object state snapshots (before/after values for modified properties, or pre-modification clones for structural changes like adding/removing entities) so that undo can restore them. The undo stack is managed per-document by the `Database`, with `Undo()` and `Redo()` methods exposed through the `Editor`. A `NoUndoMarker` flag on commands (already reserved in the planned `CommandFlags`) should suppress undo recording for non-destructive operations like ZOOM, REGEN, or inquiry commands. Depends on the `ICadCommand` refactoring (to add `CommandFlags.NoUndoMarker`) and on the idle state extraction (so `BaseCommand` doesn't interfere with undo group boundaries).
@@ -71,6 +60,17 @@ The provider palette fields for bulge/width already exist, so this item is purel
 
 Two precision issues in geometry: `Point2d.Equals` uses direct `==` on doubles which can fail for values that differ only in the least significant bit — use epsilon-based comparison. `DrawArcCommand.AreNearlyCollinear` computes the same determinant already calculated by `ComputeArcFrom3Points` denominator — extract the determinant into a shared helper to avoid redundant computation.
 
+## Produce API and Application Documentation (priority: medium)
+
+Document both the `NormalCAD.Core` API and the `NormalCAD` application behavior using the .NET-native documentation stack.
+
+- **XML doc comments** — add `///` documentation to all public members of `NormalCAD.Core` (the plugin-facing API that mirrors the AutoCAD .NET API) and the key public surface of `NormalCAD`. `dotnet build` already emits the `.xml` file for free; comments stay co-located with code so they never drift out of sync.
+- **DocFX** — set up a `docfx.json` that consumes the compiled assemblies + XML docs to auto-generate the API reference site (classes, methods, properties, enums, including inherited members — valuable for verifying AutoCAD API compatibility). A single CLI tool (`dotnet tool install -g docfx`); filter out `internal`/`private` members.
+- **Conceptual Markdown pages** — document the application's behavior (not API): getting-started, command catalog and input flows, viewport rendering/cursor/snap, theming, and localization. Reuse the existing `/docs` Markdown files (ARCHITECTURE.md, AddingNewEntities.md, etc.) so one DocFX site covers both the Core API reference and the app's conceptual documentation.
+- **Generation command** — document a simple command (e.g. `docfx docfx.json`) or CI step so docs can be regenerated on demand without manual steps.
+
+Approach: begin with XML doc comments on `NormalCAD.Core` first, since it is the public API surface; the application documentation is primarily Markdown conceptual pages, with DocFX unifying both into a single site.
+
 ## Active Document Switching (priority: medium)
 
 Allow users to create, open, and switch between multiple documents within a single application session, managed by `Application.DocumentManager`. Requires: UI for displaying open documents (tabs, a window menu, or a document list dropdown), per-document viewport state save and restore (camera position, zoom, active layer, selection set), ensuring all subsystems (`DrawingService`, `PropertyPalette`, `LayerPalette`, `InputManager`, active command) respond correctly to a document transition, and handling the edge case where the last document is closed (return to a "no document" startup state). Depends on the "Centralize Document and Database Access" item so that consumers do not hold stale references.
@@ -118,7 +118,6 @@ Remove several unused or stub-only code artifacts throughout the codebase:
 - `Entity.Draw()` and `SetDatabaseDefaults()` — empty methods never called by any code path.
 - `Database.TryGetObjectId(Handle, out ObjectId)` — always returns false, unimplemented placeholder.
 - `BlockReference.SetScaleFactor()` — private method never called anywhere.
-- `BlockReference.UpdateBlockTransform()` — three `Matrix3d` instances (translation, rotation, scale) are constructed then immediately discarded when `_blockTransform` is overwritten.
 - `SelectionManager` — four resource string fields (`MsgFound`, `MsgRemoved`, `MsgFoundN`, `MsgRemovedN`) are fetched but never used (they are only referenced in `IdleState`).
 - `IdleState` — `MsgRemovedN` is fetched but never referenced.
 - `IdMapping` — entire class is empty (no members), used only as a type parameter in an unimplemented stub.

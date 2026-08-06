@@ -20,6 +20,7 @@ The internal architecture was modeled after the **AutoCAD .NET API** (ObjectARX/
 - **Circle** — Center + radius, with `Radius`/`Diameter` toggle via keyword at the prompt.
 - **Arc** — 3-point arc (start, second point, end) with optional Center/Radius/Angle modes, with dynamic preview.
 - **Polyline** — Successive clicks add vertices; `Undo` and `Close` keywords with prefix matching.
+- **Block Insert** — Prompt-based `INSERT` (block name, insertion point, scale, rotation) with live preview.
 - **Selection** — Click to add, `Shift + Click` to remove. Drag left→right for Window Select, right→left for Crossing Select. Uses R*-tree spatial index for performance on large drawings.
 - **Deletion** — `Delete` key removes all selected objects.
 - **Clear** — Erase the entire current drawing.
@@ -136,6 +137,7 @@ dotnet test NormalCAD.Tests/NormalCAD.Tests.csproj
 | Draw Circle | `CIRCLE` | `C`, `CI` | Draw → Circle |
 | Draw Arc | `ARC` | `A` | Draw → Arc |
 | Draw Polyline | `PLINE` | `PL` | Draw → Polyline |
+| Insert Block | `INSERT` | `I` | Draw → Insert |
 | Delete Selected | `ERASE` | `E` | Edit → Erase |
 | Clear All | `CLEANALL` | `CLA` | Edit → Clean All |
 | Open File | `OPEN` | — | File → Open... |
