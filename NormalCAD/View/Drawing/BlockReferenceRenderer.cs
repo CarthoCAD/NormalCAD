@@ -17,7 +17,8 @@ namespace NormalCAD.View.Drawing
         {
             if (entity is not BlockReference br) yield break;
             
-            var db = br.Database;
+            var db = br.Database
+                     ?? Core.ApplicationServices.Application.DocumentManager.MdiActiveDocument?.Database;
             if (db == null) yield break;
 
             if (br.BlockTableRecord.IsNull) yield break;

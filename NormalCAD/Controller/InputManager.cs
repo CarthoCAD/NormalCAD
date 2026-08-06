@@ -48,6 +48,7 @@ namespace NormalCAD.Controller
 
         private Action<PromptPointResult>? _pointCallback;
         private Action<PromptDoubleResult>? _distanceCallback;
+        private bool _getAngleMode;
         private Action<PromptStringResult>? _stringCallback;
         private Action<PromptKeywordResult>? _keywordCallback;
         private Action<Point3d>? _mouseMoveCallback;
@@ -210,6 +211,28 @@ namespace NormalCAD.Controller
         public void RegisterGetDistance(PromptDistanceOptions options, Action<PromptDoubleResult> callback)
         {
             _distanceCallback = callback;
+            _getAngleMode = false;
+            _pointCallback = null;
+            _activePointOptions = options;
+            _keywords = options.Keywords ?? Array.Empty<string>();
+            _keywordCallback = null;
+            _stringCallback = null;
+            CurrentCursorType = CursorType.Crosshair;
+
+            var prompt = BuildPromptText(options.Message, _keywords);
+            if (CurrentPrompt != prompt)
+            {
+                CurrentPrompt = prompt;
+                CurrentPromptChanged?.Invoke(prompt);
+            }
+
+            RefreshCurrentInput();
+        }
+
+        public void RegisterGetAngle(PromptAngleOptions options, Action<PromptDoubleResult> callback)
+        {
+            _distanceCallback = callback;
+            _getAngleMode = true;
             _pointCallback = null;
             _activePointOptions = options;
             _keywords = options.Keywords ?? Array.Empty<string>();
@@ -236,8 +259,12 @@ namespace NormalCAD.Controller
             _activePointOptions = null;
             _keywords = Array.Empty<string>();
 
-            CurrentPrompt = options.Message + ":";
-            CurrentPromptChanged?.Invoke(CurrentPrompt);
+            var prompt = BuildPromptText(options.Message, _keywords);
+            if (CurrentPrompt != prompt)
+            {
+                CurrentPrompt = prompt;
+                CurrentPromptChanged?.Invoke(prompt);
+            }
         }
 
         public void RegisterGetKeywords(PromptKeywordOptions options, Action<PromptKeywordResult> callback)
@@ -361,10 +388,20 @@ namespace NormalCAD.Controller
 
             if (_distanceCallback != null)
             {
-                double distance = _activePointOptions?.BasePoint is { } bp
-                    ? bp.DistanceTo(worldPt)
-                    : worldPt.DistanceTo(Point3d.Origin);
-                _distanceCallback(new PromptDoubleResult(PromptStatus.OK, distance, ""));
+                if (_getAngleMode)
+                {
+                    double angle = _activePointOptions?.BasePoint is { } bp
+                        ? Math.Atan2(worldPt.Y - bp.Y, worldPt.X - bp.X)
+                        : Math.Atan2(worldPt.Y, worldPt.X);
+                    _distanceCallback(new PromptDoubleResult(PromptStatus.OK, angle, ""));
+                }
+                else
+                {
+                    double distance = _activePointOptions?.BasePoint is { } bp
+                        ? bp.DistanceTo(worldPt)
+                        : worldPt.DistanceTo(Point3d.Origin);
+                    _distanceCallback(new PromptDoubleResult(PromptStatus.OK, distance, ""));
+                }
                 return;
             }
         }
@@ -479,6 +516,8 @@ namespace NormalCAD.Controller
                 if (double.TryParse(text, NumberStyles.Float,
                     CultureInfo.InvariantCulture, out var numericValue))
                 {
+                    if (_getAngleMode)
+                        numericValue = numericValue * Math.PI / 180.0;
                     _distanceCallback(new PromptDoubleResult(PromptStatus.OK, numericValue, ""));
                     return true;
                 }

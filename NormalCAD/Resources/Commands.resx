@@ -290,4 +290,27 @@
   <data name="LANGUAGE.MSG.PTBR" xml:space="preserve">
     <value>Portuguese</value>
   </data>
+
+  <!-- ===== INSERT Command ===== -->
+  <data name="INSERT.LOCALNAME" xml:space="preserve">
+    <value>INSERT</value>
+  </data>
+  <data name="INSERT.ALIAS" xml:space="preserve">
+    <value>I</value>
+  </data>
+  <data name="INSERT.PROMPT.BLOCKNAME" xml:space="preserve">
+    <value>Enter block name</value>
+  </data>
+  <data name="INSERT.PROMPT.POINT" xml:space="preserve">
+    <value>Specify insertion point</value>
+  </data>
+  <data name="INSERT.PROMPT.SCALE" xml:space="preserve">
+    <value>Specify scale factor</value>
+  </data>
+  <data name="INSERT.PROMPT.ROTATION" xml:space="preserve">
+    <value>Specify rotation angle</value>
+  </data>
+  <data name="INSERT.MSG.NOTFOUND" xml:space="preserve">
+    <value>Block "{0}" not found.</value>
+  </data>
 </root>
